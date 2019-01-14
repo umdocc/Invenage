@@ -1,0 +1,15 @@
+Invenage Inventory Management System
+
+- I build this while working for an import/export commercial company and hope someone will find
+it useful
+
+** The database
+
+- importLogBase: we normally will need to blank this at the beginning
+- saleLogBase: will not be used in calculating the remaining, but useful for migrating from older system
+- inventoryBase: need to be updated at the beginning when migrating from old system
+- productInfo: all information regarding the product
+
+Database usage:
+- All codes will only append the database
+
