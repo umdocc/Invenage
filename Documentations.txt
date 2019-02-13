@@ -5,11 +5,22 @@ it useful
 
 ** The database
 
+ Invenage uses a master-slave database structure where the master data contains everything.
+ The slave database contains information for the UI viewing and data entered using the UI.
+ The master scripts will read these entered data, writing to master database, then rebuild the
+ slave database when completed.
+ 
+ Both databases share these common tables:
+
 - importLogBase: we normally will need to blank this at the beginning
 - saleLogBase: will not be used in calculating the remaining, but useful for migrating from older system
-- inventoryBase: need to be updated at the beginning when migrating from old system
-- productInfo: all information regarding the product
+- inventoryBase: store how much stock we have at system initialisation
+- productInfo: all information regarding the product, more on this later
+- Packaging: unit conversion table
+
 
 Database usage:
 - All codes will only append the database
+
+
 

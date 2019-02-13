@@ -6,10 +6,10 @@ import pandas as pd, os
 # the getAppPath function, read the config file and build a dictionary
 def getConfigData():
     homePath = os.path.expanduser('~')
-    configFilePath = os.path.join(homePath,'invenageConf.csv')
+    configFilePath = os.path.join(homePath,'invenageConf.xlsx')
     if (os.path.exists(configFilePath)):
         # read the config file
-        configTable = pd.read_csv(configFilePath,dtype=str)
+        configTable = pd.read_excel(configFilePath,dtype=str)
         configurationData = {}
     # now use relative to user path for all data storage
     

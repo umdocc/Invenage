@@ -9,7 +9,8 @@ dashboardPage(
   ## Sidebar content
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Xuất Kho", tabName = "export", icon = icon("minus"))
+      menuItem("Xuất Kho", tabName = "export", icon = icon("minus")),
+      menuItem("Doanh Số", tabName = "salesView", icon = icon("minus"))
     )
   ),
   dashboardBody(
@@ -17,26 +18,56 @@ dashboardPage(
     tabItems(
       tabItem(tabName = "export",
         fluidRow(
-          box(
-            
+          box(width=4,
+            htmlOutput("pxkSelector"),
+            selectInput(inputId = 'customerName',
+              label = localisation$actual[localisation$label=='customerName'],
+              choices = customerInfo$customerName),
             selectInput(inputId = "prodName",
               label = localisation$actual[localisation$label=='prodName'],
-              choices=productInfos$Name),
+              choices=productInfo$Name),
             htmlOutput("nsxSelector"),
             htmlOutput("lotSelector"),
             htmlOutput("expDateSelector"),
+            htmlOutput("unitSelector"),
+            selectizeInput(inputId = "Amount",
+                        label = localisation$actual[localisation$label=='Amount'],
+                        choices=c(1:100)),
             h4(localisation$actual[localisation$label=='productInfo']),
-            textOutput("thongTinSP"),
-            actionButton("inventoryOut", 
+            htmlOutput("thongTinSP"),
+            actionButton("inventoryOut",
                     localisation$actual[localisation$label=='inventoryOut'])
           ),
-          box(
-            h3(localisation$actual[localisation$label=='lastEntry'])),
-            textOutput("text1"),
+          box(width = 8,
+            h3(localisation$actual[localisation$label=='currentPXK']),
+            tableOutput("currentPXK"),
             actionButton("delLastEntry",
-                  localisation$actual[localisation$label=='delLastEntry'])
+                  localisation$actual[localisation$label=='delLastEntry']),
+            actionButton("newForm",
+                       localisation$actual[localisation$label=='newForm'])
+          
           )
         )
-      )
+      ), # end of export tab
+      tabItem(tabName = 'salesView',
+        fluidRow(
+          box(width = 4,
+            selectInput(inputId = 'saleViewCustomerName',
+              label = localisation$actual[localisation$label=='customerName'],
+              choices = customerInfo$customerName),
+            selectInput(inputId = 'rollingMth',
+                        label = localisation$actual[localisation$label=='rollingMth'],
+                        choices = 1:24,selected=12),
+            selectInput(inputId = 'groupType',
+                        label = localisation$actual[localisation$label=='groupType'],
+                        choices = localisation$actual[localisation$label=='All'])
+          ),
+          box(width = 8,
+            textOutput('testText'),
+            plotOutput('saleViewPlot')
+          )
+        )
+      ) # end of salesView tab
     )
   )
+)

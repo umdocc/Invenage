@@ -1,23 +1,29 @@
 # Invenage server.R
 source("global.R",local = F)
 
-# Define server logic required to generate and plot a random distribution
 shinyServer(function(input, output,session) {
-  
-  # Info line
-  output$thongTinSP <- renderText({
+
+# ------------------- UI Elements for Xuat Kho tab -----------------------------
+  # Info line, use htmlOutput for more controls
+  output$thongTinSP <- renderUI({
     mfgCode <- productInfo[productInfo$Name==input$prodName, "mfgCode"]
     prodCode <- productInfo[productInfo$Name==input$prodName &
-                               productInfos$NSX==input$nsxSelector, "prodCode"]
-    # totalAvail <- Inventory[Inventory$prodCode == prodCode]
-    paste("REF: ",mfgCode,prodCode)
+                               productInfo$NSX==input$nsxSelector, "prodCode"]
+    totalAvail <- Inventory[Inventory$prodCode == prodCode &
+                              Inventory$Lot == input$lotSelector, 'SLKho']
+    ExpDate <- Inventory[Inventory$prodCode == prodCode &
+                           Inventory$Lot == input$lotSelector, 'ExpDate']
+    HTML(paste("REF: ",mfgCode,'<br/>',
+          localisation$actual[localisation$label=='prodCode'],':',prodCode,
+          '<br/>',
+          localisation$actual[localisation$label=='ExpDate'],':',ExpDate,
+          '<br/>',
+          localisation$actual[localisation$label=='totalAvail'],':',totalAvail)
+    )
   })
-  
+
   output$nsxSelector <- renderUI({
-    nsxList <- productInfos[productInfos$Name == input$prodName,"NSX"]
-    # available1 <- parts[parts$MachineCode == machine_code, c("PartName","TTCode","PartCode")]
-    # available1$NameWithCode <- paste(available1$PartName,"[",available1$TTCode,"]")
-    # available1 <- available1$NameWithCode
+    nsxList <- productInfo[productInfo$Name == input$prodName,"NSX"]
     selectInput(
       inputId = "nsxSelector",
       label = "NSX",
@@ -25,8 +31,8 @@ shinyServer(function(input, output,session) {
     )
   })
   output$lotSelector <- renderUI({
-    prodCodeCurrent <- productInfos[productInfos$Name==input$prodName & 
-                               productInfos$NSX==input$nsxSelector, "prodCode"]
+    prodCodeCurrent <- productInfo[productInfo$Name==input$prodName &
+                               productInfo$NSX==input$nsxSelector, "prodCode"]
     avaiLot <- Inventory[Inventory$prodCode==prodCodeCurrent,'Lot']
     selectInput(
       inputId = "lotSelector",
@@ -34,109 +40,130 @@ shinyServer(function(input, output,session) {
       choices = unique(avaiLot)
     )
   })
-  
-  # # ------------------------ Nhap linh kien action button -------------------------------
-  # # events that happen once clicked
-  # observeEvent(input$inventoryOut, {
-  #   
-  #   #Write the event to transaction table to keep track of the transaction
-  #   # connect to database
-  #   sqlite.driver <- dbDriver("SQLite")
-  #   conn <- dbConnect(sqlite.driver, dbname = coreDBPath)
-  #   currentPXK <- dbReadTable(conn,"currentPXK")
-  #   dbDisconnect(conn)
-  #   # current_tid <- last_tid+1
-  #   # tenlinhkien <- gsub(" \\[.*$","",input$linhkien)
-  #   # transaction <- data.frame(
-  #   #   TID = current_tid,
-  #   #   Date = input$date,
-  #   #   NguoiXuat = input$NguoiXuat,
-  #   #   LinhKien = tenlinhkien,
-  #   #   MachineCode = as.character(machines[machines$Manufacturer == input$mfg &
-  #   #                                         machines$MachineName == input$tenmay,"Code"]),
-  #   #   SerialNo = input$serialNo,  
-  #   #   SoLuong = input$number,
-  #   #   Destination = input$khachhang,
-  #   #   GhiChu = input$ghichu,
-  #   #   PartCode <- parts$PartCode[parts$PartName==tenlinhkien &
-  #   #                                parts$MachineCode==as.character(
-  #   #                                  machines[machines$Manufacturer == input$mfg &
-  #   #                                             machines$MachineName == input$tenmay,"Code"])]
-  #   # )
-  #   # write.table(transaction, "Data/transactions.txt", sep="\t",append = T,
-  #   #             col.names  = F,row.names = F)
-  #   # transactions <<- read.delim2("Data/transactions.txt",stringsAsFactors = F)
-  #   
-  #   # update the parts table with new value
-  #   parts$Remain[parts$PartCode==transaction$PartCode] <- 
-  #     parts$Remain[parts$PartCode==transaction$PartCode] - as.numeric(as.character(
-  #       transaction$SoLuong))
-  #   write.table(parts,file="Data/Parts.txt",sep="\t",
-  #               row.names = FALSE,fileEncoding = "utf-8")
-  #   
-  #   #reload the table
-  #   parts <<- read.delim2("Data/parts.txt",stringsAsFactors = F)
-  #   
-  #   js_string <- 'alert("Hoàn Tất Xuất");'
-  #   session$sendCustomMessage(type='jsCode', list(value = js_string))
-  #   
-  #   #render last transaction, this only happen when clicked
-  #   output$text1 <- renderText({ 
-  #     last_transaction <- read.delim2("Data/transactions.txt",stringsAsFactors = F)
-  #     last_ks <- last_transaction[nrow(last_transaction),"NguoiXuat"]
-  #     last_lk <- last_transaction[nrow(last_transaction),"LinhKien"]
-  #     last_num <- last_transaction[nrow(last_transaction),"SoLuong"]
-  #     last_date <- last_transaction[nrow(last_transaction),"Date"]
-  #     paste(last_ks,"xuất",last_num,last_lk,"ngày",last_date)
-  #   })
-  #   
-  # })
-  
-  # # ------------------------ Undo button ------------------------------------
-  # # events that happen once clicked on undo
-  # observeEvent(input$undo1, {
-  #   
-  #   #In case of undo we need to read the entire table and remove the last row
-  #   latest_transaction <- read.delim2("Data/transactions.txt",stringsAsFactors = F)
-  #   if (nrow(latest_transaction)>1){
-  #     
-  #     #extract the last transaction and update the part table
-  #     last_transaction <- latest_transaction[nrow(latest_transaction),]
-  #     parts$Remain[parts$PartCode==last_transaction$PartCode] <- 
-  #       parts$Remain[parts$PartCode==last_transaction$PartCode] + as.numeric(as.character(
-  #         last_transaction$SoLuong))
-  #     write.table(parts,file="Data/parts.txt",sep="\t",row.names = FALSE,fileEncoding = "utf-8")
-  #     parts <<- read.delim2("Data/parts.txt",stringsAsFactors = F)
-  #     
-  #     #update the transaction table
-  #     latest_transaction <- latest_transaction[1:nrow(latest_transaction)-1,]
-  #     write.table(latest_transaction, "Data/transactions.txt", sep="\t",append = F,
-  #                 col.names  = T,row.names = F)
-  #     transactions <<- read.delim2("Data/transactions.txt",stringsAsFactors = F)
-  #     
-  #   }
-  #   #render last transaction, this only happen when clicked
-  #   output$text1 <- renderText({
-  #     last_ks <- latest_transaction[nrow(latest_transaction),"NguoiXuat"]
-  #     last_lk <- latest_transaction[nrow(latest_transaction),"LinhKien"]
-  #     last_num <- latest_transaction[nrow(latest_transaction),"SoLuong"]
-  #     last_date <- latest_transaction[nrow(latest_transaction),"Date"]
-  #     paste(last_ks,"xuất",last_num,last_lk,"ngày",last_date)
-  #   })
-  #   
-  #   js_string <- 'alert("Hoàn Tất Xoá Dữ Liệu");'
-  #   session$sendCustomMessage(type='jsCode', list(value = js_string))
-  #   
-  # })
-  
-  # ---------------------- Cong Cu: Add Customers ---------------------------------------
-  # events that happen once clicked on addCustomer
-  # observeEvent(input$addCustomer, {
-  #   customer <- rbind(customer,input$new_customer)
-  #   customer <- data.frame(Name=customer[order(customer),])
-  #   write.table(customer,file="Data/customers.txt",sep="\t",append=F,col.names = F,row.names = F)
-  #   js_string <- 'alert("Đã Thêm Khách Hàng! Vui lòng khởi động lại app");'
-  #   session$sendCustomMessage(type='jsCode', list(value = js_string))
-  # })
-  
+
+  output$unitSelector <- renderUI({
+    prodCodeCurrent <- productInfo[productInfo$Name==input$prodName &
+                            productInfo$NSX==input$nsxSelector, "prodCode"]
+    unitList <- Packaging[Packaging$prodCode == prodCodeCurrent,"Unit"]
+    unitList <- unique(unitList)
+    unitList <- unitList[unitList!='pack']
+    selectInput(
+      inputId = "unitSelector",
+      label = localisation$actual[localisation$label=='Unit'],
+      choices = unitList
+    )
+  })
+
+  output$pxkSelector <- renderUI({
+    sqlite.driver <- dbDriver("SQLite")
+    conn <- dbConnect(sqlite.driver, dbname = databasePath)
+    PXKInfo <- dbReadTable(conn,"PXKInfo")
+    dbDisconnect(conn)
+    currentPXK <- PXKInfo[PXKInfo$completionCode==0,'PXKNum']
+    if (length(currentPXK)>0){
+      currentPXK = unique(currentPXK)
+    }else{
+      currentDate <- strftime(Sys.time(),'%d%m%y')
+      i <- 1;newPXKNum <- F
+      while (!newPXKNum){
+        tmpNum = paste0(strftime(Sys.time(),'%d%m%y'),sprintf("%02d",i))
+        if (length(PXKInfo[PXKInfo$PXKNum==as.integer(tmpNum),'PXKNum'])==0){
+          currentPXK <- tmpNum
+          newPXKNum <- T
+        }else{
+          i <- i+1
+        }
+      }
+    }
+    selectInput(
+      inputId = "pxkSelector",
+      label = localisation$actual[localisation$label=='pxkNum'],
+      choices = currentPXK
+    )
+  })
+
+# ------------------- UI for the salesView tab ---------------------------------
+  output$testText <- renderText({
+    customerCode <- customerInfo$customerCode[customerInfo$customerName==
+                                                input$saleViewCustomerName]
+    paste('Mã KH:',customerCode)
+  })
+  output$saleViewPlot <- renderPlot({
+    tmp <- saleLog[saleLog$customerCode == customerInfo$customerCode[
+      customerInfo$customerName == input$saleViewCustomerName]]
+    tmp$saleMonth <- as.Date(strptime(tmp$invoiceDate,
+                                      format = '%Y-%m-%d %H:%M:%S'))
+    currentMth <- as.Date(as.character(cut(Sys.Date(), "month")),'%Y-%m-%d')
+    backDate <- rollBackDate(input$rollingMth)
+    tmp <- tmp[tmp$saleMonth >= backDate & tmp$saleMonth < currentMth,]
+    tmp$saleMonth <- as.Date(as.character(cut(tmp$saleMonth,'month')))  
+    # graph by month:
+    ggplot(data = tmp,
+           aes(saleMonth, unitAmt)) +
+      stat_summary(fun.y = sum, # adds up all observations for the month
+                   geom = "bar") + # or "line"
+      scale_x_date(
+        labels = date_format("%Y-%m"),
+        breaks = "1 month") # custom x-axis labels
+  })
+
+# ------------------------ Nhap linh kien action button ------------------------
+  # events that happen once clicked
+  observeEvent(input$inventoryOut, {
+
+    # Write the event to transaction table to keep track of the transaction
+    # connect to database
+    sqlite.driver <- dbDriver("SQLite")
+    conn <- dbConnect(sqlite.driver, dbname = databasePath)
+    saleLog <- dbReadTable(conn,"saleLog")
+    dbDisconnect(conn)
+
+    # append the data from input
+    appendSaleLog <- data.frame(
+      prodCode = unique(productInfo[productInfo$Name==input$prodName &
+                        productInfo$NSX==input$nsxSelector, "prodCode"]),
+      Unit = input$unitSelector,
+      Amount = input$Amount,
+      Lot = input$lotSelector,
+      customerCode = customerInfo[
+        customerInfo$customerName == input$customerName,'customerCode'],
+      PXKNum = input$pxkSelector,
+      Note = ''
+    )
+    
+    appendPXKInfo <- data.frame(
+      # if this PXK is not in the database yet, create new with completionCode 0
+      if (length(PXKInfo[PXKInfo$PXKNum==as.integer(input$pxkSelector),'PXKNum'])==0){
+        appendPXKInfo <- data.frame(
+          PXKNum = input$pxkSelector,
+          saleDate = as.integer(format(Sys.Date(),'%d%m%y')),
+          customerCode = customerInfo[
+            customerInfo$customerName == input$customerName,'customerCode'],
+          PXKType = 'I',
+          completionCode = 0
+        )
+      }
+    )
+
+    # writing to database
+    sqlite.driver <- dbDriver("SQLite")
+    conn <- dbConnect(sqlite.driver, dbname = databasePath)
+    dbWriteTable(conn,'saleLog',appendSaleLog,append=T)
+    saleLog <- dbReadTable(conn,"saleLog")
+    if (length(PXKInfo[PXKInfo$PXKNum==as.integer(input$pxkSelector),'PXKNum'])==0){
+      dbWriteTable(conn,'PXKInfo',appendPXKInfo,append=T)
+    }
+    PXKInfo <- dbReadTable(conn,"PXKInfo")
+    dbDisconnect(conn)
+
+    output$currentPXK <- renderTable({
+      currentPXK <- PXKInfo[PXKInfo$completionCode==0,'PXKNum']
+      if (length(currentPXK)>0){
+        saleLog[saleLog$PXKNum==as.integer(currentPXK)]
+      }else{
+        ''
+      }
+
+    })
+  }) 
 })
