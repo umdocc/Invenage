@@ -33,6 +33,7 @@ dashboardPage(
             selectizeInput(inputId = "Amount",
                         label = localisation$actual[localisation$label=='Amount'],
                         choices=c(1:100)),
+            htmlOutput("warehouseSelector"),
             h4(localisation$actual[localisation$label=='productInfo']),
             htmlOutput("thongTinSP"),
             actionButton("inventoryOut",
@@ -43,8 +44,8 @@ dashboardPage(
             tableOutput("currentPXK"),
             actionButton("delLastEntry",
                   localisation$actual[localisation$label=='delLastEntry']),
-            actionButton("newForm",
-                       localisation$actual[localisation$label=='newForm'])
+            actionButton("completeForm",
+                       localisation$actual[localisation$label=='completeForm'])
           
           )
         )

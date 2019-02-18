@@ -55,10 +55,11 @@ shinyServer(function(input, output,session) {
   })
 
   output$pxkSelector <- renderUI({
-    sqlite.driver <- dbDriver("SQLite")
-    conn <- dbConnect(sqlite.driver, dbname = databasePath)
+    
+    conn <- dbOpen(dbType, configDict)
     PXKInfo <- dbReadTable(conn,"PXKInfo")
     dbDisconnect(conn)
+    
     currentPXK <- PXKInfo[PXKInfo$completionCode==0,'PXKNum']
     if (length(currentPXK)>0){
       currentPXK = unique(currentPXK)
@@ -79,6 +80,16 @@ shinyServer(function(input, output,session) {
       inputId = "pxkSelector",
       label = localisation$actual[localisation$label=='pxkNum'],
       choices = currentPXK
+    )
+  })
+
+  output$warehouseSelector <- renderUI({
+    warehouseList <- warehouseInfo$Warehouse
+    selectInput(
+      inputId = "warehouseSelector",
+      label = localisation$actual[localisation$label=='Warehouse'],
+      choices = warehouseList,
+      selected = 'MDS' # dynamic selection later on
     )
   })
 
@@ -113,24 +124,10 @@ shinyServer(function(input, output,session) {
 
     # Write the event to transaction table to keep track of the transaction
     # connect to database
-    sqlite.driver <- dbDriver("SQLite")
-    conn <- dbConnect(sqlite.driver, dbname = databasePath)
+    conn <- dbOpen(dbType, configDict)
     saleLog <- dbReadTable(conn,"saleLog")
     dbDisconnect(conn)
 
-    # append the data from input
-    appendSaleLog <- data.frame(
-      prodCode = unique(productInfo[productInfo$Name==input$prodName &
-                        productInfo$NSX==input$nsxSelector, "prodCode"]),
-      Unit = input$unitSelector,
-      Amount = input$Amount,
-      Lot = input$lotSelector,
-      customerCode = customerInfo[
-        customerInfo$customerName == input$customerName,'customerCode'],
-      PXKNum = input$pxkSelector,
-      Note = ''
-    )
-    
     appendPXKInfo <- data.frame(
       # if this PXK is not in the database yet, create new with completionCode 0
       if (length(PXKInfo[PXKInfo$PXKNum==as.integer(input$pxkSelector),'PXKNum'])==0){
@@ -142,28 +139,79 @@ shinyServer(function(input, output,session) {
           PXKType = 'I',
           completionCode = 0
         )
+        
+        # write this to database, then reload PXKInfo
+        conn <- dbOpen(dbType,configDict)
+        dbWriteTable(conn,'PXKInfo',appendPXKInfo,append=T)
+        PXKInfo <- dbReadTable(conn,"PXKInfo")
+        dbDisconnect(conn)
+        # set currentStt also
+        currentStt <- 1
+        
+      }else{ #otherwise, read the info from the saleLog
+        conn <- dbOpen(dbType,configDict)
+        currentStt <- dbGetQuery(conn, "select max(Stt) from saleLog 
+                                        where PXKNum = (
+                                        select PXKNum from PXKInfo 
+                                        where completionCode = 0)")[1,1]
+        dbDisconnect(conn)
+        
+        # if there is a result, increase by 1, otherwise set to 1
+        if (is.na(currentStt)){
+          currentStt <- 1
+        }else{
+          currentStt <- currentStt+1
+        }
+        
       }
     )
 
-    # writing to database
-    sqlite.driver <- dbDriver("SQLite")
-    conn <- dbConnect(sqlite.driver, dbname = databasePath)
+    # append the data from input
+    appendSaleLog <- data.frame(
+      Stt = currentStt,
+      prodCode = unique(productInfo[productInfo$Name==input$prodName &
+                                      productInfo$NSX==input$nsxSelector, "prodCode"]),
+      Unit = input$unitSelector,
+      Amount = input$Amount,
+      Lot = input$lotSelector,
+      customerCode = customerInfo[
+        customerInfo$customerName == input$customerName,'customerCode'],
+      PXKNum = input$pxkSelector,
+      Note = ''
+    )
+    # print(appendSaleLog)    
+    # writing saleLog to database
+    conn <- dbOpen(dbType,configDict)
     dbWriteTable(conn,'saleLog',appendSaleLog,append=T)
-    saleLog <- dbReadTable(conn,"saleLog")
-    if (length(PXKInfo[PXKInfo$PXKNum==as.integer(input$pxkSelector),'PXKNum'])==0){
-      dbWriteTable(conn,'PXKInfo',appendPXKInfo,append=T)
-    }
-    PXKInfo <- dbReadTable(conn,"PXKInfo")
     dbDisconnect(conn)
 
     output$currentPXK <- renderTable({
-      currentPXK <- PXKInfo[PXKInfo$completionCode==0,'PXKNum']
-      if (length(currentPXK)>0){
-        saleLog[saleLog$PXKNum==as.integer(currentPXK)]
-      }else{
-        ''
-      }
-
+      query <- paste("select * from saleLog where PXKNum =",
+                     input$pxkSelector)
+      conn <- dbOpen(dbType,configDict)
+      outTable <- dbGetQuery(conn,query)
+      dbDisconnect(conn)
+      outTable
     })
-  }) 
+  })
+  observeEvent(input$delLastEntry,{
+    conn <- dbOpen(dbType,configDict)
+    # lastStt <- dbGetQuery(conn,"select max(Stt) from saleLog where PXKNum = 12021901")
+    query <- paste("delete from saleLog where PXKNum =",input$pxkSelector,
+                   "and Stt = (select max(Stt) from saleLog where PXKNum =",
+                   input$pxkSelector,")")
+    currentPXK <- dbSendQuery(conn,query)
+    dbDisconnect(conn)
+    
+    # render current PXK table
+    output$currentPXK <- renderTable({
+      query <- paste("select * from saleLog where PXKNum =",
+                     input$pxkSelector)
+      conn <- dbOpen(dbType,configDict)
+      outTable <- dbGetQuery(conn,query)
+      dbDisconnect(conn)
+      outTable
+    })
+  })
+
 })

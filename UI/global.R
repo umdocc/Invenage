@@ -27,12 +27,27 @@ companyName <- configDict$Value[configDict$Name=='companyName']
 appLang <- configDict$Value[configDict$Name=='appLang']
 appPath <- file.path(path.expand('~'),
                      configDict$Value[configDict$Name=='appPath'])
-databasePath <- file.path(path.expand('~'),
-                        configDict$Value[configDict$Name=='databasePath'])
+dbType <- configDict$Value[configDict$Name=='dbType']
+
+if (dbType == 'SQLite'){
+  databasePath <- file.path(path.expand('~'),
+                            configDict$Value[configDict$Name=='databasePath'])}
+
+# use this to abstract betwwen SQLite and MySQL
+dbOpen <- function(dbType,configDict){
+    if (dbType == 'SQLite'){
+        databasePath <- file.path(path.expand('~'),
+                          configDict$Value[configDict$Name=='databasePath'])
+        sqlite.driver <- dbDriver("SQLite")
+        conn <- dbConnect(sqlite.driver, dbname = databasePath)
+    return(conn)
+  }
+}
+
+
 
 # connect to database
-sqlite.driver <- dbDriver("SQLite")
-conn <- dbConnect(sqlite.driver, dbname = databasePath)
+conn <- dbOpen(dbType,configDict)
 productInfo <- dbReadTable(conn,"productInfo")
 localisation <- dbReadTable(conn,"localisation")
 inventoryBase <- dbReadTable(conn,"inventoryBase")
@@ -41,6 +56,7 @@ Packaging <- dbReadTable(conn,"Packaging")
 saleLog <- dbReadTable(conn,"saleLog")
 saleLogBase <- dbReadTable(conn,"saleLogBase")
 PXKInfo <- dbReadTable(conn,"PXKInfo")
+warehouseInfo <- dbReadTable(conn,"warehouseInfo")
 dbDisconnect(conn)
 
 # use the configured language

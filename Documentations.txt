@@ -3,13 +3,15 @@ Invenage Inventory Management System
 - I build this while working for an import/export commercial company and hope someone will find
 it useful
 
-** The database
+** Priority feature
 
- Invenage uses a master-slave database structure where the master data contains everything.
- The slave database contains information for the UI viewing and data entered using the UI.
- The master scripts will read these entered data, writing to master database, then rebuild the
- slave database when completed.
- 
+- UI to access all database structure
+- Functions to handle SQL connection
+
+** Planned feature
+
+- Moving to MySQL
+
  Both databases share these common tables:
 
 - importLogBase: we normally will need to blank this at the beginning
