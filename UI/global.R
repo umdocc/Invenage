@@ -14,6 +14,29 @@ rollBackDate <- function(rollingMth){
   return(backDate)
 }
 
+# get currentPXK is a function that use the database
+getNewPXK <- function(conn){
+  PXKNumList <- dbGetQuery(conn,'select PXKNum from PXKInfo')
+  currentPXK <- dbGetQuery(conn,'select PXKNum from PXKInfo where completionCode = 0')
+  if (nrow(currentPXK)>0){
+    newPXK = currentPXK$PXKNum[1]
+  }else{
+    currentDate <- strftime(Sys.time(),'%d%m%y')
+    i <- 1;newPXKNum <- F
+    while (!newPXKNum){
+      tmpNum = paste0(strftime(Sys.time(),'%d%m%y'),sprintf("%02d",i))
+      # print(tmpNum)
+      if (length(PXKNumList[PXKNumList$PXKNum==as.integer(tmpNum),'PXKNum'])==0){
+        newPXK <- tmpNum
+        newPXKNum <- T
+      }else{
+        i <- i+1
+      }
+    }
+  }
+  return(newPXK)
+}
+
 
 # --------------------- Configure Basic Information ----------------------------
 # check the configuration file

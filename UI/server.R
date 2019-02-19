@@ -123,9 +123,10 @@ shinyServer(function(input, output,session) {
   observeEvent(input$inventoryOut, {
 
     # Write the event to transaction table to keep track of the transaction
-    # connect to database
+    # connect to database, also re-read PXKInfo
     conn <- dbOpen(dbType, configDict)
     saleLog <- dbReadTable(conn,"saleLog")
+    PXKInfo <- dbReadTable(conn,"PXKInfo")
     dbDisconnect(conn)
 
     appendPXKInfo <- data.frame(
@@ -137,6 +138,7 @@ shinyServer(function(input, output,session) {
           customerCode = customerInfo[
             customerInfo$customerName == input$customerName,'customerCode'],
           PXKType = 'I',
+          Warehouse = input$warehouseSelector,
           completionCode = 0
         )
         
@@ -196,11 +198,11 @@ shinyServer(function(input, output,session) {
   })
   observeEvent(input$delLastEntry,{
     conn <- dbOpen(dbType,configDict)
-    # lastStt <- dbGetQuery(conn,"select max(Stt) from saleLog where PXKNum = 12021901")
     query <- paste("delete from saleLog where PXKNum =",input$pxkSelector,
                    "and Stt = (select max(Stt) from saleLog where PXKNum =",
                    input$pxkSelector,")")
-    currentPXK <- dbSendQuery(conn,query)
+    res <- dbSendStatement(conn,query)
+    dbClearResult(res)
     dbDisconnect(conn)
     
     # render current PXK table
@@ -211,6 +213,27 @@ shinyServer(function(input, output,session) {
       outTable <- dbGetQuery(conn,query)
       dbDisconnect(conn)
       outTable
+    })
+  })
+  
+  # when completeForm button is pressed, change PXK status to 1 and write the excel form
+  observeEvent(input$completeForm,{
+    conn <- dbOpen(dbType,configDict)
+    query <- paste("update PXKInfo set completionCode = 1 
+                   where PXKNum =",input$pxkSelector)
+    res <- dbSendStatement(conn,query)
+    dbClearResult(res)
+    newPXK <- getNewPXK(conn)
+    dbDisconnect(conn)
+    
+    print(newPXK)
+    output$pxkSelector <- renderUI({
+      # render the UI
+      selectInput(
+        inputId = "pxkSelector",
+        label = localisation$actual[localisation$label=='pxkNum'],
+        choices = newPXK
+      )
     })
   })
 
