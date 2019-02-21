@@ -1,0 +1,1 @@
+"C:\Program Files\R\R-3.4.1\bin\R.exe" -e "shiny::runApp(appDir = 'H:\\Invenage\\UI', port = 7990, launch.browser = T)"
