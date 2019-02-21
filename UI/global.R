@@ -1,11 +1,34 @@
 # This file can be placed anywhere, but need the invenageConf.csv to work
-library(RSQLite)
-library(shiny)
-library(shinydashboard)
-require(gdata)
-require(ggplot2)
-require(scales)
+# call all required packages
+requiredPackagesList <- c('RSQLite','shiny','shinydashboard','ggplot2',
+                          'scales','XLConnect')
+lapply(requiredPackagesList, require, character.only = TRUE)
+# require(RSQLite)
+# require(shiny)
+# require(shinydashboard)
+# require(ggplot2)
+# require(scales)
+# require(XLConnect)
+
 # ------------------------------- functions ------------------------------------
+ # detecting operating system
+get_os <- function(){
+  sysinf <- Sys.info()
+  if (!is.null(sysinf)){
+    os <- sysinf['sysname']
+    if (os == 'Darwin')
+      os <- "osx"
+  } else { ## mystery machine
+    os <- .Platform$OS.type
+    if (grepl("^darwin", R.version$os))
+      os <- "osx"
+    if (grepl("linux-gnu", R.version$os))
+      os <- "linux"
+  }
+  return(tolower(as.character(os)))
+  
+}
+
 # roll back x months from current month, not counting current month,
 # return the beginning date of the rolled back month
 rollBackDate <- function(rollingMth){
@@ -37,29 +60,35 @@ getNewPXK <- function(conn){
   return(newPXK)
 }
 
-
 # --------------------- Configure Basic Information ----------------------------
+# attemp to remove Documents folder in windows homePath
+osType <- get_os()
+homePath <- path.expand('~')
+if (osType == 'windows'){
+  homePath <- dirname(homePath)
+}
+configFullPath <- file.path(homePath,'invenageConf.csv')
 # check the configuration file
-if (file.exists(file.path(path.expand('~'),'invenageConf.xlsx'))){
-  configDict <- read.xls(file.path(path.expand('~'),'invenageConf.xlsx'),
-                         stringsAsFactors = F)
+print(configFullPath)
+if (file.exists(configFullPath)){
+  configDict <- read.csv(configFullPath, stringsAsFactors = F)
 }else{
-  stop('invenageConf.xlsx not found!')
+  stop('invenageConf.csv not found!')
 }
 companyName <- configDict$Value[configDict$Name=='companyName']
 appLang <- configDict$Value[configDict$Name=='appLang']
-appPath <- file.path(path.expand('~'),
+appPath <- file.path(homePath,
                      configDict$Value[configDict$Name=='appPath'])
 dbType <- configDict$Value[configDict$Name=='dbType']
 
 if (dbType == 'SQLite'){
-  databasePath <- file.path(path.expand('~'),
+  databasePath <- file.path(homePath,
                             configDict$Value[configDict$Name=='databasePath'])}
 
 # use this to abstract betwwen SQLite and MySQL
 dbOpen <- function(dbType,configDict){
     if (dbType == 'SQLite'){
-        databasePath <- file.path(path.expand('~'),
+        databasePath <- file.path(homePath,
                           configDict$Value[configDict$Name=='databasePath'])
         sqlite.driver <- dbDriver("SQLite")
         conn <- dbConnect(sqlite.driver, dbname = databasePath)

@@ -34,10 +34,9 @@ shinyServer(function(input, output,session) {
     prodCodeCurrent <- productInfo[productInfo$Name==input$prodName &
                                productInfo$NSX==input$nsxSelector, "prodCode"]
     avaiLot <- Inventory[Inventory$prodCode==prodCodeCurrent,'Lot']
-    selectInput(
-      inputId = "lotSelector",
-      label = "Lot",
-      choices = unique(avaiLot)
+    selectizeInput(
+      inputId = "lotSelector", label = "Lot",
+      choices = unique(avaiLot), options = list(create = TRUE)
     )
   })
 
@@ -47,10 +46,11 @@ shinyServer(function(input, output,session) {
     unitList <- Packaging[Packaging$prodCode == prodCodeCurrent,"Unit"]
     unitList <- unique(unitList)
     unitList <- unitList[unitList!='pack']
-    selectInput(
+    selectizeInput(
       inputId = "unitSelector",
       label = localisation$actual[localisation$label=='Unit'],
-      choices = unitList
+      choices = unitList,
+      options = list(create=T)
     )
   })
 
@@ -226,7 +226,35 @@ shinyServer(function(input, output,session) {
     newPXK <- getNewPXK(conn)
     dbDisconnect(conn)
     
-    print(newPXK)
+    # getting data to write to excel
+    printingPXKNum <- input$pxkSelector
+    printingWarehouse <- input$warehouseSelector
+
+    # create new PXK file
+    origPath <- file.path(homePath,
+              configDict$Value[configDict$Name=='formsPath'],
+              "PXKform.xlsx")
+    destPath <- file.path(homePath,
+                          configDict$Value[configDict$Name=='PXKPath'],
+                          paste0("PXK.",input$pxkSelector,".xlsx"))
+    file.copy(origPath,destPath)
+    wb <- loadWorkbook(destPath, create=TRUE)
+    setStyleAction(wb,XLC$"STYLE_ACTION.NONE")
+    
+    conn <- dbOpen(dbType,configDict)
+    query <- paste("SELECT saleLog.Stt, productInfo.Name,saleLog.Unit,
+                      saleLog.Amount,saleLog.Lot,saleLog.customerCode
+                    FROM saleLog INNER JOIN productInfo
+                    ON saleLog.prodCode = productInfo.prodCode
+                    WHERE saleLog.PXKNum =",printingPXKNum)
+    Data <- dbGetQuery(conn,query) 
+    dbDisconnect(conn)
+    writeWorksheet(wb,Data,"PXK",startRow=8,startCol=1,header=F)
+    saveWorkbook(wb)
+    # open the file
+    system(paste0('open ','"',destPath,'"'))
+    
+    
     output$pxkSelector <- renderUI({
       # render the UI
       selectInput(
