@@ -10,7 +10,8 @@ dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem("Xuất Kho", tabName = "export", icon = icon("minus")),
-      menuItem("Doanh Số", tabName = "salesView", icon = icon("minus"))
+      menuItem("Doanh Số", tabName = "salesView", icon = icon("minus")),
+      menuItem("Công Cụ", tabName = "Tools", icon = icon("minus"))
     )
   ),
   dashboardBody(
@@ -20,19 +21,22 @@ dashboardPage(
         fluidRow(
           box(width=4,
             htmlOutput("pxkSelector"),
-            selectInput(inputId = 'customerName',
+            selectizeInput(inputId = 'customerName',
               label = localisation$actual[localisation$label=='customerName'],
               choices = customerInfo$customerName),
             selectInput(inputId = "prodName",
               label = localisation$actual[localisation$label=='prodName'],
               choices=productInfo$Name),
             htmlOutput("nsxSelector"),
-            htmlOutput("lotSelector"),
-            htmlOutput("expDateSelector"),
             htmlOutput("unitSelector"),
+            selectizeInput(inputId = "unitPrice",
+                           label = localisation$actual[localisation$label=='unitPrice'],
+                           choices='',options = list(create=T)),
             selectizeInput(inputId = "Amount",
                         label = localisation$actual[localisation$label=='Amount'],
-                        choices=c(1:100)),
+                        choices=c(1:100),options = list(create=T)),
+            htmlOutput("lotSelector"),
+            htmlOutput("expDateSelector"),
             htmlOutput("warehouseSelector"),
             h4(localisation$actual[localisation$label=='productInfo']),
             htmlOutput("thongTinSP"),
@@ -68,7 +72,26 @@ dashboardPage(
             plotOutput('saleViewPlot')
           )
         )
-      ) # end of salesView tab
-    )
-  )
-)
+      ), # end of salesView  tab
+      tabItem(tabName = 'Tools',
+              fluidRow(
+                box(width = 4,
+                    h3(localisation$actual[localisation$label=='addCustomer']),
+                    textInput(inputId = 'customerCode',
+                                label = localisation$actual[
+                                  localisation$label=='customerCode']),
+                    h5('Ex: CHORAY,NGUYENHOANG,.....'),
+                    textInput(inputId = 'customerName',
+                              label = localisation$actual[
+                                localisation$label=='customerName']),
+                    h5('Ex: Bệnh Viện Chợ Rẫy TP HCM,
+                       Phòng Khám Nguyễn Hoàng,.....'),
+                    actionButton("addCustomer",
+                                 localisation$actual[
+                                   localisation$label=='addCustomer'])
+                )
+              )
+      ) # end of Tools tab
+    ) # end tabItems
+  ) # end dashboardBody 
+) # end dashboardPage

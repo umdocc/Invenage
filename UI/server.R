@@ -93,6 +93,14 @@ shinyServer(function(input, output,session) {
     )
   })
 
+  output$expDateSelector <- renderUI({
+    selectizeInput(
+      inputId = "expDateSelector",
+      label = localisation$actual[localisation$label=='expDate'],
+      choices = '',
+      options = list(create = T)
+    )
+  })
 # ------------------- UI for the salesView tab ---------------------------------
   output$testText <- renderText({
     customerCode <- customerInfo$customerCode[customerInfo$customerName==
@@ -174,8 +182,10 @@ shinyServer(function(input, output,session) {
       prodCode = unique(productInfo[productInfo$Name==input$prodName &
                                       productInfo$NSX==input$nsxSelector, "prodCode"]),
       Unit = input$unitSelector,
+      unitPrice = as.integer(input$unitPrice),
       Amount = input$Amount,
       Lot = input$lotSelector,
+      expDate = input$expDateSelector,
       customerCode = customerInfo[
         customerInfo$customerName == input$customerName,'customerCode'],
       PXKNum = input$pxkSelector,
@@ -227,7 +237,7 @@ shinyServer(function(input, output,session) {
     dbDisconnect(conn)
     
     # getting data to write to excel
-    printingPXKNum <- input$pxkSelector
+    printingPXKNum <- as.integer(input$pxkSelector)
     printingWarehouse <- input$warehouseSelector
 
     # create new PXK file
@@ -242,14 +252,28 @@ shinyServer(function(input, output,session) {
     setStyleAction(wb,XLC$"STYLE_ACTION.NONE")
     
     conn <- dbOpen(dbType,configDict)
-    query <- paste("SELECT saleLog.Stt, productInfo.Name,saleLog.Unit,
-                      saleLog.Amount,saleLog.Lot,saleLog.customerCode
-                    FROM saleLog INNER JOIN productInfo
-                    ON saleLog.prodCode = productInfo.prodCode
-                    WHERE saleLog.PXKNum =",printingPXKNum)
-    Data <- dbGetQuery(conn,query) 
+    query <- paste("SELECT saleLog.Stt, productInfo.Name, productInfo.mfgCode,
+                           saleLog.Unit, saleLog.unitPrice, 
+                           saleLog.Amount,saleLog.Lot, saleLog.expDate
+                    FROM   saleLog INNER JOIN productInfo
+                    ON     saleLog.prodCode = productInfo.prodCode
+                    WHERE  saleLog.PXKNum =",printingPXKNum)
+    Data <- dbGetQuery(conn,query)
+    print(Data)
+    print(printingPXKNum)
+    query <- paste("SELECT DISTINCT customerInfo.customerName
+                    FROM saleLog INNER JOIN customerInfo
+                    ON saleLog.customerCode = customerInfo.customerCode
+                    WHERE saleLog.PXKNum =", printingPXKNum)
+    printingCustomerName <- dbGetQuery(conn,query)
+    printingCustomerName <- printingCustomerName$customerName[1]
     dbDisconnect(conn)
-    writeWorksheet(wb,Data,"PXK",startRow=8,startCol=1,header=F)
+    
+    # writing single-cell info first
+    writeWorksheet(wb,printingCustomerName,"PXK",startRow=6, startCol=3,
+                   header = F)
+    
+    writeWorksheet(wb,Data,"PXK",startRow=10,startCol=1,header=F)
     saveWorkbook(wb)
     # open the file
     system(paste0('open ','"',destPath,'"'))

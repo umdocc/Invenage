@@ -1,4 +1,5 @@
 # This file can be placed anywhere, but need the invenageConf.csv to work
+
 # call all required packages
 requiredPackagesList <- c('RSQLite','shiny','shinydashboard','ggplot2',
                           'scales','XLConnect')
@@ -60,13 +61,22 @@ getNewPXK <- function(conn){
   return(newPXK)
 }
 
+# get home directory, accounting for windows and various computers 
+# so that we can read config
+getHomePath <- function(){
+  osType <- get_os()
+  homePath <- path.expand('~')
+  
+  # if for some reason we get to Documents in windows, remove it
+  if (osType == 'windows' & grepl('Documents',homePath)){
+    homePath <- dirname(homePath)
+  }
+  return(homePath)
+}
+
 # --------------------- Configure Basic Information ----------------------------
 # attemp to remove Documents folder in windows homePath
-osType <- get_os()
-homePath <- path.expand('~')
-if (osType == 'windows'){
-  homePath <- dirname(homePath)
-}
+homePath <- getHomePath()
 configFullPath <- file.path(homePath,'invenageConf.csv')
 # check the configuration file
 print(configFullPath)
@@ -98,7 +108,7 @@ dbOpen <- function(dbType,configDict){
 
 
 
-# connect to database
+# connect to database and read start-up information
 conn <- dbOpen(dbType,configDict)
 productInfo <- dbReadTable(conn,"productInfo")
 localisation <- dbReadTable(conn,"localisation")
