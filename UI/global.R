@@ -3,6 +3,9 @@
 # call all required packages
 requiredPackagesList <- c('RSQLite','shiny','shinydashboard','ggplot2',
                           'scales','XLConnect')
+new.packages <- requiredPackagesList[!(requiredPackagesList %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages,repos = 'https://cloud.r-project.org')
+
 lapply(requiredPackagesList, require, character.only = TRUE)
 # require(RSQLite)
 # require(shiny)
