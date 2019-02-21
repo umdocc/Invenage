@@ -1,0 +1,17 @@
+Name,Type,Value
+appPath,Path,Dropbox/Invenage
+dbType,Param,SQLite
+databasePath,Path,Dropbox/Shared/Invenage.sqlite
+sqlUserName,Param,umdocc
+sqlPassword,Param,abcd123456
+scriptPath,Path,Dropbox/Invenage/Scripts
+feedbackPath,Path,Dropbox/Shared/Feedbacks
+formsPath,Path,Dropbox/Shared/Forms
+slaveDataPath,Path,Dropbox/Shared
+POInvoicesPath,Path,Dropbox/Shared/PO_Invoices
+customerOrderPath,Path,Dropbox/Shared/DonHangReview
+POReviewPath,Path,Dropbox/Shared/POReview
+companyName,Param,Invenage
+appLang,Param,Vi
+priceView,Param,Yes
+PXKPath,Path,Dropbox/Shared/PXK
