@@ -10,7 +10,7 @@ dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem("Xuất Kho", tabName = "export", icon = icon("minus")),
-      menuItem("Doanh Số", tabName = "salesView", icon = icon("minus")),
+      menuItemOutput('statisticViewMenu'),
       menuItem("Công Cụ", tabName = "Tools", icon = icon("minus")),
       menuItem("Tra Cứu", tabName = "Lookup", icon = icon("minus"))
     )
@@ -80,7 +80,7 @@ dashboardPage(
         fluidRow(
           selectInput(inputId = 'lookupTableSelector',
               label = localisation$actual[localisation$label=='chooseTable'],
-              choices = chooseTableList),
+              choices = lookupTableList),
           dataTableOutput('lookupTableOutput')
         )
       ), # end of Lookup tab
@@ -91,11 +91,9 @@ dashboardPage(
             textInput(inputId = 'customerCode',
               label = localisation$actual[
                 localisation$label=='customerCode']),
-            h5('Ex: CHORAY,NGUYENHOANG,.....'),
               textInput(inputId = 'customerName',
                 label = localisation$actual[
                   localisation$label=='customerName']),
-            h5('Ex: Bệnh Viện Chợ Rẫy TP HCM, Phòng Khám Nguyễn Hoàng,.....'),
               actionButton("addCustomer",
                 localisation$actual[
                   localisation$label=='addCustomer'])

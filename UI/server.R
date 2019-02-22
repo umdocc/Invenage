@@ -2,7 +2,14 @@
 source("global.R",local = F)
 
 shinyServer(function(input, output,session) {
-
+# ---------------------- Dynamic UI for sidebar --------------------------------
+  output$statisticViewMenu <- renderMenu({
+    if (allowSalesView){
+      menuItem(localisation$actual[localisation$label=='statisticView'],
+               tabName="salesView", icon = icon("calendar"))
+    }
+  })
+  
 # ------------------- UI Elements for Xuat Kho tab -----------------------------
   # Info line, use htmlOutput for more controls
   output$thongTinSP <- renderUI({
@@ -106,7 +113,16 @@ shinyServer(function(input, output,session) {
   output$lookupTableOutput <- renderDataTable({
     tableName <- localisation$label[
       localisation$actual==input$lookupTableSelector]
-    query <- paste("SELECT prodCode,Name,NSX,mfgCode from",tableName)
+    # construct the query based on tableName
+    if (tableName=='productInfo'){
+      query <- paste("SELECT prodCode,Name,NSX,mfgCode from productInfo")}
+    if (tableName=='importPrice'){
+      query <- paste("SELECT productInfo.Name, productInfo.NSX,
+                      productInfo.mfgCode, importPrice.importPrice,
+                      importPrice.Currency, importPrice.Vendor,
+                      importPrice.priceType, importPrice.lastUpdated
+                      FROM importPrice INNER JOIN productInfo
+                      ON importPrice.prodCode = productInfo.prodCode")}
     conn <- dbOpen(dbType, configDict)
     lookupTableOutput <- dbGetQuery(conn,query)
     dbDisconnect(conn)

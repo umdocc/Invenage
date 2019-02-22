@@ -1,5 +1,5 @@
 # This file can be placed anywhere, but need the invenageConf.csv to work
-
+rm(list=ls())
 # call all required packages
 requiredPackagesList <- c('RSQLite','shiny','shinydashboard','ggplot2',
                           'scales','XLConnect')
@@ -132,13 +132,24 @@ PXKInfo <- dbReadTable(conn,"PXKInfo")
 warehouseInfo <- dbReadTable(conn,"warehouseInfo")
 dbDisconnect(conn)
 
+# --------------------- UI Configurations --------------------------------------
 # use the configured language
 localisation <- localisation[localisation$lang==appLang,]
 
-# building the total inventory
-Inventory <- inventoryBase
+#Dynamic UI sidebar
+allowSalesView <- configDict$Value[configDict$Name=='allowSalesView']=='yes'
 
-chooseTableList <- localisation$actual[localisation$label=='productInfo']
+# list of tables in lookups
+lookupTableList <- 'productInfo'
+if (configDict$Value[configDict$Name=='allowImportPriceView']=='yes'){
+  lookupTableList <- c(lookupTableList,'importPrice')
+}
+lookupTableList <- data.frame(label = lookupTableList)
+lookupTableList <- merge(lookupTableList,localisation)
+lookupTableList <- lookupTableList$actual
+# ----------------------------------- Tables -----------------------------------
+
+Inventory <- inventoryBase
 
 # !!! REMOVE THIS when in production: hacks used for testing, 
 # do this so I dont have to modify the database everytime
