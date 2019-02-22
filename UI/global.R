@@ -7,12 +7,6 @@ new.packages <- requiredPackagesList[!(requiredPackagesList %in% installed.packa
 if(length(new.packages)) install.packages(new.packages,repos = 'https://cloud.r-project.org')
 
 lapply(requiredPackagesList, require, character.only = TRUE)
-# require(RSQLite)
-# require(shiny)
-# require(shinydashboard)
-# require(ggplot2)
-# require(scales)
-# require(XLConnect)
 
 # ------------------------------- functions ------------------------------------
  # detecting operating system
@@ -81,13 +75,27 @@ getHomePath <- function(){
 # attemp to remove Documents folder in windows homePath
 homePath <- getHomePath()
 configFullPath <- file.path(homePath,'invenageConf.csv')
-# check the configuration file
-print(configFullPath)
+
 if (file.exists(configFullPath)){
   configDict <- read.csv(configFullPath, stringsAsFactors = F)
 }else{
   stop('invenageConf.csv not found!')
 }
+
+# if this is windows environment, check if we have chrome installed and set the
+# default browser parameter
+osType <- get_os()
+if (osType == 'windows'){
+  chromePath <- configDict$Value[configDict$Name=='chromePath']
+  if (file.exists(chromePath)){
+    # set the chrome option
+    options(browser = chromePath)
+  }else{
+    stop('Path to Chrome not found or incorrect!!')
+    }
+}
+
+
 companyName <- configDict$Value[configDict$Name=='companyName']
 appLang <- configDict$Value[configDict$Name=='appLang']
 appPath <- file.path(homePath,
@@ -129,6 +137,8 @@ localisation <- localisation[localisation$lang==appLang,]
 
 # building the total inventory
 Inventory <- inventoryBase
+
+chooseTableList <- localisation$actual[localisation$label=='productInfo']
 
 # !!! REMOVE THIS when in production: hacks used for testing, 
 # do this so I dont have to modify the database everytime

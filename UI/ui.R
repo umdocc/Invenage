@@ -11,7 +11,8 @@ dashboardPage(
     sidebarMenu(
       menuItem("Xuất Kho", tabName = "export", icon = icon("minus")),
       menuItem("Doanh Số", tabName = "salesView", icon = icon("minus")),
-      menuItem("Công Cụ", tabName = "Tools", icon = icon("minus"))
+      menuItem("Công Cụ", tabName = "Tools", icon = icon("minus")),
+      menuItem("Tra Cứu", tabName = "Lookup", icon = icon("minus"))
     )
   ),
   dashboardBody(
@@ -19,7 +20,7 @@ dashboardPage(
     tabItems(
       tabItem(tabName = "export",
         fluidRow(
-          box(width=4,
+          box(width=2, height = 650,
             htmlOutput("pxkSelector"),
             selectizeInput(inputId = 'customerName',
               label = localisation$actual[localisation$label=='customerName'],
@@ -34,7 +35,9 @@ dashboardPage(
                            choices='',options = list(create=T)),
             selectizeInput(inputId = "Amount",
                         label = localisation$actual[localisation$label=='Amount'],
-                        choices=c(1:100),options = list(create=T)),
+                        choices=c(1:100),options = list(create=T))
+          ),
+          box(width = 2, height = 650,
             htmlOutput("lotSelector"),
             htmlOutput("expDateSelector"),
             htmlOutput("warehouseSelector"),
@@ -43,7 +46,7 @@ dashboardPage(
             actionButton("inventoryOut",
                     localisation$actual[localisation$label=='inventoryOut'])
           ),
-          box(width = 8,
+          box(width = 8, height = 650,
             h3(localisation$actual[localisation$label=='currentPXK']),
             tableOutput("currentPXK"),
             actionButton("delLastEntry",
@@ -56,7 +59,7 @@ dashboardPage(
       ), # end of export tab
       tabItem(tabName = 'salesView',
         fluidRow(
-          box(width = 4,
+          box(width = 3,
             selectInput(inputId = 'saleViewCustomerName',
               label = localisation$actual[localisation$label=='customerName'],
               choices = customerInfo$customerName),
@@ -67,30 +70,38 @@ dashboardPage(
                         label = localisation$actual[localisation$label=='groupType'],
                         choices = localisation$actual[localisation$label=='All'])
           ),
-          box(width = 8,
+          box(width = 9,
             textOutput('testText'),
             plotOutput('saleViewPlot')
           )
         )
       ), # end of salesView  tab
+      tabItem(tabName = 'Lookup',
+        fluidRow(
+          selectInput(inputId = 'lookupTableSelector',
+              label = localisation$actual[localisation$label=='chooseTable'],
+              choices = chooseTableList),
+          dataTableOutput('lookupTableOutput')
+        )
+      ), # end of Lookup tab
       tabItem(tabName = 'Tools',
-              fluidRow(
-                box(width = 4,
-                    h3(localisation$actual[localisation$label=='addCustomer']),
-                    textInput(inputId = 'customerCode',
-                                label = localisation$actual[
-                                  localisation$label=='customerCode']),
-                    h5('Ex: CHORAY,NGUYENHOANG,.....'),
-                    textInput(inputId = 'customerName',
-                              label = localisation$actual[
-                                localisation$label=='customerName']),
-                    h5('Ex: Bệnh Viện Chợ Rẫy TP HCM,
-                       Phòng Khám Nguyễn Hoàng,.....'),
-                    actionButton("addCustomer",
-                                 localisation$actual[
-                                   localisation$label=='addCustomer'])
-                )
-              )
+        fluidRow(
+          box(width = 3, height = 400,
+            h3(localisation$actual[localisation$label=='addCustomer']),
+            textInput(inputId = 'customerCode',
+              label = localisation$actual[
+                localisation$label=='customerCode']),
+            h5('Ex: CHORAY,NGUYENHOANG,.....'),
+              textInput(inputId = 'customerName',
+                label = localisation$actual[
+                  localisation$label=='customerName']),
+            h5('Ex: Bệnh Viện Chợ Rẫy TP HCM, Phòng Khám Nguyễn Hoàng,.....'),
+              actionButton("addCustomer",
+                localisation$actual[
+                  localisation$label=='addCustomer'])
+            ),
+          box(width = 3, height = 400)
+            )
       ) # end of Tools tab
     ) # end tabItems
   ) # end dashboardBody 

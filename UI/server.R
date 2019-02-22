@@ -101,6 +101,17 @@ shinyServer(function(input, output,session) {
       options = list(create = T)
     )
   })
+
+# ------------------------ UI for the Lookup Tab -------------------------------
+  output$lookupTableOutput <- renderDataTable({
+    tableName <- localisation$label[
+      localisation$actual==input$lookupTableSelector]
+    query <- paste("SELECT prodCode,Name,NSX,mfgCode from",tableName)
+    conn <- dbOpen(dbType, configDict)
+    lookupTableOutput <- dbGetQuery(conn,query)
+    dbDisconnect(conn)
+    lookupTableOutput
+  })
 # ------------------- UI for the salesView tab ---------------------------------
   output$testText <- renderText({
     customerCode <- customerInfo$customerCode[customerInfo$customerName==
@@ -191,7 +202,7 @@ shinyServer(function(input, output,session) {
       PXKNum = input$pxkSelector,
       Note = ''
     )
-    # print(appendSaleLog)    
+ 
     # writing saleLog to database
     conn <- dbOpen(dbType,configDict)
     dbWriteTable(conn,'saleLog',appendSaleLog,append=T)
@@ -259,8 +270,6 @@ shinyServer(function(input, output,session) {
                     ON     saleLog.prodCode = productInfo.prodCode
                     WHERE  saleLog.PXKNum =",printingPXKNum)
     Data <- dbGetQuery(conn,query)
-    print(Data)
-    print(printingPXKNum)
     query <- paste("SELECT DISTINCT customerInfo.customerName
                     FROM saleLog INNER JOIN customerInfo
                     ON saleLog.customerCode = customerInfo.customerCode
