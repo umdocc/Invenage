@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #Functions for extension scripts
-import pandas as pd
+import pandas as pd, sqlite3
 import platform, subprocess, glob, os
 from sqlalchemy import create_engine
 #from sqlalchemy import NullPool
@@ -52,16 +52,15 @@ def createRenameDict(conn,dictType):
 # db_open assume mariaDB, using sqlalchemy we should be able to use
 # pandas to_sql and read_sql, remember to call conn.dispose() to close 
 # the connection
-def dbOpen(configDict):
-    if (configDict['db_type']=='MariaDB'):
+def db_open(config_dict):
+    if (config_dict['db_type']=='MariaDB'):
         conn = create_engine('mysql+mysqlconnector://'+                \
-                             configDict['sql_usr']+                    \
-                               ":"+configDict['sql_pswd']+"@"+         \
-                               configDict['sql_host']+"/invenage")
-    if (configDict['db_type']=='SQLite'):
-#        dbFile = configDict['db_file']
-#        conn = 
-        
+                             config_dict['sql_usr']+                    \
+                               ":"+config_dict['sql_pswd']+"@"+         \
+                               config_dict['sql_host']+"/invenage")
+    if (config_dict['db_type']=='SQLite'):
+        db_file = config_dict['db_file']
+        conn = sqlite3.connect(db_file)
     return(conn)
 
 # the check exists function take tableA, tableB and check if entries in B exists in A

@@ -1,15 +1,16 @@
 name,type,value,explanation
 os_name,system,osx,
-app_path,abs,/;Users;cuongdo;Invenage,absPath is from root
-pxk_form,relative,Forms;pxkForm.xlsx,
-po_folder,relative,PO,
-pxk_out_folder,relative,PXK,
+app_path,abs,/;Users;cuongdo;Documents;GitHub;Invenage,absPath is from root
+form_path,relative,Forms,
+feedback_path,relative,Feedbacks,
+po_path,relative,PO_Invoices,
+pxk_path,relative,PXK,
 db_type,param,SQLite,
-db_file,abs,/;Users;cuongdo;Invenage.sqlite,
+db_file,abs,/;Users;cuongdo;Dropbox;MDSCloud;SQLite;Dao.sqlite,
 sql_host,param,192.168.1.14,only needed when db_type=MariaDB
-sql_usr,param,invenage,
-sql_pswd,param,"suggested:"">",
-company_name,param,Demo,
+sql_usr,param,umdocc,
+sql_pswd,param,"wewe170393:""3",
+company_name,param,MDS-Nano,
 app_lang,param,Vi,
 chrome_path,abs,C:;Program Files (x86);Google;Chrome;Application;chrome.exe,
-error_log,relative,/;Users;cuongdo;Downloads;invenage_error.txt,
+error_log,abs,/;Users;cuongdo;Downloads;invenage_error.txt,
