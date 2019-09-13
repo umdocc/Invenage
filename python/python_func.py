@@ -79,39 +79,37 @@ def createUnitPackaging(Packaging):
     unitPackaging = unitPackaging[~unitPackaging.prodCode.duplicated()]
     return(unitPackaging)
 
-def updatePOInfo(homePath,configDict,excludeList):
+def update_po_info(config_dict,excluded):
 #    appLang = configDict['appLang']
-    poInvoicePath = configDict['poInvoicePath']
+    po_path = config_dict['po_path']
     # read the current poInfo from database, remove anything that does not
     # have a valid path
-    conn = dbOpen(configDict)
-    poInfo = pd.read_sql_query('select * from poInfo',conn)
+    conn = db_open(config_dict)
+    po_info = pd.read_sql_query('select * from po_info',conn)
     # verify fileExists status and remove PO that no longer exists
-    if (len(poInfo)>0):
-        poInfo['fileExist'] = poInfo['fileLocation'].map(os.path.isfile)
-        poInfo = poInfo[poInfo.fileExist]
-        poInfo = poInfo.drop('fileExist',axis=1)
-        poInfo.to_sql('poInfo',conn,index=False,if_exists='replace')
+    if (len(po_info)>0):
+        po_info['fileExist'] = po_info['fileLocation'].map(os.path.isfile)
+        po_info = po_info[po_info.fileExist]
+        po_info = po_info.drop('fileExist',axis=1)
+        po_info.to_sql('poInfo',conn,index=False,if_exists='replace')
     conn.close()
 
     
     # update the database with added PO
-    poList = getFilesInfo(poInvoicePath,'xlsx',excludeList)
+    po_list = getFilesInfo(po_path,'xlsx',excluded)
     # we need the PO to contains '.PO." string
-    poList = poList[poList.fileName.str.contains('\.PO\.')]
-    poList = poList.rename(columns={'fullPath':'fileLocation',
+    po_list = po_list[po_list.fileName.str.contains('\.PO\.')]
+    po_list = po_list.rename(columns={'fullPath':'fileLocation',
                                     'fileName':'poName'})
-    # remove the homePath
-#    poList.fileLocation = poList.fileLocation.str.replace(
-#            homePath,'')
-    poList = checkExists(poList,poInfo,['poName','fileLocation'])
-    appendPOList = poList[poList.exist.isnull()]
-    appendPOList['poStatusCode'] = 1
-    appendPOList['Note'] = 'added by Invenage'
-    appendPOList = appendPOList[['poName','poStatusCode','Note','fileLocation']]
 
-    conn = dbOpen(configDict)
-    appendPOList.to_sql('poInfo',conn,index=False,if_exists='append')
+    po_list = checkExists(po_list,po_info,['poName','fileLocation'])
+    po_append = po_list[po_list.exist.isnull()]
+    po_append['poStatusCode'] = 1
+    po_append['Note'] = 'added by Invenage'
+    po_append = po_append[['poName','poStatusCode','Note','fileLocation']]
+
+    conn = db_open(config_dict)
+    po_append.to_sql('po_info',conn,index=False,if_exists='append')
     conn.commit()
     conn.close()
     

@@ -22,11 +22,14 @@ reportFlag = False
 error_file = config_dict['error_log']
 
 def write_log(error_file,message):
-# writing errorLog startup message
     text_file = open(error_file, "a")
     text_file.write('\n'+message+'\n')
     text_file.close()
-    
+
+# writing errorLog startup message
+text_file = open(error_file, "w")
+text_file.write('Error log:\n')
+text_file.close()
 # ----------------------------------- Data Read -------------------------------
 # read the database
 conn = inv.db_open(config_dict)
