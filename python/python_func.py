@@ -6,6 +6,11 @@ import platform, subprocess, glob, os
 from sqlalchemy import create_engine
 #from sqlalchemy import NullPool
 # create a list of files with locked info, can use exclude    
+def write_log(error_file,message):
+    text_file = open(error_file, "a")
+    text_file.write('\n'+message+'\n')
+    text_file.close()
+
 def getFilesInfo(filePath,extension,exclude):
     if isinstance(exclude,str):
         exclude = exclude.split()

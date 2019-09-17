@@ -14,20 +14,11 @@ sys.path.append(os.path.join(config_dict['app_path'],'python'))
 import python_func as inv
 
 # ---------------------- Variable Setup ---------------------------------------
-reportFlag = False
-
-# error log location, start-up script should remove this file
+# error log location, file removed at start-up
 error_file = config_dict['error_log']
+if os.path.exists(error_file):
+  os.remove(error_file)
 
-def write_log(error_file,message):
-    text_file = open(error_file, "a")
-    text_file.write('\n'+message+'\n')
-    text_file.close()
-
-# writing errorLog startup message
-text_file = open(error_file, "w")
-text_file.write('Error log:\n')
-text_file.close()
 # ----------------------------------- Data Read -------------------------------
 # read the database
 conn = inv.db_open(config_dict)
@@ -41,9 +32,8 @@ conn.close()
 testDF = product_info.copy()
 testDF = testDF[testDF.prodCode.duplicated()][['prodCode','Name']]
 if (len(testDF)>0):
-    write_log(error_file,'product_info contains duplicated prod_code!')
+    inv.write_log(error_file,'product_info contains duplicated prod_code!')
     testDF.to_csv(error_file,index=False,sep='\t',mode='a')
-    reportFlag=True
     
 # check importLog for missing packaging
 testDF = import_log.copy()
@@ -52,10 +42,8 @@ testDF = testDF[testDF.unitsPerPack.isnull()][['prodCode','Unit',
                    'unitsPerPack']]
 if (len(testDF)>0):
     textFile = open(error_file, "a")
-    textFile.write('\n importLog contains unidentified packaging! \n \n')
-    textFile.close()
+    inv.write_log(error_file,'importLog contains unidentified packaging!')
     testDF.to_csv(error_file,index=False,sep='\t',mode='a')
-    reportFlag=True
     
 # check saleLog for missing packaging
 testDF = sale_log.copy()
@@ -73,10 +61,10 @@ inventoryDF = inv.buildInventorySummary(import_log,sale_log,packaging)
 testDF = inventoryDF.copy()
 testDF = testDF[testDF.remaining<0]
 if len(testDF)>0:
-    write_log(error_file,'inventory summary contains negatives!')
+    inv.write_log(error_file,'inventory summary contains negatives!')
     testDF.to_csv(error_file,index=False,sep='\t',mode='a')
     reportFlag=True
 
-# open the errorLog
-if reportFlag:
+# open the errorLog if it exists
+if os.path.exists(error_file):
     inv.launchFile(error_file)

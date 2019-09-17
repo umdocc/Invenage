@@ -20,8 +20,9 @@ def create_config_dict():
         raise RuntimeError('invenageConf.csv not found!')
     
     # build the paths
-    configDF.value[configDF.name.str.contains('path')] = \
-    configDF.value[configDF.name.str.contains('path')].apply(create_path)
+    configDF.value[configDF.type.str.contains('abs|relative')] = \
+    configDF.value[
+            configDF.type.str.contains('abs|relative')].apply(create_path)
     app_path = configDF.value[configDF.name=='app_path'].reset_index(
             drop=True)[0]
     configDF.value[configDF.type.str.contains('relative')] = \
