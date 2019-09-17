@@ -9,3 +9,5 @@ testUI/app.R
 Python/.DS_Store
 *.pyc
 .DS_Store
+r/.Rhistory
+.Rhistory
