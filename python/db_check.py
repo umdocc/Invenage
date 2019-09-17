@@ -26,8 +26,10 @@ product_info = pd.read_sql_query('select * from product_info',conn)
 packaging = pd.read_sql_query('select * from packaging',conn)
 import_log = pd.read_sql_query('select * from import_log',conn)
 sale_log = pd.read_sql_query('select * from sale_log',conn)
+localisation = pd.read_sql_query('select * from localisation',conn)
 conn.close()
-
+localisation = localisation[localisation.app_lang==config_dict['app_lang']]
+# ------------------------------- Checking ------------------------------------
 #check product info for duplicated
 testDF = product_info.copy()
 testDF = testDF[testDF.prod_code.duplicated()][['prod_code','name']]
@@ -53,6 +55,7 @@ if (len(testDF)>0):
     inv.write_log(error_file,'sale_log contains unidentified packaging!')
     testDF.to_csv(error_file,index=False,sep='\t',mode='a')
     
+# check inventory for negatives
 inventory_df = inv.build_inv_df(import_log,sale_log,packaging)
 testDF = inventory_df.copy()
 testDF = testDF[testDF.remaining<0]
@@ -60,6 +63,16 @@ if len(testDF)>0:
     inv.write_log(error_file,'inventory summary contains negatives!')
     testDF.to_csv(error_file,index=False,sep='\t',mode='a')
 
+# check importLog for missing cost
+test_df = import_log[import_log.actual_unit_cost.isnull()]    
+test_df = test_df.merge(product_info[['prod_code','name']],how='left')
+test_df = test_df[['prod_code','name','lot']]
+if len(test_df)>0:
+    mesage = localisation.actual[localisation.label=='missing_import_price']. \
+    reset_index(drop=True)[0]
+    inv.write_log(error_file,mesage)
+    test_df.to_csv(error_file,index=False,sep='\t',mode='a')
+    
 # open the errorLog if it exists
 if os.path.exists(error_file):
     inv.launch_file(error_file)

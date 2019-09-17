@@ -1,66 +1,79 @@
 # this script handle import tasks when the excel PO is used for import
 # ---------------------- Setup Block ------------------------------------------
-import sys, os, numpy as np,  datetime
+import sys, os, datetime, pandas as pd
 sys.path.append(os.path.join(os.path.expanduser('~'),'invenage_data'))
 from python_conf import create_config_dict
 config_dict = create_config_dict()
-# add pythonPath
-
+# add pythonPath and import all functions
 sys.path.append(os.path.join(config_dict['app_path'],'python'))
 import python_func as inv
-# -----------------------------------------------------------------------------
 
-# process PO _data
-inv.update_po_info(config_dict,excluded=['Unused','MuaTrongNuoc'])
-poInfo = inv.buildFullPOInfo(configDict,True)
+# ------------------------------ Data Read ------------------------------------
+# variables configuration
+error_file = config_dict['error_log']
+#database read
+conn = inv.db_open(config_dict)
+import_log = pd.read_sql_query('select * from import_log',conn)
+conn.close()
 
-po_data = inv.buildPO_data(poInfo,NSXDict,renameDict,productInfo,Packaging,
-                         _dataCleaning=True)
+# ------------------------ process PO _data -----------------------------------
+po_file_list = inv.get_files_info(config_dict,
+                                  config_dict['po_file_ext'],
+                                  config_dict['po_path_exclude'].split(';')
+                                  )
+po_file_list = po_file_list[po_file_list.file_name.str.contains(
+        config_dict['po_file_include'])]
+po_file_list = po_file_list.reset_index(drop=True)
+po_data = inv.build_po_data(po_file_list, config_dict, dataCleaning=True)
 
-# if po_data contains unrecognised prodcode or Unit, we fix it here
-if (len(po_data[po_data.prodCode.isnull()])>0):
-    print(po_data[po_data.prodCode.isnull()])
-    raise RuntimeError('PO _data contains unrecognised prodCode')
-if (len(po_data[po_data.Unit.isnull()])>0):
-    print(po_data[po_data.Unit.isnull()])
-    po_data[po_data.Unit.isnull()].to_excel('invenageErrorReport.xlsx')
-    raise RuntimeError('PO _data contains products without \
+# check po_data form integrity
+if (len(po_data[po_data.prod_code.isnull()])>0):
+    inv.write_log(error_file,'po_data contains unrecognised prod_code')
+    po_data[po_data.prod_code.isnull()].to_csv(
+            error_file,index=False,sep='\t',mode='a')
+    
+if (len(po_data[po_data.unit.isnull()])>0):
+    inv.write_log(error_file,'po_data contains products without \
                        fundamental packaging information')
+    po_data[po_data.unit.isnull()].to_csv(
+            error_file,index=False,sep='\t',mode='a')
 
 # split po_data into 2 parts
 # those with Lot gets written into importLog
 appendLog = po_data.copy()
-appendLog = appendLog[appendLog.Lot!='']
-appendLog = inv.checkExists(appendLog,importLog,
-                       ['prodCode','Lot','POName','Quantity'])
+appendLog = appendLog[appendLog.lot!='']
+appendLog = inv.checkExists(appendLog,import_log,
+                       ['prod_code','lot','po_name','qty'])
 appendLog = appendLog[appendLog.exist.isnull()]
 
 #at this stage we leave actual import cost blank
-appendLog['actualUnitImportCost'] = np.nan
-appendLog['importCurrencyCode'] = 1
+appendLog['actual_currency_code'] = 1
 
-appendLog = appendLog[['prodCode','Unit','Quantity','POName','Lot','expDate',
-                       'actualUnitImportCost','importCurrencyCode']]
+appendLog = appendLog[['prod_code','unit','qty','po_name','lot','exp_date',
+                       'actual_unit_cost','actual_currency_code']]
+
 # check that Unit is lower case
-appendLog.Unit = appendLog.Unit.str.lower()
+appendLog.unit = appendLog.unit.str.lower()
 
 # add deliveryDate
-appendLog['deliveryDate'] = datetime.date.today().strftime('%d%m%y')
+appendLog['delivery_date'] = datetime.date.today().strftime('%d%m%y')
+
 # clean up
-appendLog.expDate = appendLog.expDate.str.replace(' .*$','')
+appendLog.exp_date = appendLog.exp_date.str.replace(' .*$','')
+
 # append to _database
 if len(appendLog)>0:
-    print('appending to _database:')
+    print('appending to database:')
     print(appendLog)
-    conn = inv.dbOpen(configDict)
-    appendLog.to_sql('importLog',conn,index=False,if_exists='append')
+    conn = inv.db_open(config_dict)
+    appendLog.to_sql('import_log',conn,index=False,if_exists='append')
     conn.commit()
     conn.close()
 
 # the remaining of po_data gets written to comingList
-comingList = po_data[po_data.Lot=='']
-comingList = comingList[['Name','mfgCode','NSX','Quantity','POName']]
-conn = inv.dbOpen(configDict)
-comingList.to_sql('comingList',conn,index=False,if_exists='replace')
+comingList = po_data[po_data.lot=='']
+comingList = comingList[['name','ref_smn','vendor','qty','po_name']]
+conn = inv.db_open(config_dict)
+comingList.to_sql('coming_list',conn,index=False,if_exists='replace')
 conn.commit()
 conn.close()

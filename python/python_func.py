@@ -11,25 +11,26 @@ def write_log(error_file,message):
     text_file.write('\n'+message+'\n')
     text_file.close()
 
-def getFilesInfo(filePath,extension,exclude):
+def get_files_info(config_dict,extension,exclude):
     if isinstance(exclude,str):
         exclude = exclude.split()
-    fileList = pd.DataFrame(glob.glob(os.path.join(filePath,'**','*.'+extension), 
-                          recursive=True),columns=['fullPath'])
+    file_list = pd.DataFrame(glob.glob(os.path.join(config_dict['po_path'],
+                                                   '**','*.'+extension), 
+                          recursive=True),columns=['full_path'])
     # create the locked column
-    lockedList = fileList.copy()
-    lockedList = lockedList[lockedList.fullPath.str.contains('~\$')]
-    lockedList.fullPath =lockedList.fullPath.str.replace('~\$','')
-    lockedList['locked'] = True
-    fileList = fileList[~fileList.fullPath.str.contains('~\$')]
-    fileList = pd.merge(fileList,lockedList,how='left',on='fullPath')
+    locked_list = file_list.copy()
+    locked_list = locked_list[locked_list.full_path.str.contains('~\$')]
+    locked_list.full_path =locked_list.full_path.str.replace('~\$','')
+    locked_list['locked'] = True
+    file_list = file_list[~file_list.full_path.str.contains('~\$')]
+    file_list = pd.merge(file_list,locked_list,how='left',on='full_path')
     
     for folderName in exclude:
 #        print(folderName)
-        fileList = fileList[~fileList.fullPath.str.contains(folderName)]
-    fileList = fileList.reset_index(drop=True)
-    fileList['fileName'] = fileList.fullPath.apply(os.path.basename)
-    return(fileList)
+        file_list = file_list[~file_list.full_path.str.contains(folderName)]
+    file_list = file_list.reset_index(drop=True)
+    file_list['file_name'] = file_list.full_path.apply(os.path.basename)
+    return(file_list)
 
 # this function read a PO and detrmine its table location    
 def getPODataLoc(inputExcelFile,headerStr):
@@ -44,14 +45,15 @@ def getPODataLoc(inputExcelFile,headerStr):
             break
     return(rLoc,cLoc)
 
-def createRenameDict(conn,dictType):
+# current dictType = ['NSX','colRename']
+def create_dict(conn,dictType):
     renameDF = pd.read_sql_query(
-            'select * from guessTable where guessType = "'+dictType+'"',conn)
+            'select * from guess_table where guess_type = "'+dictType+'"',conn)
     # create the rename Dictionary
     renameDict = {}
     # now use relative to user path for all data storage
     for i in range(0,len(renameDF)):
-        renameDict[renameDF.inputStr[i]] = renameDF.outputStr[i]
+        renameDict[renameDF.input_str[i]] = renameDF.output_str[i]
     return(renameDict)
 
 # db_open assume mariaDB, using sqlalchemy we should be able to use
@@ -76,13 +78,13 @@ def checkExists(tableA,tableB,colList):
     tableA = pd.merge(tableA,tableB,how='left',on = colList)
     return(tableA)
 
-def createUnitpackaging(packaging):
-    unitpackaging = packaging.copy()
-    unitpackaging = unitpackaging[unitpackaging.unitsPerPack==1]
-    unitpackaging = unitpackaging[unitpackaging.Unit!='pack']
+def create_unit_packaging(packaging):
+    unit_packaging = packaging.copy()
+    unit_packaging = unit_packaging[unit_packaging.units_per_pack==1]
+    unit_packaging = unit_packaging[unit_packaging.unit!='pack']
     # if somehow the product has 2 fundamental packaging, use only one
-    unitpackaging = unitpackaging[~unitpackaging.prodCode.duplicated()]
-    return(unitpackaging)
+    unit_packaging = unit_packaging[~unit_packaging.prod_code.duplicated()]
+    return(unit_packaging)
 
 def update_po_info(config_dict,excluded):
 #    app_lang = config_dict['app_lang']
@@ -104,7 +106,7 @@ def update_po_info(config_dict,excluded):
     po_list = getFilesInfo(po_path,'xlsx',excluded)
     # we need the PO to contains '.PO." string
     po_list = po_list[po_list.fileName.str.contains('\.PO\.')]
-    po_list = po_list.rename(columns={'fullPath':'fileLocation',
+    po_list = po_list.rename(columns={'full_path':'fileLocation',
                                     'fileName':'poName'})
 
     po_list = checkExists(po_list,po_info,['poName','fileLocation'])
@@ -132,52 +134,62 @@ def buildFullpo_info(config_dict,existingFileOnly):
     po_info = po_info[po_info.fileLocation.notnull()].reset_index(drop=True)
     return(po_info)
 
-def buildPOData(po_info,NSXDict,renameDict,productInfo,packaging,
-                dataCleaning):
-    for i in range(0,len(po_info)):
+def build_po_data(po_file_list,config_dict, dataCleaning):
+    
+    # database information
+    conn = db_open(config_dict)
+    nsx_dict = create_dict(conn,'NSX')
+    rename_dict = create_dict(conn,'colRename')
+    product_info = pd.read_sql_query('select * from product_info',conn)
+    packaging = pd.read_sql_query('select * from packaging',conn)
+    
+    conn.close()
+    for i in range(0,len(po_file_list)):
         # as paths are relative we need to append homePath
-        inputExcelFile = os.path.join(
-                os.path.expanduser('~'),po_info.fileLocation[i])
+        inputExcelFile = po_file_list.full_path[i]
 #        print(inputExcelFile)
         currentNSX = ''
-        for k in range(0,len(NSXDict)):
-            if NSXDict.inputStr[k] in inputExcelFile:
-                currentNSX = NSXDict.outputStr[k]
+        for k in nsx_dict:
+            if k in inputExcelFile:
+                currentNSX = nsx_dict[k]
         (rLoc,cLoc) = getPODataLoc(inputExcelFile,'Description')
         tmp = pd.read_excel(inputExcelFile, skiprows = rLoc+1,
                                skipcolumns=cLoc+1,dtype=str)
-        tmp['NSX'] = currentNSX
+        tmp['vendor'] = currentNSX
     
-        tmp['POName'] = os.path.basename(inputExcelFile)
+        tmp['po_name'] = os.path.basename(inputExcelFile)
     
-        tmp = tmp.rename(columns = renameDict)
+        tmp = tmp.rename(columns = rename_dict)
+
+        tmp = tmp[['name','qty','ref_smn','lot','exp_date',
+                   'vendor','actual_unit_cost','po_name']]
         if (i == 0):
             POData = tmp.copy()
         else:
             POData = POData.append(tmp,sort=False)
-    POData.Quantity = pd.to_numeric(POData.Quantity, errors='coerce')
+    POData.qty = pd.to_numeric(POData.qty, errors='coerce')
     
-    # if NSX is still blank raise error
+    # if vendor is still blank raise error
     report = POData.copy()
-    report = report[report.NSX=='']
+    report = report[report.vendor=='']
     if (len(report)>0):
         print(report)
-        raise RuntimeError('error identifying NSX')
+        raise RuntimeError('error identifying vendor')
         
     # normally we only want to keep things that make sense    
     # blank Lot should be blank
     if dataCleaning:
-        POData = POData[POData.Quantity>0 & POData.Quantity.notnull()]
-        POData.loc[POData.Lot.isnull(),'Lot'] = ''
-        POData.loc[POData.Lot == 'nan','Lot'] = ''
+        POData = POData[POData.qty>0 & POData.qty.notnull()]
+        POData.loc[POData.lot.isnull(),'lot'] = ''
+        POData.loc[POData.lot == 'nan','lot'] = ''
         POData = POData.merge(
-                productInfo[['prodCode','mfgCode','NSX']],how='left')
-        # raise error if unknown items found
-        if any(POData.prodCode.isnull()):
-            print(POData[POData.prodCode.isnull()])
-            raise RuntimeError('prodCode not found')
-    unitpackaging = createUnitpackaging(packaging)
-    POData = pd.merge(POData,unitpackaging[['Unit','prodCode']],how='left')
+                product_info[['prod_code','ref_smn','vendor']],how='left')
+    # raise error if unknown items found
+        if any(POData.prod_code.isnull()):
+            print(POData[POData.prod_code.isnull()])
+            raise RuntimeError('prod_code not found')
+    unit_packaging = create_unit_packaging(packaging)
+    POData = pd.merge(POData,unit_packaging[['unit','prod_code']],how='left')
     return(POData)
     
 def convertToPack(dataFrame,packaging,columnSL,outputColName):
