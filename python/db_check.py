@@ -22,48 +22,43 @@ if os.path.exists(error_file):
 # ----------------------------------- Data Read -------------------------------
 # read the database
 conn = inv.db_open(config_dict)
-product_info = pd.read_sql_query('select * from productInfo',conn)
-packaging = pd.read_sql_query('select * from Packaging',conn)
-import_log = pd.read_sql_query('select * from importLog',conn)
-sale_log = pd.read_sql_query('select * from saleLog',conn)
+product_info = pd.read_sql_query('select * from product_info',conn)
+packaging = pd.read_sql_query('select * from packaging',conn)
+import_log = pd.read_sql_query('select * from import_log',conn)
+sale_log = pd.read_sql_query('select * from sale_log',conn)
 conn.close()
 
 #check product info for duplicated
 testDF = product_info.copy()
-testDF = testDF[testDF.prodCode.duplicated()][['prodCode','Name']]
+testDF = testDF[testDF.prod_code.duplicated()][['prod_code','name']]
 if (len(testDF)>0):
     inv.write_log(error_file,'product_info contains duplicated prod_code!')
     testDF.to_csv(error_file,index=False,sep='\t',mode='a')
     
-# check importLog for missing packaging
+# check import_log for missing packaging
 testDF = import_log.copy()
-testDF = inv.convertToPack(testDF,packaging,'Quantity','importPackAmt')
-testDF = testDF[testDF.unitsPerPack.isnull()][['prodCode','Unit',
-                   'unitsPerPack']]
+testDF = inv.convertToPack(testDF,packaging,'qty','import_pack_qty')
+testDF = testDF[testDF.units_per_pack.isnull()][['prod_code','unit',
+                   'units_per_pack']]
 if (len(testDF)>0):
-    textFile = open(error_file, "a")
-    inv.write_log(error_file,'importLog contains unidentified packaging!')
+    inv.write_log(error_file,'import_log contains unidentified packaging!')
     testDF.to_csv(error_file,index=False,sep='\t',mode='a')
     
-# check saleLog for missing packaging
+# check sale_log for missing packaging
 testDF = sale_log.copy()
-testDF = inv.convertToPack(testDF,packaging,'Amount','salePackAmt')
-testDF = testDF[testDF.unitsPerPack.isnull()][['prodCode','Unit',
-                   'unitsPerPack']]
+testDF = inv.convertToPack(testDF,packaging,'qty','sale_pack_qty')
+testDF = testDF[testDF.units_per_pack.isnull()][['prod_code','unit',
+                   'units_per_pack']]
 if (len(testDF)>0):
-    textFile = open(error_file, "a")
-    textFile.write('\n sale_log contains unidentified packaging! \n \n')
-    textFile.close()
+    inv.write_log(error_file,'sale_log contains unidentified packaging!')
     testDF.to_csv(error_file,index=False,sep='\t',mode='a')
-    reportFlag=True
     
-inventoryDF = inv.buildInventorySummary(import_log,sale_log,packaging)
-testDF = inventoryDF.copy()
+inventory_df = inv.build_inv_df(import_log,sale_log,packaging)
+testDF = inventory_df.copy()
 testDF = testDF[testDF.remaining<0]
 if len(testDF)>0:
     inv.write_log(error_file,'inventory summary contains negatives!')
     testDF.to_csv(error_file,index=False,sep='\t',mode='a')
-    reportFlag=True
 
 # open the errorLog if it exists
 if os.path.exists(error_file):

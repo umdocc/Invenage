@@ -180,27 +180,28 @@ def buildPOData(poInfo,NSXDict,renameDict,productInfo,Packaging,
     POData = pd.merge(POData,unitPackaging[['Unit','prodCode']],how='left')
     return(POData)
     
-def convertToPack(dataFrame,Packaging,columnSL,outputColName):
+def convertToPack(dataFrame,packaging,columnSL,outputColName):
     dataFrame = pd.merge(dataFrame,
-                         Packaging[['prodCode','Unit','unitsPerPack']],
+                         packaging[['prod_code','unit','units_per_pack']],
                          how='left')
-    dataFrame['packAmt'] = pd.to_numeric(dataFrame[columnSL])/dataFrame.unitsPerPack
+    dataFrame['packAmt'] = pd.to_numeric(dataFrame[columnSL])/      \
+                            dataFrame.units_per_pack
     dataFrame = dataFrame.rename(columns={'packAmt':outputColName})
     return(dataFrame)
 
-def buildInventorySummary(importLog,saleLog,Packaging):
+def build_inv_df(importLog,saleLog,Packaging):
     # check import and sale integrity
-    importLog = convertToPack(importLog,Packaging,'Quantity','importPackAmt')
-    importLog = importLog.groupby(['prodCode','Lot'],
-                              as_index=False)['importPackAmt'].sum()
+    importLog = convertToPack(importLog,Packaging,'qty','import_pack_qty')
+    importLog = importLog.groupby(['prod_code','lot'],
+                              as_index=False)['import_pack_qty'].sum()
 
-    saleLog = convertToPack(saleLog,Packaging,'Amount','salePackAmt')
-    saleLog = saleLog.groupby(['prodCode','Lot'],
-                              as_index=False)['salePackAmt'].sum()
+    saleLog = convertToPack(saleLog,Packaging,'qty','sale_pack_qty')
+    saleLog = saleLog.groupby(['prod_code','lot'],
+                              as_index=False)['sale_pack_qty'].sum()
 
     inventoryDF = pd.merge(importLog,saleLog)
-    inventoryDF['remaining'] = inventoryDF.importPackAmt - \
-    inventoryDF.salePackAmt
+    inventoryDF['remaining'] = inventoryDF.import_pack_qty - \
+    inventoryDF.sale_pack_qty
     inventoryDF.remaining = inventoryDF.remaining.round(decimals=3)
     return(inventoryDF)    
 
