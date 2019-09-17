@@ -76,18 +76,18 @@ def checkExists(tableA,tableB,colList):
     tableA = pd.merge(tableA,tableB,how='left',on = colList)
     return(tableA)
 
-def createUnitPackaging(Packaging):
-    unitPackaging = Packaging.copy()
-    unitPackaging = unitPackaging[unitPackaging.unitsPerPack==1]
-    unitPackaging = unitPackaging[unitPackaging.Unit!='pack']
+def createUnitpackaging(packaging):
+    unitpackaging = packaging.copy()
+    unitpackaging = unitpackaging[unitpackaging.unitsPerPack==1]
+    unitpackaging = unitpackaging[unitpackaging.Unit!='pack']
     # if somehow the product has 2 fundamental packaging, use only one
-    unitPackaging = unitPackaging[~unitPackaging.prodCode.duplicated()]
-    return(unitPackaging)
+    unitpackaging = unitpackaging[~unitpackaging.prodCode.duplicated()]
+    return(unitpackaging)
 
 def update_po_info(config_dict,excluded):
-#    appLang = configDict['appLang']
+#    app_lang = config_dict['app_lang']
     po_path = config_dict['po_path']
-    # read the current poInfo from database, remove anything that does not
+    # read the current po_info from database, remove anything that does not
     # have a valid path
     conn = db_open(config_dict)
     po_info = pd.read_sql_query('select * from po_info',conn)
@@ -96,7 +96,7 @@ def update_po_info(config_dict,excluded):
         po_info['fileExist'] = po_info['fileLocation'].map(os.path.isfile)
         po_info = po_info[po_info.fileExist]
         po_info = po_info.drop('fileExist',axis=1)
-        po_info.to_sql('poInfo',conn,index=False,if_exists='replace')
+        po_info.to_sql('po_info',conn,index=False,if_exists='replace')
     conn.close()
 
     
@@ -118,26 +118,26 @@ def update_po_info(config_dict,excluded):
     conn.commit()
     conn.close()
     
-def buildFullPOInfo(configDict,existingFileOnly):
-    appLang = configDict['appLang']
-    conn = dbOpen(configDict)
-    poInfo = pd.read_sql_query('select * from poInfo',conn)
+def buildFullpo_info(config_dict,existingFileOnly):
+    app_lang = config_dict['app_lang']
+    conn = db_open(config_dict)
+    po_info = pd.read_sql_query('select * from po_info',conn)
     tlsTbl = pd.read_sql_query('select poStatusCode.poStatusCode,  \
                        localisation.Actual as renderedStatus from  poStatusCode  \
                        inner join localisation on  \
                        poStatusCode.Label = localisation.Label where  \
-                       localisation.appLang = "'+appLang+'"',conn)
+                       localisation.app_lang = "'+app_lang+'"',conn)
     conn.close()
-    poInfo = poInfo.merge(tlsTbl,how='left')
-    poInfo = poInfo[poInfo.fileLocation.notnull()].reset_index(drop=True)
-    return(poInfo)
+    po_info = po_info.merge(tlsTbl,how='left')
+    po_info = po_info[po_info.fileLocation.notnull()].reset_index(drop=True)
+    return(po_info)
 
-def buildPOData(poInfo,NSXDict,renameDict,productInfo,Packaging,
+def buildPOData(po_info,NSXDict,renameDict,productInfo,packaging,
                 dataCleaning):
-    for i in range(0,len(poInfo)):
+    for i in range(0,len(po_info)):
         # as paths are relative we need to append homePath
         inputExcelFile = os.path.join(
-                os.path.expanduser('~'),poInfo.fileLocation[i])
+                os.path.expanduser('~'),po_info.fileLocation[i])
 #        print(inputExcelFile)
         currentNSX = ''
         for k in range(0,len(NSXDict)):
@@ -176,8 +176,8 @@ def buildPOData(poInfo,NSXDict,renameDict,productInfo,Packaging,
         if any(POData.prodCode.isnull()):
             print(POData[POData.prodCode.isnull()])
             raise RuntimeError('prodCode not found')
-    unitPackaging = createUnitPackaging(Packaging)
-    POData = pd.merge(POData,unitPackaging[['Unit','prodCode']],how='left')
+    unitpackaging = createUnitpackaging(packaging)
+    POData = pd.merge(POData,unitpackaging[['Unit','prodCode']],how='left')
     return(POData)
     
 def convertToPack(dataFrame,packaging,columnSL,outputColName):
@@ -189,24 +189,24 @@ def convertToPack(dataFrame,packaging,columnSL,outputColName):
     dataFrame = dataFrame.rename(columns={'packAmt':outputColName})
     return(dataFrame)
 
-def build_inv_df(importLog,saleLog,Packaging):
+def build_inv_df(import_log,sale_log,packaging):
     # check import and sale integrity
-    importLog = convertToPack(importLog,Packaging,'qty','import_pack_qty')
-    importLog = importLog.groupby(['prod_code','lot'],
+    import_log = convertToPack(import_log,packaging,'qty','import_pack_qty')
+    import_log = import_log.groupby(['prod_code','lot'],
                               as_index=False)['import_pack_qty'].sum()
 
-    saleLog = convertToPack(saleLog,Packaging,'qty','sale_pack_qty')
-    saleLog = saleLog.groupby(['prod_code','lot'],
+    sale_log = convertToPack(sale_log,packaging,'qty','sale_pack_qty')
+    sale_log = sale_log.groupby(['prod_code','lot'],
                               as_index=False)['sale_pack_qty'].sum()
 
-    inventoryDF = pd.merge(importLog,saleLog)
-    inventoryDF['remaining'] = inventoryDF.import_pack_qty - \
-    inventoryDF.sale_pack_qty
-    inventoryDF.remaining = inventoryDF.remaining.round(decimals=3)
-    return(inventoryDF)    
+    output_df = pd.merge(import_log,sale_log)
+    output_df['remaining'] = output_df.import_pack_qty - \
+    output_df.sale_pack_qty
+    output_df.remaining = output_df.remaining.round(decimals=3)
+    return(output_df)    
 
 # launch file using default application regardless of OS
-def launchFile(fileName):
+def launch_file(fileName):
     if platform.system() == 'Darwin':       # macOS
         subprocess.call(('open', fileName))
     elif platform.system() == 'Windows':    # Windows

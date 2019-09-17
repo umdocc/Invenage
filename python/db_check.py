@@ -62,4 +62,4 @@ if len(testDF)>0:
 
 # open the errorLog if it exists
 if os.path.exists(error_file):
-    inv.launchFile(error_file)
+    inv.launch_file(error_file)
