@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 #check the database integrity and print out a log file
-
 # ---------------------- Setup Block ------------------------------------------
 import sys, os, pandas as pd #import
-# set up invenageDataPath so that we can access config file
 inv_data_path = os.path.join(os.path.expanduser('~'),'invenage_data') 
 sys.path.append(inv_data_path)
 

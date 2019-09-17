@@ -14,24 +14,22 @@ def create_config_dict():
     config_dict_path = os.path.join(os.path.expanduser('~'),'invenage_data',
                               'invenage_conf.csv')
     if os.path.isfile(config_dict_path): 
-        config_df = pd.read_csv(config_dict_path,dtype=str)
+        configDF = pd.read_csv(config_dict_path,dtype=str)
     else:
-        raise RuntimeError('invenage_conf.csv not found!')
+        raise RuntimeError('invenageConf.csv not found!')
     
     # build the paths
-    config_df.value[config_df.type == 'abs'] = \
-    config_df.value[config_df.type == 'abs'].apply(create_path)
-    app_path = config_df.value[config_df.name == 'app_path'].reset_index(
+    configDF.value[configDF.name.str.contains('path')] = \
+    configDF.value[configDF.name.str.contains('path')].apply(create_path)
+    app_path = configDF.value[configDF.name=='app_path'].reset_index(
             drop=True)[0]
-    config_df.value[config_df.type == 'relative'] = \
-    config_df.value[config_df.type == 'relative'].apply(create_path)
-    config_df.value[config_df.type == 'relative'] = \
-    config_df.value[config_df.type == 'relative'].apply(
+    configDF.value[configDF.type.str.contains('relative')] = \
+    configDF.value[configDF.type.str.contains('relative')].apply(
             rel_to_abs,appPath=app_path)
     
     # create the configuration dictionary
     config_dict = {}
-    for i in range(0,len(config_df)):
-        config_dict[config_df.name[i]] = config_df.value[i]
+    for i in range(0,len(configDF)):
+        config_dict[configDF.name[i]] = configDF.value[i]
     
     return(config_dict)
