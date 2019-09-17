@@ -3,6 +3,7 @@
 import pandas as pd, os
 # ------------------------------- Setup ---------------------------------------
 def create_path(path_str,sep=';'):
+    path_str = path_str.replace(':',':/') # windows drive path fix
     output_path = os.path.join(*path_str.split(sep))
     return(output_path)
 
