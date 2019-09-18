@@ -64,23 +64,24 @@ packaging <- dbReadTable(conn,"packaging")
 sale_log <- dbReadTable(conn,"sale_log")
 pxk_info <- dbReadTable(conn,"pxk_info")
 warehouse_info <- dbReadTable(conn,"warehouse_info")
-
 dbDisconnect(conn)
 
 # --------------------- UI Configurations --------------------------------------
 # use the configured language
 localisation <- localisation[localisation$app_lang==app_lang,]
+# extract sub-tables from localisation
+ui_elem <- localisation[localisation$group=='ui_elements',]
 
 # list of tables in lookups
 lu_tbl_list <- unlist(strsplit(
   config_dict$value[config_dict$name=='lookup_tbl_list'],';'))
 
 lu_tbl_list <- data.frame(label = lu_tbl_list)
-lu_tbl_list <- merge(lu_tbl_list,localisation,all.x = T)
+lu_tbl_list <- merge(lu_tbl_list,ui_elem,all.x = T)
 lu_tbl_list <- lu_tbl_list$actual
 
 # -------------------------- Start-up Data -------------------------------------
 col_name_label <- localisation$label[localisation$group=='col_rename']
 col_name_actual <- localisation$actual[localisation$group=='col_rename']
-inventory <- update_inventory(import_log,sale_log)
+inventory <- update_inventory(config_dict)
 # print(home_path)
