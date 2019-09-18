@@ -9,13 +9,13 @@ sys.path.append(os.path.join(config_dict['app_path'],'python'))
 import python_func as inv
 
 # ------------------------------ Data Read ------------------------------------
-# variables configuration
-error_file = config_dict['error_log']
-#database read
+#database
 conn = inv.db_open(config_dict)
 import_log = pd.read_sql_query('select * from import_log',conn)
 conn.close()
-msg_dict = inv.get_msg_dict(config_dict)
+# other
+error_file = config_dict['error_log']
+msg_dict = inv.create_dict(config_dict,'msg_dict')
 
 # ------------------------ process PO _data -----------------------------------
 po_file_list = inv.get_files_info(config_dict,
@@ -27,7 +27,7 @@ po_file_list = po_file_list[po_file_list.file_name.str.contains(
 po_file_list = po_file_list.reset_index(drop=True)
 po_data = inv.build_po_data(po_file_list, config_dict, dataCleaning=True)
 
-# check po_data for integrity
+# ---------------------- logic checks -----------------------------------------
 if (len(po_data[po_data.prod_code.isnull()])>0):
     inv.write_log(error_file,msg_dict['process_excel_po'])
     inv.write_log(error_file,msg_dict['unknown_prod'])

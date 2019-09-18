@@ -50,19 +50,25 @@ def getPODataLoc(inputExcelFile,headerStr):
     return(rLoc,cLoc)
 
 # current dictType = ['NSX','colRename']
-def create_dict(conn,dictType):
-    renameDF = pd.read_sql_query(
-            'select * from guess_table where guess_type = "'+dictType+'"',conn)
-    # create the rename Dictionary
-    renameDict = {}
-    # now use relative to user path for all data storage
-    for i in range(0,len(renameDF)):
-        renameDict[renameDF.input_str[i]] = renameDF.output_str[i]
-    return(renameDict)
+def create_dict(config_dict, dict_name):
+    conn = db_open(config_dict)
+    # rename dictionary
+    if ((dict_name=='rename_dict') or (dict_name=='vendor_dict')):
+        renameDF = pd.read_sql_query(
+            'select * from guess_table where guess_type = "'+dict_name+'"',
+            conn)
+        output_dict = {}
+        for i in range(0,len(renameDF)):
+            output_dict[renameDF.input_str[i]] = renameDF.output_str[i]
 
-# db_open assume mariaDB, using sqlalchemy we should be able to use
-# pandas to_sql and read_sql, remember to call conn.dispose() to close 
-# the connection
+    if (dict_name=='msg_dict'):
+        localisation = pd.read_sql_query('select * from localisation',conn)
+        localisation = localisation[localisation.app_lang==config_dict['app_lang']]
+        output_dict = localisation[localisation.group=='message']
+        output_dict = df_to_dict(output_dict,'label','actual')
+    conn.close()
+    return(output_dict)
+
 def db_open(config_dict):
     if (config_dict['db_type']=='MariaDB'):
         conn = create_engine('mysql+mysqlconnector://'+                \
@@ -245,11 +251,3 @@ def df_to_dict(data_df,key_col,value_col):
         data_dict[data_df.loc[i,key_col]] = data_df.loc[i,value_col]
     
     return(data_dict)
-
-def get_msg_dict(config_dict):
-    conn = db_open(config_dict)
-    localisation = pd.read_sql_query('select * from localisation',conn)
-    localisation = localisation[localisation.app_lang==config_dict['app_lang']]
-    msg_dict = localisation[localisation.group=='message']
-    msg_dict = df_to_dict(msg_dict,'label','actual')
-    return(msg_dict)
