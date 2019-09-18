@@ -42,7 +42,7 @@ if (all(grepl('windows',os_name))){
   }
 }
 
-# source the uiFunctions script
+# source the ui_functions script
 ui_func_path <- file.path(
   config_dict$value[config_dict$name=='app_path'],
   'r','ui_functions.R')
@@ -55,7 +55,7 @@ copyright_str <- paste(
 app_lang <- config_dict$value[config_dict$name=='app_lang']
 
 # connect to database and read start-up information
-conn <- dbOpen(config_dict)
+conn <- db_open(config_dict)
 product_info <- dbReadTable(conn,"product_info")
 localisation <- dbReadTable(conn,"localisation")
 import_log <- dbReadTable(conn,"import_log")
@@ -72,9 +72,10 @@ dbDisconnect(conn)
 localisation <- localisation[localisation$app_lang==app_lang,]
 
 # list of tables in lookups
-lu_tbl_list <- c('inventory','product_info','coming_list','po_info',
-                     'import_price','sale_log','import_log')
-lu_tbl_list <- data.frame(Label = lu_tbl_list)
+lu_tbl_list <- unlist(strsplit(
+  config_dict$value[config_dict$name=='lookup_tbl_list'],';'))
+
+lu_tbl_list <- data.frame(label = lu_tbl_list)
 lu_tbl_list <- merge(lu_tbl_list,localisation,all.x = T)
 lu_tbl_list <- lu_tbl_list$actual
 
@@ -82,4 +83,4 @@ lu_tbl_list <- lu_tbl_list$actual
 col_name_label <- localisation$label[localisation$group=='col_rename']
 col_name_actual <- localisation$actual[localisation$group=='col_rename']
 inventory <- update_inventory(import_log,sale_log)
-print(home_path)
+# print(home_path)

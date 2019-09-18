@@ -46,102 +46,102 @@ db_open <- function(config_dict){
 }
 
 # convertToPack is a critical function
-convertToPack <- function(inputDF,Packaging,stringSL,packString){
+convertToPack <- function(inputDF,packaging,stringSL,packString){
   inputDF <- merge(
-    inputDF,Packaging %>% select(prodCode,Unit,unitsPerPack),all.x=T)
+    inputDF,packaging %>% select(prod_code,unit,units_per_pack),all.x=T)
   # check integrity
-  if(nrow(inputDF[is.na(inputDF$unitsPerPack),])>0){
-    print(inputDF[is.na(inputDF$unitsPerPack),])
+  if(nrow(inputDF[is.na(inputDF$units_per_pack),])>0){
+    print(inputDF[is.na(inputDF$units_per_pack),])
     stop('inputDF contains unrecognised packaging')
   }
-  inputDF[[packString]] <- inputDF[[stringSL]]/inputDF$unitsPerPack
+  inputDF[[packString]] <- inputDF[[stringSL]]/inputDF$units_per_pack
   # clean up
-  inputDF$Unit <- 'pack'
+  inputDF$unit <- 'pack'
   inputDF[[stringSL]] <- NULL
-  # inputDF$unitsPerPack <- NULL
+  # inputDF$units_per_pack <- NULL
   return(inputDF)
 }
 
 # function to rebuild the Inventory table from import_log and sale_log
 # if moreThanZero ==T, it will only return items with positive stock
 update_inventory <- function(import_log,sale_log, pos_item=TRUE){
-  tmp <- import_log %>% select(prodCode,Unit,Quantity,Lot,expDate)
-  tmp <- convertToPack(tmp,Packaging,'Quantity','importQty')
-  tmp <- tmp %>% group_by(prodCode,Unit,Lot) %>% 
+  tmp <- import_log %>% select(prod_code,unit,qty,lot,exp_date)
+  tmp <- convertToPack(tmp,packaging,'qty','importQty')
+  tmp <- tmp %>% group_by(prod_code,unit,lot) %>% 
     summarise(totalImportQty = sum(importQty)) %>% ungroup()
-  tmp2 <- sale_log %>% select(prodCode,Unit,Amount,Lot)
-  tmp2 <- convertToPack(tmp2,Packaging,'Amount','saleQty')
-  tmp2 <- tmp2 %>% group_by(prodCode,Unit,Lot) %>% 
+  tmp2 <- sale_log %>% select(prod_code,unit,qty,lot)
+  tmp2 <- convertToPack(tmp2,packaging,'qty','saleQty')
+  tmp2 <- tmp2 %>% group_by(prod_code,unit,lot) %>% 
     summarise(totalSaleQty = sum(saleQty)) %>% ungroup()
-  totalInventory <- merge(tmp,tmp2,all=T,by=c('prodCode','Unit','Lot'))
+  totalInventory <- merge(tmp,tmp2,all=T,by=c('prod_code','unit','lot'))
   totalInventory$totalSaleQty[is.na(totalInventory$totalSaleQty)] <- 0
   totalInventory$totalImportQty[is.na(totalInventory$totalImportQty)] <- 0
   totalInventory$remainingQty <- totalInventory$totalImportQty - 
     totalInventory$totalSaleQty
   
   # keep only the available items
-  if (moreThanZero){
+  if (pos_item){
     threshold <- 0.01
     totalInventory <- totalInventory[totalInventory$remainingQty>threshold,] %>% 
     distinct()
   }
-  # recover the expDate
-  expDateData <- import_log[!duplicated(import_log[c('prodCode','Lot')]),] %>% 
-    select(prodCode,Lot,expDate) %>% distinct()
+  # recover the exp_date
+  exp_dateData <- import_log[!duplicated(import_log[c('prod_code','lot')]),] %>% 
+    select(prod_code,lot,exp_date) %>% distinct()
   
   # merge, distinct and remove NA
-  totalInventory <- merge(totalInventory,expDateData,all.x=T) %>% distinct()
-  totalInventory <- totalInventory[!is.na(totalInventory$prodCode),]
+  totalInventory <- merge(totalInventory,exp_dateData,all.x=T) %>% distinct()
+  totalInventory <- totalInventory[!is.na(totalInventory$prod_code),]
   
-  # calculate the intExpDate, which is the expDate in standard format
-  totalInventory$expDate <- gsub('/','-',totalInventory$expDate)
-  totalInventory$expDate <- gsub(' .*$','',totalInventory$expDate)
-  totalInventory$intExpDate <- parse_date_time(
-    totalInventory$expDate,c('%Y-%m','%m-%Y','%d-%m-%Y','%Y-%m-%d'))
+  # calculate the intexp_date, which is the exp_date in standard format
+  totalInventory$exp_date <- gsub('/','-',totalInventory$exp_date)
+  totalInventory$exp_date <- gsub(' .*$','',totalInventory$exp_date)
+  totalInventory$intexp_date <- parse_date_time(
+    totalInventory$exp_date,c('%Y-%m','%m-%Y','%d-%m-%Y','%Y-%m-%d'))
   
   return(totalInventory)
 }
 
-# the getAvailableLot function get a list of available Lot, it returns a vector
-# if sortType ='fifo', the earliest expDate will be on top
-getAvailableLot <- function(selectedProdCode,Invetory,sortType){
+# the getAvailablelot function get a list of available lot, it returns a vector
+# if sortType ='fifo', the earliest exp_date will be on top
+getAvailablelot <- function(selectedprod_code,Invetory,sortType){
   if (sortType == 'fifo'){
-    availableLot <- Inventory[Inventory$prodCode==selectedProdCode,]
-    availableLot <- availableLot[order(availableLot$intExpDate,
+    availablelot <- Inventory[Inventory$prod_code==selectedprod_code,]
+    availablelot <- availablelot[order(availablelot$intexp_date,
                                        na.last = F, # put NA lot first
-                                       decreasing = F),] #lowest expDate first
+                                       decreasing = F),] #lowest exp_date first
   }
-  availableLot <- availableLot$Lot
-  return(availableLot)
+  availablelot <- availablelot$lot
+  return(availablelot)
 }
 
 # function to rebuild the productInfo HTML string
-buildProductInfoPane <- function(Inventory,productInfo,Packaging,input){
+buildProductInfoPane <- function(Inventory,productInfo,packaging,input){
   currentMfgCode <- productInfo[
     productInfo$Name==input$prodNameSelector, "mfgCode"]
-  currentProdCode <- productInfo[
-    productInfo$Name==input$prodNameSelector, "prodCode"]
+  currentprod_code <- productInfo[
+    productInfo$Name==input$prodNameSelector, "prod_code"]
   currentNSX <- productInfo[productInfo$Name==input$prodNameSelector, "NSX"]
-  totalAvail <- Inventory[Inventory$prodCode == currentProdCode &
-                            Inventory$Lot == input$lotSelector, 'remainingQty']
-  currentExpDate <- Inventory[Inventory$prodCode == currentProdCode &
-                                Inventory$Lot == input$lotSelector, 'expDate']
-  renderedPackaging <- Packaging[
-    Packaging$prodCode == currentProdCode & 
-      Packaging$Unit == input$unitSelector,]
-  renderedPackaging <- paste0(renderedPackaging$unitsPerPack[1],
-                              renderedPackaging$Unit[1],'/pack')
+  totalAvail <- Inventory[Inventory$prod_code == currentprod_code &
+                            Inventory$lot == input$lotSelector, 'remainingQty']
+  currentexp_date <- Inventory[Inventory$prod_code == currentprod_code &
+                                Inventory$lot == input$lotSelector, 'exp_date']
+  renderedpackaging <- packaging[
+    packaging$prod_code == currentprod_code & 
+      packaging$unit == input$unitSelector,]
+  renderedpackaging <- paste0(renderedpackaging$units_per_pack[1],
+                              renderedpackaging$unit[1],'/pack')
   return(paste("REF: ",currentMfgCode,'<br/>',
-               localisation$Actual[localisation$Label=='prodCode'],':',
-               currentProdCode, '<br/>',
+               localisation$Actual[localisation$Label=='prod_code'],':',
+               currentprod_code, '<br/>',
                localisation$Actual[localisation$Label=='NSX'],':',
                currentNSX, '<br/>',
-               localisation$Actual[localisation$Label=='expDate'],':',
-               currentExpDate, '<br/>',
+               localisation$Actual[localisation$Label=='exp_date'],':',
+               currentexp_date, '<br/>',
                localisation$Actual[localisation$Label=='totalAvail'],':',
                totalAvail, '<br/>',
-               localisation$Actual[localisation$Label=='renderedPackaging'],
-               ':',renderedPackaging)
+               localisation$Actual[localisation$Label=='renderedpackaging'],
+               ':',renderedpackaging)
   )
 }
 
@@ -187,11 +187,11 @@ getCurrentPXK <- function(conn){
 
 # render raw pxk into readable format
 renderPXK <- function(currentPXK){
-  query <- paste("select sale_log.Stt, productInfo.Name, sale_log.Unit, 
-                sale_log.unitPrice,sale_log.Amount, sale_log.Lot,
+  query <- paste("select sale_log.Stt, productInfo.Name, sale_log.unit, 
+                sale_log.unitPrice,sale_log.qty, sale_log.lot,
                 sale_log.PXKNum, sale_log.Note 
                 from sale_log inner join productInfo
-                 on sale_log.prodCode = productInfo.prodCode 
+                 on sale_log.prod_code = productInfo.prod_code 
                  where sale_log.PXKNum =",
                  currentPXK)
   conn <- db_open(config_dict)
@@ -203,18 +203,18 @@ renderPXK <- function(currentPXK){
 # function to build estimated import cost from import_log
 getEstImportCost <- function(import_log, algorithm='weighted_average'){
   if (algorithm=='weighted_average'){
-    import_log <- convertToPack(import_log,Packaging,stringSL='Quantity',
+    import_log <- convertToPack(import_log,packaging,stringSL='qty',
                                packString = 'packQty')
     import_log$packImportCost <- 
-      import_log$actualUnitImportCost*import_log$unitsPerPack
+      import_log$actualunitImportCost*import_log$units_per_pack
     import_log$totalImportCost <- 
       import_log$packImportCost*import_log$packQty
-    tmp <- import_log %>% group_by(prodCode,Lot) %>%
+    tmp <- import_log %>% group_by(prod_code,lot) %>%
       summarise(totalPack = sum(packQty),
                 sumImportCost = sum(totalImportCost)) %>%
       ungroup
     tmp$avePackImportCost <- tmp$sumImportCost/tmp$totalPack
-    tmp <- tmp %>% select(prodCode,Lot,avePackImportCost)
+    tmp <- tmp %>% select(prod_code,lot,avePackImportCost)
     return(tmp)
   }
 }
