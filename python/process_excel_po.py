@@ -15,6 +15,7 @@ error_file = config_dict['error_log']
 conn = inv.db_open(config_dict)
 import_log = pd.read_sql_query('select * from import_log',conn)
 conn.close()
+msg_dict = inv.get_msg_dict(config_dict)
 
 # ------------------------ process PO _data -----------------------------------
 po_file_list = inv.get_files_info(config_dict,
@@ -26,15 +27,16 @@ po_file_list = po_file_list[po_file_list.file_name.str.contains(
 po_file_list = po_file_list.reset_index(drop=True)
 po_data = inv.build_po_data(po_file_list, config_dict, dataCleaning=True)
 
-# check po_data form integrity
+# check po_data for integrity
 if (len(po_data[po_data.prod_code.isnull()])>0):
-    inv.write_log(error_file,'po_data contains unrecognised prod_code')
+    inv.write_log(error_file,msg_dict['process_excel_po'])
+    inv.write_log(error_file,msg_dict['unknown_prod'])
     po_data[po_data.prod_code.isnull()].to_csv(
             error_file,index=False,sep='\t',mode='a')
     
 if (len(po_data[po_data.unit.isnull()])>0):
-    inv.write_log(error_file,'po_data contains products without \
-                       fundamental packaging information')
+    inv.write_log(error_file,msg_dict['process_excel_po'])
+    inv.write_log(error_file,msg_dict['unknown_fund_pkg'])
     po_data[po_data.unit.isnull()].to_csv(
             error_file,index=False,sep='\t',mode='a')
 

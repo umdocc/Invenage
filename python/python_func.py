@@ -11,7 +11,7 @@ def write_log(error_file,message):
     text_file.write('\n'+message+'\n')
     text_file.close()
 
-def get_files_info(config_dict,extension,exclude):
+def get_files_info(config_dict,extension,exclude=''):
     if isinstance(exclude,str):
         exclude = exclude.split()
     file_list = pd.DataFrame(glob.glob(os.path.join(config_dict['po_path'],
@@ -25,9 +25,13 @@ def get_files_info(config_dict,extension,exclude):
     file_list = file_list[~file_list.full_path.str.contains('~\$')]
     file_list = pd.merge(file_list,locked_list,how='left',on='full_path')
     
-    for folderName in exclude:
-#        print(folderName)
-        file_list = file_list[~file_list.full_path.str.contains(folderName)]
+    # if exclude is not blank
+    if (exclude!=''):
+        for folderName in exclude:
+    #        print(folderName)
+            file_list = file_list[
+                    ~file_list.full_path.str.contains(folderName)]
+    
     file_list = file_list.reset_index(drop=True)
     file_list['file_name'] = file_list.full_path.apply(os.path.basename)
     return(file_list)
@@ -225,3 +229,27 @@ def launch_file(fileName):
         os.startfile(fileName)
     else:                                   # linux variants
         subprocess.call(('xdg-open', fileName))
+        
+# convert a data frame to dictionary, use with caution
+def df_to_dict(data_df,key_col,value_col):
+    # check the df integirty
+    if (len(data_df[data_df[key_col].duplicated()])>0):
+        raise RuntimeError('duplication found in key_col')
+    
+    # reset data frame index
+    data_df = data_df.reset_index(drop=True)
+    
+    # create the configuration dictionary
+    data_dict = {}
+    for i in range(0,len(data_df)):
+        data_dict[data_df.loc[i,key_col]] = data_df.loc[i,value_col]
+    
+    return(data_dict)
+
+def get_msg_dict(config_dict):
+    conn = db_open(config_dict)
+    localisation = pd.read_sql_query('select * from localisation',conn)
+    localisation = localisation[localisation.app_lang==config_dict['app_lang']]
+    msg_dict = localisation[localisation.group=='message']
+    msg_dict = df_to_dict(msg_dict,'label','actual')
+    return(msg_dict)
