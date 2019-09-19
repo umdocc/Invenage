@@ -25,11 +25,11 @@ get_current_pxk <- function(cofig_dict){
     currentDate <- strftime(Sys.time(),'%d%m%y')
     i <- 1;newPXKNum <- F
     while (!newPXKNum){
-      tmpNum <- as.numeric(paste0(strftime(Sys.time(),'%d%m%y'),
+      tmp_num <- as.numeric(paste0(strftime(Sys.time(),'%d%m%y'),
                                   sprintf("%02d",i)))
       # print(tmpNum)
-      if (length(PXKNumList[PXKNumList$PXKNum==tmpNum,'PXKNum'])==0){
-        newPXK <- tmpNum
+      if (length(pxk_num_list[pxk_num_list$pxk_num==tmp_num,'pxk_num'])==0){
+        newPXK <- tmp_num
         newPXKNum <- T
       }else{
         i <- i+1
@@ -59,13 +59,13 @@ update_inventory <- function(config_dict, pos_item=TRUE){
   totalInventory <- merge(tmp,tmp2,all=T,by=c('prod_code','unit','lot'))
   totalInventory$totalSaleQty[is.na(totalInventory$totalSaleQty)] <- 0
   totalInventory$totalImportQty[is.na(totalInventory$totalImportQty)] <- 0
-  totalInventory$remainingQty <- totalInventory$totalImportQty - 
+  totalInventory$remaining_qty <- totalInventory$totalImportQty - 
     totalInventory$totalSaleQty
   
   # keep only the available items
   if (pos_item){
     threshold <- 0.01
-    totalInventory <- totalInventory[totalInventory$remainingQty>threshold,] %>% 
+    totalInventory <- totalInventory[totalInventory$remaining_qty>threshold,] %>% 
       distinct()
   }
   # recover the exp_date
@@ -135,32 +135,39 @@ get_avail_lot <- function(current_prod_code,config_dict,sort_type='fifo'){
 }
 
 # function to rebuild the productInfo HTML string
-buildProductInfoPane <- function(Inventory,productInfo,packaging,input){
-  currentMfgCode <- productInfo[
-    productInfo$Name==input$prodNameSelector, "mfgCode"]
-  currentprod_code <- productInfo[
-    productInfo$Name==input$prodNameSelector, "prod_code"]
-  currentNSX <- productInfo[productInfo$Name==input$prodNameSelector, "NSX"]
-  totalAvail <- Inventory[Inventory$prod_code == currentprod_code &
-                            Inventory$lot == input$lotSelector, 'remainingQty']
-  currentexp_date <- Inventory[Inventory$prod_code == currentprod_code &
-                                Inventory$lot == input$lotSelector, 'exp_date']
-  renderedpackaging <- packaging[
-    packaging$prod_code == currentprod_code &
+build_prod_info <- function(config_dict,input){
+  conn <- db_open(config_dict)
+  product_info <- dbReadTable(conn,"product_info")
+  dbDisconnect(conn)
+  inventory <- update_inventory(config_dict)
+  
+  current_select <- product_info[product_info$name==input$prodNameSelector,]
+  # current_ref <- product_info[
+  #   product_info$name==input$prodNameSelector, "ref_smn"]
+  # current_prod_code <- product_info[
+  #   product_info$name==input$prodNameSelector, "prod_code"]
+  # currentNSX <- productInfo[productInfo$Name==input$prodNameSelector, "NSX"]
+  total_available <- inventory[inventory$prod_code == current_select$prod_code &
+                            inventory$lot == input$lotSelector, 'remaining_qty']
+  current_exp_date <- inventory[
+    inventory$prod_code == current_select$prod_code &
+                      inventory$lot == input$lotSelector, 'exp_date']
+  packaging_str <- packaging[
+    packaging$prod_code == current_select$prod_code &
       packaging$unit == input$unitSelector,]
-  renderedpackaging <- paste0(renderedpackaging$units_per_pack[1],
-                              renderedpackaging$unit[1],'/pack')
-  return(paste("REF: ",currentMfgCode,'<br/>',
-               localisation$Actual[localisation$Label=='prod_code'],':',
-               currentprod_code, '<br/>',
-               localisation$Actual[localisation$Label=='NSX'],':',
-               currentNSX, '<br/>',
-               localisation$Actual[localisation$Label=='exp_date'],':',
-               currentexp_date, '<br/>',
-               localisation$Actual[localisation$Label=='totalAvail'],':',
-               totalAvail, '<br/>',
-               localisation$Actual[localisation$Label=='renderedpackaging'],
-               ':',renderedpackaging)
+  packaging_str <- paste0(packaging_str$units_per_pack[1],
+                          packaging_str$unit[1],'/pack')
+  return(paste("REF: ",current_select$ref_smn,'<br/>',
+               ui_elem$actual[ui_elem$label=='prod_code'],':',
+               current_select$prod_code, '<br/>',
+               ui_elem$actual[ui_elem$label=='vendor'],':',
+               current_select$vendor, '<br/>',
+               ui_elem$actual[ui_elem$label=='exp_date'],':',
+               current_exp_date, '<br/>',
+               ui_elem$actual[ui_elem$label=='total_available'],':',
+               total_available, '<br/>',
+               ui_elem$actual[ui_elem$label=='packaging_str'],
+               ':',packaging_str)
   )
 }
 

@@ -48,9 +48,8 @@ shinyServer(function(input, output,session) {
   })
   
   output$prod_info_str <- renderUI({
-    product_infoPaneStr <- buildProductInfoPane(Inventory,product_info,Packaging,
-                                               input)
-    HTML(product_infoPaneStr)
+    product_info_str <- build_prod_info(config_dict,input)
+    HTML(product_info_str)
   })
   
 #   # selector UIs
@@ -389,7 +388,7 @@ shinyServer(function(input, output,session) {
       lookup_tbl_output <- merge(lookup_tbl_output,
                                  product_info %>% select(prodCode,Name,mfgCode),
                                  all.x = T) %>%
-        select(Name,mfgCode,Lot,expDate,remainingQty)
+        select(Name,mfgCode,Lot,expDate,remaining_qty)
     }else{
       # query on simple table
       if (tableName=='product_info'){
@@ -514,12 +513,12 @@ shinyServer(function(input, output,session) {
       # read the inventory
       inventoryReport <- updateInventory(importLog,saleLog,moreThanZero=F)
       # set all negative number to 0
-      inventoryReport <- inventoryReport[inventoryReport$remainingQty>0,]
+      inventoryReport <- inventoryReport[inventoryReport$remaining_qty>0,]
       
       # if this is ordering report, group and sum
       if (reportType == 'inventoryOrderReport'){
         inventoryReport <- inventoryReport %>% group_by(prodCode) %>% 
-          summarise(totalRemainingQty = sum(remainingQty)) %>% ungroup
+          summarise(totalremaining_qty = sum(remaining_qty)) %>% ungroup
       }
       #recover human-readble info
       inventoryReport <- merge(
@@ -530,10 +529,10 @@ shinyServer(function(input, output,session) {
       # select the appropriate column
       if (reportType == 'inventoryOrderReport'){
         inventoryReport <- inventoryReport %>%
-        select(Name,NSX,mfgCode,totalRemainingQty,Warehouse)
+        select(Name,NSX,mfgCode,totalremaining_qty,Warehouse)
       }else{
         inventoryReport <- inventoryReport %>%
-          select(Name,NSX,mfgCode,remainingQty,
+          select(Name,NSX,mfgCode,remaining_qty,
                  Lot,expDate,Warehouse)
       }
       

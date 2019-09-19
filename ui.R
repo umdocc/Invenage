@@ -35,9 +35,9 @@ dashboardPage(
           ),
           box(width = 2, height = 500,
             htmlOutput("lotSelector"),
-          #   # htmlOutput("pxkNote"),
-          #   # h4(ui_elem$actual[ui_elem$label=='product_info']),
-          #   # htmlOutput("prod_info_str"),
+            htmlOutput("pxkNote"),
+            h4(ui_elem$actual[ui_elem$label=='product_info']),
+            htmlOutput("prod_info_str"),
           #   # actionButton("inventoryOut",
           #   #         ui_elem$actual[ui_elem$label=='inv_out']),
             h5('')
