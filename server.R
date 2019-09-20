@@ -519,6 +519,9 @@ shinyServer(function(input, output,session) {
       if (reportType == 'inventoryOrderReport'){
         inventoryReport <- inventoryReport %>% group_by(prodCode) %>% 
           summarise(totalremaining_qty = sum(remaining_qty)) %>% ungroup
+        # merge with prod_info so that we get zero items as well
+        inventoryReport <- merge(inventoryReport,product_info %>% 
+                                   select(prod_code,type),all.y=T)
       }
       #recover human-readble info
       inventoryReport <- merge(
