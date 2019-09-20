@@ -13,6 +13,7 @@ conn = inv.db_open(config_dict)
 product_info = pd.read_sql_query('select * from product_info',conn)
 import_log = pd.read_sql_query('select * from import_log',conn)
 localisation = pd.read_sql_query('select * from localisation',conn)
+packaging = pd.read_sql_query('select * from packaging',conn)
 conn.close()
 #other
 error_file = config_dict['error_log']
@@ -82,11 +83,30 @@ localImportData = localImportData[['prod_code','unit','qty','po_name',
                                      'lot','exp_date','actual_unit_cost',
                                      'actual_currency_code']]
 
+# check appending data for unknown packaging, remove unknown packaging
+testDF = localImportData.copy()
+testDF = testDF[['prod_code','unit']].drop_duplicates()
+testDF = pd.merge(testDF,packaging,how='left')
+testDF = testDF[testDF.units_per_pack.isnull()]
+if len(testDF)>0:
+    inv.write_log(error_file,msg_dict['process_local_po'])
+    inv.write_log(error_file,msg_dict['unknown_pkg'])
+    testDF.to_csv(error_file,index=False,sep='\t',mode='a')
+
+#remove unknown packaging
+testDF['remove'] = True
+localImportData = pd.merge(
+        localImportData,testDF[['prod_code','unit','remove']],
+        how='left')
+localImportData = localImportData[localImportData.remove.isnull()]
+localImportData = localImportData.drop(columns='remove')
+
 # writing to database
 if len(localImportData)>0:
-    conn = inv.db_open(config_dict)
-    print('adding following items to local import')
+    print(msg_dict['add_import'])
     print(localImportData)
-    localImportData.to_sql('import_log',conn,index=False,if_exists='append')
+    conn = inv.db_open(config_dict)
+    localImportData.to_sql('import_log',conn,index=False,
+                           if_exists='append')
     conn.commit()
     conn.close()
