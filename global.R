@@ -1,4 +1,4 @@
-rm(list=ls()) # boot clean-up
+# rm(list=ls()) # boot clean-up
 required_package <- c('RSQLite','shiny','shinydashboard','ggplot2',
                           'scales','openxlsx','dplyr','data.table','lubridate')
 new.packages <- required_package[
