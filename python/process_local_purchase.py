@@ -20,6 +20,10 @@ error_file = config_dict['error_log']
 msg_dict = inv.create_dict(config_dict,'msg_dict')
 rename_dict = inv.create_dict(config_dict,'rename_dict')
 
+# attemp to fill missing import_log price by checking the po
+missing_price = import_log.copy()
+missing_price = missing_price[missing_price.actual_unit_cost.isnull()]
+
 # ---------------------------- Invenage-Python --------------------------------
 local_import_str = config_dict['local_import_str'] # the special PO
 po_file_list = inv.get_files_info(config_dict,

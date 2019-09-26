@@ -28,7 +28,7 @@ if os.path.exists(error_file):
     os.remove(error_file)
 
 # ------------------------------- Checking ------------------------------------
-#check product info for duplicated
+#check product info for duplicated prod_code
 testDF = product_info.copy()
 testDF = testDF[testDF.prod_code.duplicated()][['prod_code','name']]
 if (len(testDF)>0):
