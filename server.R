@@ -40,7 +40,7 @@ shinyServer(function(input, output,session) {
                                       "prod_code"]
     avaiLot <- get_avail_lot(current_prod_code,config_dict)
     selectizeInput(
-      inputId = "lotSelector", label = "Lot",
+      inputId = "lot_selector", label = "Lot",
       choices = unique(avaiLot), options = list(create = TRUE)
     )
   })
@@ -73,7 +73,21 @@ shinyServer(function(input, output,session) {
                  choices = paymentChoices,selected = defaultPay)
    }) }
    renderWarehouse <- function(){renderUI({
-
+     conn <- db_open(config_dict)
+     warehouse_info <- dbReadTable(conn,'warehouse_info')
+     dbDisconnect(conn)
+     warehouseChoices <- warehouse_info$warehouse
+     # get default warehouse based on current product
+     inventory <- update_inventory(config_dict)
+     current_prod_code <- product_info[
+       product_info$name==input$prodNameSelector, "prod_code"]
+     default_warehouse_id <- inventory$warehouse_id[
+       inventory$prod_code==current_prod_code & 
+         inventory$lot==input$lot_selector]
+     default_warehouse <- default_warehouse_id
+     selectInput(inputId = 'warehouse',
+                 label = ui_elem$actual[ui_elem$label=='warehouse'],
+                 choices = default_warehouse)
    }) }
    
 # ---------------------------- Inventory Out Tab -------------------------------

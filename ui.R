@@ -28,13 +28,15 @@ dashboardPage(
             htmlOutput("qtySelector"),
             htmlOutput("unitSelector"),
             htmlOutput("lotSelector"),
-            selectizeInput(inputId = "unit_price",
-                           label = ui_elem$actual[
-                             ui_elem$label=='unit_price'],
-                           choices='',options = list(create=T)),
+            htmlOutput("warehouseSelector"),
+
             h5('')
           ),
           box(width = 2, height = 600,
+            selectizeInput(inputId = "unit_price",
+                             label = ui_elem$actual[
+                               ui_elem$label=='unit_price'],
+                             choices='',options = list(create=T)),
             htmlOutput("paymentSelector"),
             htmlOutput("pxkNote"),
             h4(ui_elem$actual[ui_elem$label=='product_info']),
