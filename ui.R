@@ -21,25 +21,26 @@ dashboardPage(
     tabItems(
       tabItem(tabName = "inventoryOut",
         fluidRow(
-          box(width=3, height = 500,
+          box(width=3, height = 600,
             htmlOutput('pxkSelector'),
             htmlOutput('customerSelector'),
             htmlOutput('prodNameSelector'),
             htmlOutput("qtySelector"),
             htmlOutput("unitSelector"),
+            htmlOutput("lotSelector"),
             selectizeInput(inputId = "unit_price",
                            label = ui_elem$actual[
                              ui_elem$label=='unit_price'],
                            choices='',options = list(create=T)),
             h5('')
           ),
-          box(width = 2, height = 500,
-            htmlOutput("lotSelector"),
+          box(width = 2, height = 600,
+            htmlOutput("paymentSelector"),
             htmlOutput("pxkNote"),
             h4(ui_elem$actual[ui_elem$label=='product_info']),
             htmlOutput("prod_info_str"),
-          #   # actionButton("inventoryOut",
-          #   #         ui_elem$actual[ui_elem$label=='inv_out']),
+            actionButton("inventoryOut",
+                    ui_elem$actual[ui_elem$label=='inv_out']),
             h5('')
           )
           # ,

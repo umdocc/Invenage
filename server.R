@@ -2,29 +2,27 @@
 source("global.R",local = F)
 require(dplyr)
 shinyServer(function(input, output,session) {
-# # ------------------- UI Elements for Xuat Kho tab -----------------------------
-#   # Info line, use htmlOutput for more controls
-  output$pxkSelector <- renderUI({
+# # --------------------- custom render functions ------------------------------
+  renderPXK <- function(){renderUI({
     currentPXK <- get_current_pxk(config_dict)
-    selectizeInput(
-      inputId = "pxkSelector",
+    selectizeInput( inputId = "pxkSelector",
       label = ui_elem$actual[ui_elem$label=='pxkNum'],
       choices = currentPXK, options = list(create = T))
-  })
+   }) }
   
-  output$prodNameSelector <- renderUI({
+  renderProdName <- function(){renderUI({
     selectInput(inputId = "prodNameSelector",
                 label = ui_elem$actual[ui_elem$label=='prod_name'],
                 choices=product_info$name)
-  })
+  }) }
 
-  output$qtySelector <- renderUI({
+  renderQty <- function(){renderUI({
     selectizeInput(inputId = "qtySelector",
                    label = ui_elem$actual[ui_elem$label=='qty'],
                    choices=c(1:100),options = list(create=T))
-  })
+  }) }
 
-  output$unitSelector <- renderUI({
+  renderUnit <- function(){renderUI({
     current_prod_code<- product_info[product_info$name==input$prodNameSelector,
                                   "prod_code"]
     unitList <- packaging[packaging$prod_code == current_prod_code,"unit"]
@@ -35,9 +33,9 @@ shinyServer(function(input, output,session) {
       label = ui_elem$actual[ui_elem$label=='unit'],
       choices = unitList
     )
-  })
-
-  output$lotSelector <- renderUI({
+   }) }
+   
+  renderLot <- function(){renderUI({
     current_prod_code <- product_info[product_info$name==input$prodNameSelector,
                                       "prod_code"]
     avaiLot <- get_avail_lot(current_prod_code,config_dict)
@@ -46,55 +44,59 @@ shinyServer(function(input, output,session) {
       choices = unique(avaiLot), options = list(create = TRUE)
     )
   })
-  
-  output$prod_info_str <- renderUI({
-    product_info_str <- build_prod_info(config_dict,input)
-    HTML(product_info_str)
-  })
-  
-#   # selector UIs
-  output$customerSelector <- renderUI({
-    custChoices <- get_cust_list(config_dict)
-    selectInput(inputId = 'customer_name',
-                 label = ui_elem$actual[ui_elem$label=='customer_name'],
-                 choices = custChoices)
-  })
-
-
-  
-
-  
-
-
-  output$warehouseSelector <- renderUI({
-    warehouseList <- warehouseInfo$Warehouse
-    selectInput(
-      inputId = "warehouseSelector",
-      label = ui_elem$actual[ui_elem$label=='Warehouse'],
-      choices = warehouseList,
-      selected = 'MDS' # dynamic selection later on
-    )
-  })
-  
-  output$pxkNote <- renderUI({
+  }
+   renderNote <- function(){renderUI({
     textInput(inputId = 'pxkNote',
               label = ui_elem$actual[ui_elem$label=='Note'],
               value = '')
-  })
+   }) }
+   renderProdInfo <- function(){renderUI({
+     product_info_str <- build_prod_info(config_dict,input)
+     HTML(product_info_str)
+   }) }
+   renderCustomer <- function(){renderUI({
+     custChoices <- get_cust_list(config_dict)
+     selectInput(inputId = 'customer_name',
+                 label = ui_elem$actual[ui_elem$label=='customer_name'],
+                 choices = custChoices)
+   }) }
+   renderPaymentType <- function(){renderUI({
+     conn <- db_open(config_dict)
+     payment_type <- dbReadTable(conn,'payment_type')
+     payment_type <- merge(payment_type,ui_elem %>% select(label,actual),
+                           by.x='payment_label',by.y='label',all.x=T)
+     dbDisconnect(conn)
+     paymentChoices <- payment_type$actual
+     defaultPay <- payment_type$actual[payment_type$payment_code==0]
+     selectInput(inputId = 'payment_type',
+                 label = ui_elem$actual[ui_elem$label=='payment_type'],
+                 choices = paymentChoices,selected = defaultPay)
+   }) }
+   renderWarehouse <- function(){renderUI({
 
-#   # Buttons
-  observeEvent(input$reloadPXK, {
-    output$currentPXKTable <- renderTable({
-      renderPXK(input$pxkSelector)
-    })
-  })
+   }) }
+   
+# ---------------------------- Inventory Out Tab -------------------------------
+  # Inputs
+  output$pxkSelector <- renderPXK() # PXK
+  output$lotSelector <- renderLot() # Lot
+  output$prodNameSelector <- renderProdName() # prod_name
+  output$qtySelector <- renderQty() #Qty
+  output$unitSelector <- renderUnit() #Unit
+  output$pxkNote <- renderNote() #Note
+  output$prod_info_str <- renderProdInfo() #product Info pane
+  output$customerSelector <- renderCustomer() # customer
+  output$paymentSelector <- renderPaymentType() # customer
+  output$warehouseSelector <- renderWarehouse() # customer
   
-  observeEvent(input$inventoryOut, {
 
+  # Buttons
+  # Inventory Out will write transaction to database
+  observeEvent(input$inventoryOut, {
     # Write the event to transaction table to keep track of the transaction
     # connect to database, also re-read pxk_info
     conn <- db_open(config_dict)
-    saleLog <- dbReadTable(conn,"saleLog")
+    sale_log <- dbReadTable(conn,"sale_log")
     pxk_info <- dbReadTable(conn,"pxk_info")
     dbDisconnect(conn)
 
@@ -104,12 +106,13 @@ shinyServer(function(input, output,session) {
     if (nrow(pxk_info[pxk_info$PXKNum==input$pxkSelector,])==0){
       
       appendPXKInfo <- data.frame(
-        PXKNum = input$pxkSelector,
-        saleDate = format(Sys.Date(),'%d%m%y'),
-        customerID = customer_info[
-          customer_info$customer_name==input$customer_name,'customerID'],
-        PXKType = 'I',
-        Warehouse = 'MDS',
+        pxk_num = input$pxkSelector,
+        sale_datetime = format(Sys.time(),'%Y-%m-%d %H:%M:%S'),
+        customer_id = customer_info[
+          customer_info$customer_name==input$customer_name,'customer_id'],
+        payment_code = payment_type$payment_code[
+          payment_type$actual == input$paymentSelector],
+        warehouse = input$warehouseSelector,
         completionCode = 0
       )
       # print(appendPXKInfo)
@@ -202,7 +205,13 @@ shinyServer(function(input, output,session) {
     })
     
   })
-
+  
+  observeEvent(input$reloadPXK, {
+    output$currentPXKTable <- renderTable({
+      renderPXK(input$pxkSelector)
+    })
+  })
+  
   observeEvent(input$delLastEntry,{
     conn <- db_open(config_dict)
     query <- paste("delete from saleLog where PXKNum =",input$pxkSelector,

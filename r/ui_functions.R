@@ -48,15 +48,16 @@ update_inventory <- function(config_dict, pos_item=TRUE){
   sale_log <- dbReadTable(conn,"sale_log")
   dbDisconnect(conn)
   
-  tmp <- import_log %>% select(prod_code,unit,qty,lot,exp_date)
+  tmp <- import_log %>% select(prod_code,unit,qty,lot,exp_date,warehouse_id)
   tmp <- convert_to_pack(tmp,packaging,'qty','importQty')
-  tmp <- tmp %>% group_by(prod_code,unit,lot) %>% 
+  tmp <- tmp %>% group_by(prod_code,unit,lot,warehouse_id) %>% 
     summarise(totalImportQty = sum(importQty)) %>% ungroup()
-  tmp2 <- sale_log %>% select(prod_code,unit,qty,lot)
+  tmp2 <- sale_log %>% select(prod_code,unit,qty,lot,warehouse_id)
   tmp2 <- convert_to_pack(tmp2,packaging,'qty','saleQty')
-  tmp2 <- tmp2 %>% group_by(prod_code,unit,lot) %>% 
+  tmp2 <- tmp2 %>% group_by(prod_code,unit,lot,warehouse_id) %>% 
     summarise(totalSaleQty = sum(saleQty)) %>% ungroup()
-  totalInventory <- merge(tmp,tmp2,all=T,by=c('prod_code','unit','lot'))
+  totalInventory <- merge(tmp,tmp2,all=T,
+                          by=c('prod_code','unit','lot','warehouse_id'))
   totalInventory$totalSaleQty[is.na(totalInventory$totalSaleQty)] <- 0
   totalInventory$totalImportQty[is.na(totalInventory$totalImportQty)] <- 0
   totalInventory$remaining_qty <- totalInventory$totalImportQty - 
@@ -64,9 +65,9 @@ update_inventory <- function(config_dict, pos_item=TRUE){
   
   # keep only the available items
   if (pos_item){
-    threshold <- 0.01
-    totalInventory <- totalInventory[totalInventory$remaining_qty>threshold,] %>% 
-      distinct()
+    threshold <- 0.001
+    totalInventory <- totalInventory[
+      totalInventory$remaining_qty>threshold,] %>% distinct()
   }
   # recover the exp_date
   exp_dateData <- import_log[!duplicated(import_log[c('prod_code','lot')]),] %>% 
