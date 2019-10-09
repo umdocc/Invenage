@@ -83,5 +83,4 @@ lu_tbl_list <- lu_tbl_list$actual
 # -------------------------- Start-up Data -------------------------------------
 col_name_label <- localisation$label[localisation$group=='col_rename']
 col_name_actual <- localisation$actual[localisation$group=='col_rename']
-inventory <- update_inventory(config_dict)
 # print(home_path)

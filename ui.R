@@ -22,13 +22,13 @@ dashboardPage(
       tabItem(tabName = "inventoryOut",
         fluidRow(
           box(width=3, height = 600,
-            htmlOutput('pxkSelector'),
-            htmlOutput('customerSelector'),
-            htmlOutput('prodNameSelector'),
-            htmlOutput("qtySelector"),
-            htmlOutput("unitSelector"),
-            htmlOutput("lotSelector"),
-            htmlOutput("warehouseSelector"),
+            htmlOutput('pxk_selector'),
+            htmlOutput('customer_selector'),
+            htmlOutput('prod_name_selector'),
+            htmlOutput("qty_selector"),
+            htmlOutput("unit_selector"),
+            htmlOutput("lot_selector"),
+            htmlOutput("warehouse_selector"),
 
             h5('')
           ),
@@ -37,25 +37,24 @@ dashboardPage(
                              label = ui_elem$actual[
                                ui_elem$label=='unit_price'],
                              choices='',options = list(create=T)),
-            htmlOutput("paymentSelector"),
-            htmlOutput("pxkNote"),
+            htmlOutput("payment_selector"),
+            htmlOutput("pxk_note"),
             h4(ui_elem$actual[ui_elem$label=='product_info']),
             htmlOutput("prod_info_str"),
-            actionButton("inventoryOut",
+            actionButton("inventory_out",
                     ui_elem$actual[ui_elem$label=='inv_out']),
             h5('')
+          ),
+          box(width = 7, height = 500,
+            h3(ui_elem$actual[ui_elem$label=='current_pxk']),
+            tableOutput("current_pxk_tbl"),
+            actionButton("del_last_entry",
+                  ui_elem$actual[ui_elem$label=='del_last_entry']),
+            actionButton("complete_form",
+                       ui_elem$actual[ui_elem$label=='complete_form']),
+            actionButton("reload_pxk",
+                         ui_elem$actual[ui_elem$label=='reload_pxk'])
           )
-          # ,
-          # box(width = 7, height = 500,
-          #   # h3(ui_elem$actual[ui_elem$label=='currentPXK']),
-          #   # tableOutput("currentPXKTable"),
-          #   # actionButton("delLastEntry",
-          #   #       ui_elem$actual[ui_elem$label=='delLastEntry']),
-          #   # actionButton("completeForm",
-          #   #            ui_elem$actual[ui_elem$label=='completeForm']),
-          #   # actionButton("reloadPXK",
-          #   #              ui_elem$actual[ui_elem$label=='reloadPXK'])
-          # )
         )
       )
       # , # end of export tab

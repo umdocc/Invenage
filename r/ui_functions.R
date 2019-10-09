@@ -46,6 +46,7 @@ update_inventory <- function(config_dict, pos_item=TRUE){
   conn <- db_open(config_dict)
   import_log <- dbReadTable(conn,"import_log")
   sale_log <- dbReadTable(conn,"sale_log")
+  pxk_info <- dbReadTable(conn,"pxk_info")
   dbDisconnect(conn)
   
   tmp <- import_log %>% select(prod_code,unit,qty,lot,exp_date,warehouse_id)
@@ -53,7 +54,8 @@ update_inventory <- function(config_dict, pos_item=TRUE){
   tmp <- tmp %>% group_by(prod_code,unit,lot,warehouse_id) %>% 
     summarise(totalImportQty = sum(importQty)) %>% ungroup()
   tmp2 <- sale_log %>% select(prod_code,unit,qty,lot,warehouse_id)
-  tmp2 <- convert_to_pack(tmp2,packaging,'qty','saleQty')
+  # for sale_log we need to merge with warehouse_id
+    tmp2 <- convert_to_pack(tmp2,packaging,'qty','saleQty')
   tmp2 <- tmp2 %>% group_by(prod_code,unit,lot,warehouse_id) %>% 
     summarise(totalSaleQty = sum(saleQty)) %>% ungroup()
   totalInventory <- merge(tmp,tmp2,all=T,
@@ -142,20 +144,16 @@ build_prod_info <- function(config_dict,input){
   dbDisconnect(conn)
   inventory <- update_inventory(config_dict)
   
-  current_select <- product_info[product_info$name==input$prodNameSelector,]
-  # current_ref <- product_info[
-  #   product_info$name==input$prodNameSelector, "ref_smn"]
-  # current_prod_code <- product_info[
-  #   product_info$name==input$prodNameSelector, "prod_code"]
-  # currentNSX <- productInfo[productInfo$Name==input$prodNameSelector, "NSX"]
+  current_select <- product_info[product_info$name==input$prod_name_selector,]
+
   total_available <- inventory[inventory$prod_code == current_select$prod_code &
-                            inventory$lot == input$lotSelector, 'remaining_qty']
+                            inventory$lot == input$lot_selector, 'remaining_qty']
   current_exp_date <- inventory[
     inventory$prod_code == current_select$prod_code &
-                      inventory$lot == input$lotSelector, 'exp_date']
+                      inventory$lot == input$lot_selector, 'exp_date']
   packaging_str <- packaging[
     packaging$prod_code == current_select$prod_code &
-      packaging$unit == input$unitSelector,]
+      packaging$unit == input$unit_selector,]
   packaging_str <- paste0(packaging_str$units_per_pack[1],
                           packaging_str$unit[1],'/pack')
   return(paste("REF: ",current_select$ref_smn,'<br/>',
@@ -257,6 +255,10 @@ build_po_from_draft <- function(draft_name,config_dict){
   
 }
 
+render_pxk <- function(current_pxk){
+
+}
+
 # 
 # # function to render current PXK as an integer
 # getCurrentPXK <- function(conn){
@@ -282,20 +284,8 @@ build_po_from_draft <- function(draft_name,config_dict){
 #   return(current_pxk)
 # }
 # 
-# # render raw pxk into readable format
-# renderPXK <- function(current_pxk){
-#   query <- paste("select sale_log.Stt, productInfo.Name, sale_log.unit, 
-#                 sale_log.unitPrice,sale_log.qty, sale_log.lot,
-#                 sale_log.PXKNum, sale_log.Note 
-#                 from sale_log inner join productInfo
-#                  on sale_log.prod_code = productInfo.prod_code 
-#                  where sale_log.PXKNum =",
-#                  current_pxk)
-#   conn <- db_open(config_dict)
-#   outTable <- dbGetQuery(conn,query)
-#   dbDisconnect(conn)
-#   return(outTable)
-# }
+# render raw pxk into readable format
+
 # 
 # # function to build estimated import cost from import_log
 # getEstImportCost <- function(import_log, algorithm='weighted_average'){
