@@ -80,6 +80,13 @@ lu_tbl_list <- data.frame(label = lu_tbl_list)
 lu_tbl_list <- merge(lu_tbl_list,ui_elem,all.x = T)
 lu_tbl_list <- lu_tbl_list$actual
 
+# get the report list
+report_list_label <- config_dict$value[config_dict$name=='report_list_label']
+report_list_label <- data.frame(label = unlist(strsplit(report_list_label,
+                                                        ';')))
+report_list <- merge(report_list_label,ui_elem)
+# report_list <- report_list$actual
+
 # -------------------------- Start-up Data -------------------------------------
 col_name_label <- localisation$label[localisation$group=='col_rename']
 col_name_actual <- localisation$actual[localisation$group=='col_rename']

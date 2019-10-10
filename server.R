@@ -2,29 +2,29 @@
 source("global.R",local = F)
 require(dplyr)
 shinyServer(function(input, output,session) {
-# # --------------------- custom render functions ------------------------------
+  # # --------------------- custom render functions ------------------------------
   renderPXK <- function(){renderUI({
     current_pxk <- get_current_pxk(config_dict)
     selectizeInput( inputId = "pxk_selector",
-      label = ui_elem$actual[ui_elem$label=='pxkNum'],
-      choices = current_pxk, options = list(create = T))
-   }) }
+                    label = ui_elem$actual[ui_elem$label=='pxkNum'],
+                    choices = current_pxk, options = list(create = T))
+  }) }
   
   renderProdName <- function(){renderUI({
     selectInput(inputId = "prod_name_selector",
                 label = ui_elem$actual[ui_elem$label=='prod_name'],
                 choices=product_info$name)
   }) }
-
+  
   renderQty <- function(){renderUI({
     selectizeInput(inputId = "qty_selector",
                    label = ui_elem$actual[ui_elem$label=='qty'],
                    choices=c(1:100),options = list(create=T))
   }) }
-
+  
   renderUnit <- function(){renderUI({
     current_prod_code<- product_info[product_info$name==input$prod_name_selector,
-                                  "prod_code"]
+                                     "prod_code"]
     unitList <- packaging[packaging$prod_code == current_prod_code,"unit"]
     unitList <- unique(unitList)
     unitList <- unitList[unitList!='pack']
@@ -33,8 +33,8 @@ shinyServer(function(input, output,session) {
       label = ui_elem$actual[ui_elem$label=='unit'],
       choices = unitList
     )
-   }) }
-   
+  }) }
+  
   renderLot <- function(){renderUI({
     current_prod_code <- product_info[product_info$name==input$prod_name_selector,
                                       "prod_code"]
@@ -45,67 +45,67 @@ shinyServer(function(input, output,session) {
     )
   })
   }
-   renderNote <- function(){renderUI({
+  renderNote <- function(){renderUI({
     textInput(inputId = 'pxk_note',
               label = ui_elem$actual[ui_elem$label=='Note'],
               value = '')
-   }) }
-   renderProdInfo <- function(){renderUI({
-     product_info_str <- build_prod_info(config_dict,input)
-     HTML(product_info_str)
-   }) }
-   renderCustomer <- function(){renderUI({
-     custChoices <- get_cust_list(config_dict)
-     selectInput(inputId = 'customer_name',
-                 label = ui_elem$actual[ui_elem$label=='customer_name'],
-                 choices = custChoices)
-   }) }
-   renderPaymentType <- function(){renderUI({
-     conn <- db_open(config_dict)
-     payment_type <- dbReadTable(conn,'payment_type')
-     payment_type <- merge(payment_type,ui_elem %>% select(label,actual),
-                           by.x='payment_label',by.y='label',all.x=T)
-     dbDisconnect(conn)
-     paymentChoices <- payment_type$actual
-     defaultPay <- payment_type$actual[payment_type$payment_code==0]
-     selectInput(inputId = 'payment_type',
-                 label = ui_elem$actual[ui_elem$label=='payment_type'],
-                 choices = paymentChoices,selected = defaultPay)
-   }) }
-   renderWarehouse <- function(){renderUI({
-     conn <- db_open(config_dict)
-     warehouse_info <- dbReadTable(conn,'warehouse_info')
-     dbDisconnect(conn)
-     warehouseChoices <- warehouse_info$warehouse
-     # get default warehouse based on current product
-     tmp <- update_inventory(config_dict)
-     current_prod_code <- product_info[
-       product_info$name==input$prod_name_selector, "prod_code"]
-     default_warehouse_id <- tmp$warehouse_id[
-       tmp$prod_code==current_prod_code & 
-         tmp$lot==input$lot_selector]
-     default_warehouse <- warehouse_info$warehouse[
-       warehouse_info$warehouse_id == default_warehouse_id]
-     selectInput(inputId = 'warehouse_selector',
-                 label = ui_elem$actual[ui_elem$label=='warehouse'],
-                 choices = default_warehouse)
-   }) }
-   
-   renderCurrentPXK <- function(){renderTable({
-     query <- paste("select sale_log.stt, product_info.name, sale_log.unit,
+  }) }
+  renderProdInfo <- function(){renderUI({
+    product_info_str <- build_prod_info(config_dict,input)
+    HTML(product_info_str)
+  }) }
+  renderCustomer <- function(){renderUI({
+    custChoices <- get_cust_list(config_dict)
+    selectInput(inputId = 'customer_name',
+                label = ui_elem$actual[ui_elem$label=='customer_name'],
+                choices = custChoices)
+  }) }
+  renderPaymentType <- function(){renderUI({
+    conn <- db_open(config_dict)
+    payment_type <- dbReadTable(conn,'payment_type')
+    payment_type <- merge(payment_type,ui_elem %>% select(label,actual),
+                          by.x='payment_label',by.y='label',all.x=T)
+    dbDisconnect(conn)
+    paymentChoices <- payment_type$actual
+    defaultPay <- payment_type$actual[payment_type$payment_code==0]
+    selectInput(inputId = 'payment_type',
+                label = ui_elem$actual[ui_elem$label=='payment_type'],
+                choices = paymentChoices,selected = defaultPay)
+  }) }
+  renderWarehouse <- function(){renderUI({
+    conn <- db_open(config_dict)
+    warehouse_info <- dbReadTable(conn,'warehouse_info')
+    dbDisconnect(conn)
+    warehouseChoices <- warehouse_info$warehouse
+    # get default warehouse based on current product
+    tmp <- update_inventory(config_dict)
+    current_prod_code <- product_info[
+      product_info$name==input$prod_name_selector, "prod_code"]
+    default_warehouse_id <- tmp$warehouse_id[
+      tmp$prod_code==current_prod_code & 
+        tmp$lot==input$lot_selector]
+    default_warehouse <- warehouse_info$warehouse[
+      warehouse_info$warehouse_id == default_warehouse_id]
+    selectInput(inputId = 'warehouse_selector',
+                label = ui_elem$actual[ui_elem$label=='warehouse'],
+                choices = default_warehouse)
+  }) }
+  
+  renderCurrentPXK <- function(){renderTable({
+    query <- paste("select sale_log.stt, product_info.name, sale_log.unit,
                 sale_log.unit_price,sale_log.qty, sale_log.lot,
                 sale_log.pxk_num, sale_log.note
                 from sale_log inner join product_info
                  on sale_log.prod_code = product_info.prod_code
                  where sale_log.pxk_num =",
-                    input$pxk_selector)
-     conn <- db_open(config_dict)
-     outTable <- dbGetQuery(conn,query)
-     dbDisconnect(conn)
-     outTable
-   }) }
-   
-# ---------------------------- Inventory Out Tab -------------------------------
+                   input$pxk_selector)
+    conn <- db_open(config_dict)
+    outTable <- dbGetQuery(conn,query)
+    dbDisconnect(conn)
+    outTable
+  }) }
+  
+  # ---------------------------- Inventory Out Tab -------------------------------
   # Inputs
   output$pxk_selector <- renderPXK() # PXK
   output$lot_selector <- renderLot() # Lot
@@ -118,7 +118,7 @@ shinyServer(function(input, output,session) {
   output$payment_selector <- renderPaymentType() # customer
   output$warehouse_selector <- renderWarehouse() # customer
   
-
+  
   # Buttons
   # Inventory Out will write transaction to database
   observeEvent(input$inventory_out, {
@@ -133,11 +133,11 @@ shinyServer(function(input, output,session) {
     payment_type <- merge(payment_type,ui_elem,
                           by.x='payment_label',by.y='label')
     
-
+    
     # if this PXK is not in the database yet, create new with completed 0
     # print(nrow(pxk_info[pxk_info$PXKNum==input$pxk_selector,])==0)
     if (nrow(pxk_info[pxk_info$PXKNum==input$pxk_selector,])==0){
-
+      
       appendPXKInfo <- data.frame(
         pxk_num = input$pxk_selector,
         sale_datetime = format(Sys.time(),'%Y-%m-%d %H:%M:%S'),
@@ -147,7 +147,7 @@ shinyServer(function(input, output,session) {
           payment_type$actual == input$payment_type],
         completed = 0
       )
-
+      
       conn <- db_open(config_dict)
       dbWriteTable(conn,'pxk_info',appendPXKInfo,append=T)
       pxk_info <- dbReadTable(conn,"pxk_info")
@@ -170,12 +170,12 @@ shinyServer(function(input, output,session) {
         current_stt <- current_stt+1
       }
     }
-
+    
     # append the data from input
     append_sale_log <- data.frame(
       stt = current_stt,
       prod_code = unique(product_info[product_info$name==input$prod_name_selector,
-                                    "prod_code"]),
+                                      "prod_code"]),
       unit = input$unit_selector,
       unit_price = as.integer(input$unit_price),
       qty = input$qty_selector,
@@ -185,7 +185,7 @@ shinyServer(function(input, output,session) {
       warehouse_id = warehouse_info$warehouse_id[
         warehouse_info$warehouse == input$warehouse_selector]
     )
-
+    
     # writing sale_log to database
     conn <- db_open(config_dict)
     dbWriteTable(conn,'sale_log',append_sale_log,append=T)
@@ -228,7 +228,7 @@ shinyServer(function(input, output,session) {
     dbClearResult(res)
     dbDisconnect(conn)
     new_pxk <- get_current_pxk(cofig_dict)
-
+    
     # getting data to write to excel
     finalised_pxk_num <- input$pxk_selector
     finalised_pxk_warehouse <- input$warehouse_selector
@@ -236,8 +236,8 @@ shinyServer(function(input, output,session) {
     # create new PXK file
     orig_path <- config_dict$value[config_dict$name=='pxk_form']
     dest_path <- file.path(config_dict$value[config_dict$name=='pxk_out_path'],
-                          paste0(finalised_pxk_warehouse,".PXK.",
-                                 finalised_pxk_num,".xlsx"))
+                           paste0(finalised_pxk_warehouse,".PXK.",
+                                  finalised_pxk_num,".xlsx"))
     # file.copy(orig_path,dest_path)
     wb <- loadWorkbook(orig_path)
     
@@ -254,7 +254,7 @@ shinyServer(function(input, output,session) {
                    FROM   sale_log INNER JOIN product_info
                    ON     sale_log.prod_code = product_info.prod_code
                    WHERE  sale_log.pxk_num =",input$pxk_selector)
-
+    
     form_data <- dbGetQuery(conn,query)
     form_data <- merge(form_data,exp_date,all.x=T)
     
@@ -272,7 +272,7 @@ shinyServer(function(input, output,session) {
     output_info <- dbGetQuery(
       conn,'select * from output_info where type = "pxk_output"')
     dbDisconnect(conn)
-
+    
     # writing customer_name
     customerNameRow <- as.numeric(
       output_info$value[output_info$name=='customerNameRow'])
@@ -284,23 +284,23 @@ shinyServer(function(input, output,session) {
     
     
     writeData(wb,sheet=1,printingCustomerName, startRow=customerNameRow, 
-                   startCol=customerNameCol, colNames = F)
+              startCol=customerNameCol, colNames = F)
     
     # writing pxkNum
     pxkNumRow <- as.numeric(output_info$value[output_info$name=='pxkNumRow'])
     pxkNumCol <- as.numeric(output_info$value[output_info$name=='pxkNumCol'])
     writeData(wb,sheet=1,finalised_pxk_num,startRow=pxkNumRow, 
-                   startCol=pxkNumCol, colNames = F)
-
+              startCol=pxkNumCol, colNames = F)
+    
     # get pxkDataHeaders
     pxkDataHeaders <-  data.frame(matrix(unlist(strsplit(
-        output_info$value[output_info$name=='dataHeaders'],';')),nrow=1))
-
+      output_info$value[output_info$name=='dataHeaders'],';')),nrow=1))
+    
     # rearrange Data and write
     form_data <- form_data[order(as.numeric(form_data$stt)),]
     dataColumns <- unlist(strsplit(
       output_info$value[output_info$name=='dataToWrite'],';'))
-
+    
     form_data <- form_data[,dataColumns]
     
     
@@ -311,10 +311,10 @@ shinyServer(function(input, output,session) {
       output_info$value[output_info$name=='dataStartCol'])
     #write headers first
     writeData(wb,sheet=1,pxkDataHeaders, startRow=dataStartRow,
-                   startCol=dataStartCol, colNames=F)
+              startCol=dataStartCol, colNames=F)
     # data is one row below
     writeData(wb,sheet=1,form_data,startRow=dataStartRow+1,
-                   startCol=dataStartCol, colNames=F)
+              startCol=dataStartCol, colNames=F)
     # save the excel sheet
     saveWorkbook(wb,dest_path,overwrite = T)
     
@@ -330,147 +330,103 @@ shinyServer(function(input, output,session) {
     output$prod_info_str <- renderProdInfo() #product Info pane
     output$pxk_note <- renderNote() #Note
   })
-#   
-# # ------------------------ UI for the Lookup Tab -------------------------------
+  #   
+  # # ------------------------ UI for the Lookup Tab -------------------------------
   output$lookup_tbl_output <- renderDataTable({
     tableName <- ui_elem$label[
       ui_elem$actual==input$lu_tbl_selector]
-    # complex tables that cannot run on query (yet)
-    if (tableName=='Inventory'){
-      lookup_tbl_output <- update_inventory(import_log,sale_log)
-      lookup_tbl_output <- merge(lookup_tbl_output,
-                                 product_info %>% select(prodCode,Name,mfgCode),
-                                 all.x = T) %>%
-        select(Name,mfgCode,Lot,expDate,remaining_qty)
+    if (tableName=='inventory'){
+      lookup_tbl_output <- update_inventory(config_dict)
+      lookup_tbl_output <- merge(
+        lookup_tbl_output, product_info %>% select(prod_code,name,ref_smn),
+        all.x = T) %>%
+        select(name,ref_smn,lot,exp_date,remaining_qty)
     }else{
       # query on simple table
       if (tableName=='product_info'){
-        query <- paste("SELECT prodCode,Name,NSX,mfgCode from product_info")
+        query <- paste("SELECT prod_code,name,vendor,ref_smn from product_info")
       }
-      if (tableName=='importPrice'){
-        query <- paste("SELECT product_info.Name, product_info.NSX,
-                        product_info.mfgCode, importPrice.importPrice,
-                        importPrice.Currency, importPrice.Vendor,
-                        importPrice.priceType, importPrice.lastUpdated
-                        FROM importPrice INNER JOIN product_info
-                        ON importPrice.prodCode = product_info.prodCode")
+      if (tableName=='import_price'){
+        query <- paste("SELECT product_info.name, product_info.vendor,
+                        product_info.ref_smn, import_price.import_price,
+                        import_price.currency_code,
+                        import_price.min_order, import_price.last_updated
+                        FROM import_price INNER JOIN product_info
+                        ON import_price.prod_code = product_info.prod_code")
       }
-      if (tableName=='comingList'){
-        query <- paste0("SELECT comingList.Name, comingList.mfgCode, 
-                        comingList.NSX, comingList.Quantity, comingList.poName,
-                        poInfo.Note, ui_elem.actual as Status
-                        FROM comingList INNER JOIN poInfo
-                        ON poInfo.poName = comingList.poName
-                        INNER JOIN poStatusCode ON
-                        poInfo.poStatusCode = poStatusCode.poStatusCode
-                        INNER JOIN ui_elem ON 
-                        poStatusCode.label = ui_elem.label
-                        where ui_elem.appLang like '",appLang,"'")
-      }
-      if (tableName=='poInfo'){
-        query <- paste0("SELECT poInfo.poName as POName, poInfo.Note, 
-                        ui_elem.actual as Status from poInfo 
-                        inner join poStatusCode on 
-                        poInfo.poStatusCode = poStatusCode.poStatusCode 
-                        inner join ui_elem on 
-                        poStatusCode.label = ui_elem.label 
-                        where ui_elem.appLang like '",appLang,"' and
-                        poInfo.poStatusCode < 9 order by POName asc")
-      }
+      # if (tableName=='comingList'){
+      #   query <- paste0("SELECT comingList.Name, comingList.ref_smn, 
+      #                   comingList.NSX, comingList.Quantity, comingList.poName,
+      #                   poInfo.Note, ui_elem.actual as Status
+      #                   FROM comingList INNER JOIN poInfo
+      #                   ON poInfo.poName = comingList.poName
+      #                   INNER JOIN poStatusCode ON
+      #                   poInfo.poStatusCode = poStatusCode.poStatusCode
+      #                   INNER JOIN ui_elem ON 
+      #                   poStatusCode.label = ui_elem.label
+      #                   where ui_elem.appLang like '",appLang,"'")
+      # }
+      # if (tableName=='poInfo'){
+      #   query <- paste0("SELECT poInfo.poName as POName, poInfo.Note, 
+      #                   ui_elem.actual as Status from poInfo 
+      #                   inner join poStatusCode on 
+      #                   poInfo.poStatusCode = poStatusCode.poStatusCode 
+      #                   inner join ui_elem on 
+      #                   poStatusCode.label = ui_elem.label 
+      #                   where ui_elem.appLang like '",appLang,"' and
+      #                   poInfo.poStatusCode < 9 order by POName asc")
+      # }
       if (tableName=='sale_log'){
-        query <- paste("SELECT product_info.Name, product_info.NSX,
-                        product_info.mfgCode, sale_log.Unit,
+        query <- paste("SELECT product_info.name, product_info.vendor,
+                        product_info.ref_smn, sale_log.unit,
                         sale_log.unit_price, sale_log.qty,
-                        sale_log.Lot, sale_log.PXKNum, customer_info.customer_name
+                        sale_log.lot, sale_log.pxk_num, customer_info.customer_name
                         FROM sale_log INNER JOIN product_info
-                        ON sale_log.prodCode = product_info.prodCode
+                        ON sale_log.prod_code = product_info.prod_code
                         INNER JOIN pxk_info
-                        ON sale_log.PXKNum = pxk_info.PXKNum
+                        ON sale_log.pxk_num = pxk_info.pxk_num
                         INNER JOIN customer_info
-                        ON pxk_info.customerID = customer_info.customerID"
+                        ON pxk_info.customer_id = customer_info.customer_id"
         )
       }
       if (tableName=='import_log'){
-        query <- paste("SELECT product_info.Name, product_info.NSX,
-                        product_info.mfgCode, import_log.Unit,
-                        import_log.Quantity, import_log.POName,
-                        import_log.Lot, import_log.expDate, 
-                        import_log.deliveryDate
+        query <- paste("SELECT product_info.name, product_info.vendor,
+                        product_info.ref_smn, import_log.unit,
+                        import_log.qty, import_log.po_name,
+                        import_log.lot, import_log.exp_date, 
+                        import_log.delivery_date
                         FROM import_log INNER JOIN product_info
-                        ON import_log.prodCode = product_info.prodCode"
+                        ON import_log.prod_code = product_info.prod_code"
         )
       }
       conn <- db_open(config_dict)
-    lookup_tbl_output <- dbGetQuery(conn,query)
-    dbDisconnect(conn)
+      lookup_tbl_output <- dbGetQuery(conn,query)
+      dbDisconnect(conn)
     }
     lookup_tbl_output
   })
-
-# --------------------- UI for the Tools tab -----------------------------------
-  # addCustomer button action
-  observeEvent(input$addCustomer, {
-    conn <- db_open(config_dict)
-    customer_info <- dbReadTable(conn,"customer_info")
-    dbDisconnect(conn)
-    currentCustomerID = max(customer_info$customerID)+1
-    appendCustomerInfo <- data.frame(
-      customerCode = '',
-      customer_name = input$addCustomerName,
-      customerID = currentCustomerID,
-      Email = input$addCustomerEmail,
-      Address = '',
-      Phone = ''
-    )
-    customer_info <- rbind(customer_info,appendCustomerInfo)
-    customer_info <- customer_info[!duplicated(customer_info$customer_name),]
-    conn <- db_open(config_dict)
-    dbWriteTable(conn,'customer_info',customer_info,overwrite=T)
-    customer_info <- dbReadTable(conn,"customer_info")
-    dbDisconnect(conn)
-    output$addCustomerSuccess <- renderUI({
-      HTML(ui_elem$actual[ui_elem$label=='addSuccess'])
-    })
-  })
   
-  # addPackagingName & Unit
-  output$addPackagingName <- renderUI({
-    productList <- unique(product_info$Name)
-    selectInput(
-      inputId = "addPackagingName",
-      label = ui_elem$actual[ui_elem$label=='prodName'],
-      choices = productList
-    )
-  })
-  output$addPackagingUnit <- renderUI({
-    unitList <- unique(Packaging$Unit)
-    selectizeInput(
-      inputId = "addPackagingUnit",
-      label = ui_elem$actual[ui_elem$label=='Unit'],
-      choices = unitList,
-      options = list(create=T)
-    )
-  })
+  # --------------------- UI for the Tools tab -----------------------------------
 
   # printReport action
   observeEvent(input$printReport, {
-    reportType <- ui_elem$label[ui_elem$actual==input$reportType]
-    # print(reportType)
-    if (reportType == 'inventoryAuditReport'|
-        reportType == 'inventoryOrderReport'){
+    report_type <- ui_elem$label[ui_elem$actual==input$report_type]
+    print(report_type)
+    if (report_type == 'inventoryAuditReport'|
+        report_type == 'inventoryOrderReport'){
       # read the form
       orig_file <- config_dict$value[config_dict$name=='report_form_path']
       wb <- loadWorkbook(orig_file)
       
       # read the inventory
-      inventoryReport <- update_inventory(import_log,sale_log,moreThanZero=F)
+      inventoryReport <- update_inventory(config_dict)
       # set all negative number to 0
       inventoryReport <- inventoryReport[inventoryReport$remaining_qty>0,]
       
       # if this is ordering report, group and sum
-      if (reportType == 'inventoryOrderReport'){
-        inventoryReport <- inventoryReport %>% group_by(prodCode) %>% 
-          summarise(totalremaining_qty = sum(remaining_qty)) %>% ungroup
+      if (report_type == 'inventoryOrderReport'){
+        inventoryReport <- inventoryReport %>% group_by(prod_code) %>% 
+          summarise(total_remaining_qty = sum(remaining_qty)) %>% ungroup
         # merge with prod_info so that we get zero items as well
         inventoryReport <- merge(inventoryReport,product_info %>% 
                                    select(prod_code,type),all.y=T)
@@ -478,22 +434,26 @@ shinyServer(function(input, output,session) {
       #recover human-readble info
       inventoryReport <- merge(
         inventoryReport, product_info %>% select(
-          prodCode,Name,NSX,mfgCode,warehouseID))
+          prod_code,name,vendor,ref_smn,warehouse_id))
       inventoryReport <- merge(
-        inventoryReport,warehouseInfo %>% select(warehouseID,Warehouse))
+        inventoryReport,warehouse_info %>% select(warehouse_id,warehouse))
       # select the appropriate column
-      if (reportType == 'inventoryOrderReport'){
+      if (report_type == 'inventoryOrderReport'){
         inventoryReport <- inventoryReport %>%
-        select(Name,NSX,mfgCode,totalremaining_qty,Warehouse)
+          select(name,vendor,ref_smn,total_remaining_qty,warehouse)
       }else{
         inventoryReport <- inventoryReport %>%
-          select(Name,NSX,mfgCode,remaining_qty,
-                 Lot,expDate,Warehouse)
+          select(name,vendor,ref_smn,remaining_qty,
+                 lot,exp_date,warehouse)
       }
       
       # write data to destination file then open file
       writeData(wb, 1, inventoryReport, startRow=5, startCol=1)
-      dest_file <- config_dict$value[config_dict$name=='report_out_path']
+      file_name <- paste(input$report_type,format(Sys.Date(),'%d%m%y'),'xlsx',
+                         sep='.')
+      dest_file <- file.path(
+        config_dict$value[config_dict$name=='report_out_path'],file_name)
+      print(dest_file)
       saveWorkbook(wb,dest_file,overwrite = T)
       system(paste0('open ','"',dest_file,'"'))
     }
