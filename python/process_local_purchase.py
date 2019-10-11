@@ -66,6 +66,15 @@ if (len(testDF)>0):
             local_import_data.prod_code.notnull()]
 
 # check for empty delivery date
+if (len(local_import_data[local_import_data.delivery_date.isnull()])>0):
+    inv.write_log(error_file,msg_dict['process_local_po'])
+    inv.write_log(error_file,msg_dict['unknown_delivery_date'])    
+    local_import_data[local_import_data.delivery_date.isnull()].to_csv(
+            error_file,index=False,sep='\t',mode='a')
+    local_import_data = local_import_data[
+            local_import_data.delivery_date.notnull()]
+
+
 testDF = local_import_data.copy()
 testDF = testDF[testDF.delivery_date.str.contains('nan')] 
 if (len(testDF)>0):
