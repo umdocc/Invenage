@@ -74,6 +74,24 @@ if (len(local_import_data[local_import_data.delivery_date.isnull()])>0):
     local_import_data = local_import_data[
             local_import_data.delivery_date.notnull()]
 
+# check for invalid  and null lot
+if (len(local_import_data[local_import_data.lot.isnull()])>0):
+    inv.write_log(error_file,msg_dict['process_local_po'])
+    inv.write_log(error_file,msg_dict['unknown_delivery_date'])    
+    local_import_data[local_import_data.lot.isnull()].to_csv(
+            error_file,index=False,sep='\t',mode='a')
+    local_import_data = local_import_data[
+            local_import_data.lot.notnull()]
+invalid_str = ['NA','na','NaN','nan']
+for in_str in invalid_str:
+    if (len(local_import_data[local_import_data.lot==in_str])>0):
+        inv.write_log(error_file,msg_dict['process_local_po'])
+        inv.write_log(error_file,msg_dict['unknown_delivery_date'])    
+        local_import_data[local_import_data.lot==in_str].to_csv(
+                error_file,index=False,sep='\t',mode='a')
+        local_import_data = local_import_data[
+                ~local_import_data.lot==in_str]
+    
 
 testDF = local_import_data.copy()
 testDF = testDF[testDF.delivery_date.str.contains('nan')] 

@@ -1,4 +1,4 @@
-# if we have a local import excel file, we handle it here
+# check the database for missing actual cost price and attemp to fill
 # ---------------------- Setup Block ------------------------------------------
 import sys, os, pandas as pd
 sys.path.append(os.path.join(os.path.expanduser('~'),'invenage_data'))
@@ -15,6 +15,8 @@ import_log = pd.read_sql_query('select * from import_log',conn)
 localisation = pd.read_sql_query('select * from localisation',conn)
 packaging = pd.read_sql_query('select * from packaging',conn)
 conn.close()
+# keep track for integrity check
+import_log_len = len(import_log)
 
 #other
 error_file = config_dict['error_log']
@@ -25,4 +27,26 @@ rename_dict = inv.create_dict(config_dict,'rename_dict')
 missing_price = import_log.copy()
 missing_price = missing_price[missing_price.actual_unit_cost.isnull()]
 
-
+# if there is missing price, attemp to fix
+if (len(missing_price)>0):
+    # re-read po_data
+    po_data = inv.build_po_data(config_dict)
+    po_data.actual_unit_cost = pd.to_numeric(
+            po_data.actual_unit_cost, errors='coerce')
+    po_data = po_data[po_data.actual_unit_cost.notnull()]
+    po_data['added_actual_cost'] = po_data.actual_unit_cost
+    
+    # merge and copy price
+    import_log = pd.merge(import_log,po_data[[
+            'prod_code','qty','po_name','lot','added_actual_cost']],
+                          how = 'left')
+    len(import_log.actual_unit_cost[import_log.actual_unit_cost.isnull()])
+    import_log.loc[import_log.actual_unit_cost.isnull(),'actual_unit_cost'] = \
+    import_log.loc[import_log.actual_unit_cost.isnull(),'added_actual_cost']
+    len(import_log.actual_unit_cost[import_log.actual_unit_cost.isnull()])
+    # writing to database
+    conn = inv.db_open(config_dict)
+    import_log.to_sql('import_log',conn,index=False,
+                           if_exists='replace')
+    conn.commit()
+    conn.close()
