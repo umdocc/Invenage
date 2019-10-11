@@ -255,10 +255,6 @@ build_po_from_draft <- function(draft_name,config_dict){
   
 }
 
-render_pxk <- function(current_pxk){
-
-}
-
 # 
 # # function to render current PXK as an integer
 # getCurrentPXK <- function(conn){
