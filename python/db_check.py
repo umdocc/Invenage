@@ -77,7 +77,4 @@ test_df = test_df[['prod_code','name','lot']]
 if len(test_df)>0:
     inv.write_log(error_file,msg_dict['missing_import_price'])
     test_df.to_csv(error_file,index=False,sep='\t',mode='a')
-    
-## open the errorLog if it exists
-#if os.path.exists(error_file):
-#    inv.launch_file(error_file)
+

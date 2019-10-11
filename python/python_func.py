@@ -37,7 +37,7 @@ def get_files_info(config_dict,extension,exclude=''):
     return(file_list)
 
 # this function read a PO and detrmine its table location    
-def getPODataLoc(inputExcelFile,headerStr):
+def get_po_data_loc(inputExcelFile,headerStr):
     MDSDataFrame = pd.read_excel(inputExcelFile)
     exitVar=False
     for cLoc in range(0,len(MDSDataFrame.columns)):
@@ -80,7 +80,9 @@ def db_open(config_dict):
         conn = sqlite3.connect(db_file)
     return(conn)
 
-# the check exists function take tableA, tableB and check if entries in B exists in A
+# the check exists function check if entries in table A already exist in
+# table B, it return table A with a column "exists" that mark entries
+# already exist in table B
 def checkExists(tableA,tableB,colList):
     tableB = tableB[colList]
         
@@ -96,57 +98,20 @@ def create_unit_packaging(packaging):
     unit_packaging = unit_packaging[~unit_packaging.prod_code.duplicated()]
     return(unit_packaging)
 
-#def update_po_info(config_dict,excluded):
-##    app_lang = config_dict['app_lang']
-#    po_path = config_dict['po_path']
-#    # read the current po_info from database, remove anything that does not
-#    # have a valid path
-#    conn = db_open(config_dict)
-#    po_info = pd.read_sql_query('select * from po_info',conn)
-#    # verify fileExists status and remove PO that no longer exists
-#    if (len(po_info)>0):
-#        po_info['fileExist'] = po_info['fileLocation'].map(os.path.isfile)
-#        po_info = po_info[po_info.fileExist]
-#        po_info = po_info.drop('fileExist',axis=1)
-#        po_info.to_sql('po_info',conn,index=False,if_exists='replace')
-#    conn.close()
-#
-#    
-#    # update the database with added PO
-#    po_list = getFilesInfo(po_path,'xlsx',excluded)
-#    # we need the PO to contains '.PO." string
-#    po_list = po_list[po_list.fileName.str.contains('\.PO\.')]
-#    po_list = po_list.rename(columns={'full_path':'fileLocation',
-#                                    'fileName':'poName'})
-#
-#    po_list = checkExists(po_list,po_info,['poName','fileLocation'])
-#    po_append = po_list[po_list.exist.isnull()]
-#    po_append['poStatusCode'] = 1
-#    po_append['Note'] = 'added by Invenage'
-#    po_append = po_append[['poName','poStatusCode','Note','fileLocation']]
-#
-#    conn = db_open(config_dict)
-#    po_append.to_sql('po_info',conn,index=False,if_exists='append')
-#    conn.commit()
-#    conn.close()
+def build_po_data(config_dict, data_cleaning=True):
+    # create the list of po first
+    po_file_list = get_files_info(config_dict,
+                                  config_dict['po_file_ext'],
+                                  config_dict['po_path_exclude'].split(';')
+                                  )
+    po_file_list = po_file_list[po_file_list.file_name.str.contains(
+        config_dict['po_file_include'])]
+    po_file_list = po_file_list.reset_index(drop=True)
     
-#def buildFullpo_info(config_dict,existingFileOnly):
-#    app_lang = config_dict['app_lang']
-#    conn = db_open(config_dict)
-#    po_info = pd.read_sql_query('select * from po_info',conn)
-#    tlsTbl = pd.read_sql_query('select poStatusCode.poStatusCode,  \
-#                       localisation.Actual as renderedStatus from  poStatusCode  \
-#                       inner join localisation on  \
-#                       poStatusCode.Label = localisation.Label where  \
-#                       localisation.app_lang = "'+app_lang+'"',conn)
-#    conn.close()
-#    po_info = po_info.merge(tlsTbl,how='left')
-#    po_info = po_info[po_info.fileLocation.notnull()].reset_index(drop=True)
-#    return(po_info)
-
-def build_po_data(po_file_list,config_dict,error_file, data_cleaning=True):
+    error_file = config_dict['error_log']
     nsx_dict = create_dict(config_dict,'vendor_dict')
     rename_dict = create_dict(config_dict,'rename_dict')
+    msg_dict = create_dict(config_dict,'msg_dict')
     
     # database information
     conn = db_open(config_dict)
@@ -162,7 +127,7 @@ def build_po_data(po_file_list,config_dict,error_file, data_cleaning=True):
         for k in nsx_dict:
             if k in inputExcelFile:
                 currentNSX = nsx_dict[k]
-        (rLoc,cLoc) = getPODataLoc(inputExcelFile,'Description')
+        (rLoc,cLoc) = get_po_data_loc(inputExcelFile,'Description')
         tmp = pd.read_excel(inputExcelFile, skiprows = rLoc+1,
                                skipcolumns=cLoc+1,dtype=str)
         tmp['vendor'] = currentNSX
@@ -177,13 +142,13 @@ def build_po_data(po_file_list,config_dict,error_file, data_cleaning=True):
         tmp = tmp[['name','qty','ref_smn','lot','exp_date',
                    'vendor','actual_unit_cost','po_name']]
         if (i == 0):
-            POData = tmp.copy()
+            po_data = tmp.copy()
         else:
-            POData = POData.append(tmp,sort=False)
-    POData.qty = pd.to_numeric(POData.qty, errors='coerce')
+            po_data = po_data.append(tmp,sort=False)
+    po_data.qty = pd.to_numeric(po_data.qty, errors='coerce')
     
     # if vendor is still blank raise error
-    report = POData.copy()
+    report = po_data.copy()
     report = report[report.vendor=='']
     if (len(report)>0):
         print(report)
@@ -192,18 +157,34 @@ def build_po_data(po_file_list,config_dict,error_file, data_cleaning=True):
     # normally we only want to keep things that make sense    
     # blank Lot should be blank
     if data_cleaning:
-        POData = POData[POData.qty>0 & POData.qty.notnull()]
-        POData.loc[POData.lot.isnull(),'lot'] = ''
-        POData.loc[POData.lot == 'nan','lot'] = ''
-        POData = POData.merge(
+        po_data = po_data[po_data.qty>0 & po_data.qty.notnull()]
+        po_data.loc[po_data.lot.isnull(),'lot'] = ''
+        po_data.loc[po_data.lot == 'nan','lot'] = ''
+        po_data = po_data.merge(
                 product_info[['prod_code','ref_smn','vendor']],how='left')
     # raise error if unknown items found
-        if any(POData.prod_code.isnull()):
-            print(POData[POData.prod_code.isnull()])
-            raise RuntimeError('prod_code not found')
+        test_df = po_data.copy()
+        test_df = test_df[test_df.prod_code.isnull()]
+        if len(test_df):
+            write_log(error_file,msg_dict['process_excel_po'])
+            write_log(error_file,msg_dict['unknown_prod'])
+            write_log(error_file,msg_dict['data_not_added'])
+            test_df.to_csv(error_file,index=False,sep='\t',mode='a')
+            po_data = po_data[po_data.prod_code.notnull()]
+    
+    # add fundamental packaging
     unit_packaging = create_unit_packaging(packaging)
-    POData = pd.merge(POData,unit_packaging[['unit','prod_code']],how='left')
-    return(POData)
+    po_data = pd.merge(po_data,unit_packaging[['unit','prod_code']],how='left')
+    # check and remove unknown packaging
+    if (len(po_data[po_data.unit.isnull()])>0):
+        write_log(error_file,msg_dict['process_excel_po'])
+        write_log(error_file,msg_dict['unknown_fund_pkg'])
+        write_log(error_file,msg_dict['data_not_added'])
+        po_data[po_data.unit.isnull()].to_csv(
+                    error_file,index=False,sep='\t',mode='a')
+        po_data = po_data[po_data.unit.notnull()]
+        
+    return(po_data)
     
 def convertToPack(dataFrame,packaging,columnSL,outputColName):
     dataFrame = pd.merge(dataFrame,
@@ -243,6 +224,7 @@ def launch_file(fileName):
 def df_to_dict(data_df,key_col,value_col):
     # check the df integirty
     if (len(data_df[data_df[key_col].duplicated()])>0):
+        print(data_df[data_df[key_col].duplicated()])
         raise RuntimeError('duplication found in key_col')
     
     # reset data frame index
