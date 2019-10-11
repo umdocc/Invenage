@@ -25,7 +25,7 @@ po_file_list = inv.get_files_info(config_dict,
 po_file_list = po_file_list[po_file_list.file_name.str.contains(
         config_dict['po_file_include'])]
 po_file_list = po_file_list.reset_index(drop=True)
-po_data = inv.build_po_data(po_file_list, config_dict, dataCleaning=True)
+po_data = inv.build_po_data(po_file_list, config_dict)
 
 # ---------------------- logic checks -----------------------------------------
 if (len(po_data[po_data.prod_code.isnull()])>0):

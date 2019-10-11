@@ -96,60 +96,60 @@ def create_unit_packaging(packaging):
     unit_packaging = unit_packaging[~unit_packaging.prod_code.duplicated()]
     return(unit_packaging)
 
-def update_po_info(config_dict,excluded):
+#def update_po_info(config_dict,excluded):
+##    app_lang = config_dict['app_lang']
+#    po_path = config_dict['po_path']
+#    # read the current po_info from database, remove anything that does not
+#    # have a valid path
+#    conn = db_open(config_dict)
+#    po_info = pd.read_sql_query('select * from po_info',conn)
+#    # verify fileExists status and remove PO that no longer exists
+#    if (len(po_info)>0):
+#        po_info['fileExist'] = po_info['fileLocation'].map(os.path.isfile)
+#        po_info = po_info[po_info.fileExist]
+#        po_info = po_info.drop('fileExist',axis=1)
+#        po_info.to_sql('po_info',conn,index=False,if_exists='replace')
+#    conn.close()
+#
+#    
+#    # update the database with added PO
+#    po_list = getFilesInfo(po_path,'xlsx',excluded)
+#    # we need the PO to contains '.PO." string
+#    po_list = po_list[po_list.fileName.str.contains('\.PO\.')]
+#    po_list = po_list.rename(columns={'full_path':'fileLocation',
+#                                    'fileName':'poName'})
+#
+#    po_list = checkExists(po_list,po_info,['poName','fileLocation'])
+#    po_append = po_list[po_list.exist.isnull()]
+#    po_append['poStatusCode'] = 1
+#    po_append['Note'] = 'added by Invenage'
+#    po_append = po_append[['poName','poStatusCode','Note','fileLocation']]
+#
+#    conn = db_open(config_dict)
+#    po_append.to_sql('po_info',conn,index=False,if_exists='append')
+#    conn.commit()
+#    conn.close()
+    
+#def buildFullpo_info(config_dict,existingFileOnly):
 #    app_lang = config_dict['app_lang']
-    po_path = config_dict['po_path']
-    # read the current po_info from database, remove anything that does not
-    # have a valid path
-    conn = db_open(config_dict)
-    po_info = pd.read_sql_query('select * from po_info',conn)
-    # verify fileExists status and remove PO that no longer exists
-    if (len(po_info)>0):
-        po_info['fileExist'] = po_info['fileLocation'].map(os.path.isfile)
-        po_info = po_info[po_info.fileExist]
-        po_info = po_info.drop('fileExist',axis=1)
-        po_info.to_sql('po_info',conn,index=False,if_exists='replace')
-    conn.close()
+#    conn = db_open(config_dict)
+#    po_info = pd.read_sql_query('select * from po_info',conn)
+#    tlsTbl = pd.read_sql_query('select poStatusCode.poStatusCode,  \
+#                       localisation.Actual as renderedStatus from  poStatusCode  \
+#                       inner join localisation on  \
+#                       poStatusCode.Label = localisation.Label where  \
+#                       localisation.app_lang = "'+app_lang+'"',conn)
+#    conn.close()
+#    po_info = po_info.merge(tlsTbl,how='left')
+#    po_info = po_info[po_info.fileLocation.notnull()].reset_index(drop=True)
+#    return(po_info)
 
-    
-    # update the database with added PO
-    po_list = getFilesInfo(po_path,'xlsx',excluded)
-    # we need the PO to contains '.PO." string
-    po_list = po_list[po_list.fileName.str.contains('\.PO\.')]
-    po_list = po_list.rename(columns={'full_path':'fileLocation',
-                                    'fileName':'poName'})
-
-    po_list = checkExists(po_list,po_info,['poName','fileLocation'])
-    po_append = po_list[po_list.exist.isnull()]
-    po_append['poStatusCode'] = 1
-    po_append['Note'] = 'added by Invenage'
-    po_append = po_append[['poName','poStatusCode','Note','fileLocation']]
-
-    conn = db_open(config_dict)
-    po_append.to_sql('po_info',conn,index=False,if_exists='append')
-    conn.commit()
-    conn.close()
-    
-def buildFullpo_info(config_dict,existingFileOnly):
-    app_lang = config_dict['app_lang']
-    conn = db_open(config_dict)
-    po_info = pd.read_sql_query('select * from po_info',conn)
-    tlsTbl = pd.read_sql_query('select poStatusCode.poStatusCode,  \
-                       localisation.Actual as renderedStatus from  poStatusCode  \
-                       inner join localisation on  \
-                       poStatusCode.Label = localisation.Label where  \
-                       localisation.app_lang = "'+app_lang+'"',conn)
-    conn.close()
-    po_info = po_info.merge(tlsTbl,how='left')
-    po_info = po_info[po_info.fileLocation.notnull()].reset_index(drop=True)
-    return(po_info)
-
-def build_po_data(po_file_list,config_dict, dataCleaning):
+def build_po_data(po_file_list,config_dict,error_file, data_cleaning=True):
+    nsx_dict = create_dict(config_dict,'vendor_dict')
+    rename_dict = create_dict(config_dict,'rename_dict')
     
     # database information
     conn = db_open(config_dict)
-    nsx_dict = create_dict(conn,'NSX')
-    rename_dict = create_dict(conn,'colRename')
     product_info = pd.read_sql_query('select * from product_info',conn)
     packaging = pd.read_sql_query('select * from packaging',conn)
     
@@ -170,7 +170,10 @@ def build_po_data(po_file_list,config_dict, dataCleaning):
         tmp['po_name'] = os.path.basename(inputExcelFile)
     
         tmp = tmp.rename(columns = rename_dict)
-
+        # if we cannot find the actual_unit_cost, set it to ''
+        if 'actual_unit_cost' not in tmp.columns:
+            tmp['actual_unit_cost'] = ''
+            
         tmp = tmp[['name','qty','ref_smn','lot','exp_date',
                    'vendor','actual_unit_cost','po_name']]
         if (i == 0):
@@ -188,7 +191,7 @@ def build_po_data(po_file_list,config_dict, dataCleaning):
         
     # normally we only want to keep things that make sense    
     # blank Lot should be blank
-    if dataCleaning:
+    if data_cleaning:
         POData = POData[POData.qty>0 & POData.qty.notnull()]
         POData.loc[POData.lot.isnull(),'lot'] = ''
         POData.loc[POData.lot == 'nan','lot'] = ''
