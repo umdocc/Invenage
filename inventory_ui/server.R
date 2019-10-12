@@ -278,11 +278,7 @@ shinyServer(function(input, output,session) {
       output_info$value[output_info$name=='customerNameRow'])
     customerNameCol <- as.numeric(
       output_info$value[output_info$name=='customerNameCol'])
-    print(customerNameRow)
-    print(customerNameCol)
-    print(printingCustomerName)
-    
-    
+
     writeData(wb,sheet=1,printingCustomerName, startRow=customerNameRow, 
               startCol=customerNameCol, colNames = F)
     
@@ -291,6 +287,21 @@ shinyServer(function(input, output,session) {
     pxkNumCol <- as.numeric(output_info$value[output_info$name=='pxkNumCol'])
     writeData(wb,sheet=1,finalised_pxk_num,startRow=pxkNumRow, 
               startCol=pxkNumCol, colNames = F)
+    
+    # writing current date
+    date_row <- as.numeric(output_info$value[output_info$name=='date_row'])
+    date_col <- as.numeric(output_info$value[output_info$name=='date_col'])
+    writeData(wb, sheet=1, Sys.Date(), startRow=date_row, startCol=date_col, 
+              colNames = F)
+    
+    # writing payment type
+    out_payment_type <- input$payment_type
+    payment_type_row <- as.numeric(
+      output_info$value[output_info$name == 'payment_type_row'])
+    payment_type_col <- as.numeric(
+      output_info$value[output_info$name == 'payment_type_col'])
+    writeData(wb, sheet=1, out_payment_type, startRow=payment_type_row, 
+              startCol=payment_type_col, colNames = F)    
     
     # get pxkDataHeaders
     pxkDataHeaders <-  data.frame(matrix(unlist(strsplit(
