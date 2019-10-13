@@ -1,6 +1,7 @@
 # check the database for missing actual cost price and attemp to fill
 # ---------------------- Setup Block ------------------------------------------
 import sys, os, pandas as pd
+import sqlite3
 sys.path.append(os.path.join(os.path.expanduser('~'),'invenage_data'))
 from python_conf import create_config_dict
 config_dict = create_config_dict()
@@ -35,18 +36,35 @@ if (len(missing_price)>0):
             po_data.actual_unit_cost, errors='coerce')
     po_data = po_data[po_data.actual_unit_cost.notnull()]
     po_data['added_actual_cost'] = po_data.actual_unit_cost
+    po_data = po_data[['prod_code','qty','po_name','lot','added_actual_cost']]
+    tmp_conn = sqlite3.connect('tmp.sqlite')
+    po_data.to_sql('po_data',tmp_conn,index=False,if_exists='replace')
+    import_log.to_sql('import_log',tmp_conn,index=False,if_exists='replace')
+    tmp_conn.commit()
+    merged_log = pd.read_sql_query(
+            'select import_log.prod_code, import_log.unit, \
+            import_log.qty, import_log.po_name, import_log.lot, \
+            import_log.exp_date, import_log.actual_unit_cost, \
+            import_log.actual_currency_code, import_log.delivery_date, \
+            import_log.warehouse_id, po_data.added_actual_cost \
+            from import_log left join po_data on \
+            import_log.prod_code = po_data.prod_code and \
+            import_log.po_name = po_data.po_name and \
+            import_log.qty = po_data.qty and \
+            import_log.lot = po_data.lot',tmp_conn)
+    tmp_conn.close()
     
     # merge and copy price
-    import_log = pd.merge(import_log,po_data[[
-            'prod_code','qty','po_name','lot','added_actual_cost']],
-                          how = 'left')
+#    import_log = pd.merge(import_log,po_data[[
+#            'prod_code','qty','po_name','lot','added_actual_cost']],
+#                          how = 'left')
     len(import_log.actual_unit_cost[import_log.actual_unit_cost.isnull()])
     import_log.loc[import_log.actual_unit_cost.isnull(),'actual_unit_cost'] = \
     import_log.loc[import_log.actual_unit_cost.isnull(),'added_actual_cost']
     len(import_log.actual_unit_cost[import_log.actual_unit_cost.isnull()])
     # writing to database
-    conn = inv.db_open(config_dict)
-    import_log.to_sql('import_log',conn,index=False,
-                           if_exists='replace')
-    conn.commit()
-    conn.close()
+#    conn = inv.db_open(config_dict)
+#    import_log.to_sql('import_log',conn,index=False,
+#                           if_exists='replace')
+#    conn.commit()
+#    conn.close()
