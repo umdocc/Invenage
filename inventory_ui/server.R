@@ -446,6 +446,15 @@ shinyServer(function(input, output,session) {
       val_by_vendor <- val_by_vendor[!is.na(val_by_vendor$vendor),]
       vendor_list <- gsub('-.*$','',val_by_vendor$vendor)
 
+      # add total cost, and format the ouput
+      tmp <- val_by_vendor[1:2,]
+      tmp[1,] <- ''
+      tmp$vendor[2] <- ui_elem$actual[ui_elem$label=='total_inv_value']
+      tmp$total_inv_value[2] <- sum(val_by_vendor$total_inv_value,na.rm=T)
+      val_by_vendor <- rbind(val_by_vendor,tmp)
+      val_by_vendor$total_inv_value <- format(
+        as.numeric(val_by_vendor$total_inv_value), big.mark=",")
+            
       # this report use a new excel for now
       wb <- createWorkbook()
       addWorksheet(wb, summary_sheet_name)
@@ -457,8 +466,6 @@ shinyServer(function(input, output,session) {
       missing_price <- rename_table(missing_price,ui_elem)
       writeData(wb, sheet=missing_price_sheet_name, missing_price)
       # write summary sheet
-      val_by_vendor$total_inv_value <- format(
-        val_by_vendor$total_inv_value, big.mark = ',')
       val_by_vendor <- rename_table(val_by_vendor,ui_elem)
       writeData(wb, sheet=summary_sheet_name, val_by_vendor)
 
@@ -471,7 +478,7 @@ shinyServer(function(input, output,session) {
         writeData(wb, sheet=vendor_list[i], tmp_df)
       }
       saveWorkbook(wb,rp_file_name,overwrite = T)
-      
+      system(paste0('open ','"',rp_file_name,'"'))
     }
     if (report_type == 'inventoryAuditReport'|
         report_type == 'inventoryOrderReport'){
