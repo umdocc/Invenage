@@ -342,7 +342,7 @@ shinyServer(function(input, output,session) {
     output$pxk_note <- renderNote() #Note
   })
   #   
-  # # ------------------------ UI for the Lookup Tab -------------------------------
+  # ------------------------ UI for the Lookup Tab -----------------------------
   output$lookup_tbl_output <- renderDataTable({
     tableName <- ui_elem$label[
       ui_elem$actual==input$lu_tbl_selector]
@@ -467,7 +467,7 @@ shinyServer(function(input, output,session) {
         tmp_df <- inventory[grepl(vendor_list[i],inventory$vendor),] %>%
         select(name,ref_smn,lot,exp_date,remaining_qty,ave_pack_import_cost,
                total_inv_value)
-        tmp_df <- rename_table(tmp_df)
+        tmp_df <- rename_table(tmp_df,ui_elem)
         writeData(wb, sheet=vendor_list[i], tmp_df)
       }
       saveWorkbook(wb,rp_file_name,overwrite = T)
