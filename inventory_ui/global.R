@@ -71,6 +71,7 @@ dbDisconnect(conn)
 localisation <- localisation[localisation$app_lang==app_lang,]
 # extract sub-tables from localisation
 ui_elem <- localisation[localisation$group=='ui_elements',]
+# build the ui_elem_dict
 
 # list of tables in lookups
 lu_tbl_list <- unlist(strsplit(
@@ -85,7 +86,6 @@ report_list_label <- config_dict$value[config_dict$name=='report_list_label']
 report_list_label <- data.frame(label = unlist(strsplit(report_list_label,
                                                         ';')))
 report_list <- merge(report_list_label,ui_elem)
-# report_list <- report_list$actual
 
 # -------------------------- Start-up Data -------------------------------------
 col_name_label <- localisation$label[localisation$group=='col_rename']

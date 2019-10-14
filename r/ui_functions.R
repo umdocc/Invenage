@@ -47,6 +47,7 @@ update_inventory <- function(config_dict, pos_item=TRUE){
   import_log <- dbReadTable(conn,"import_log")
   sale_log <- dbReadTable(conn,"sale_log")
   pxk_info <- dbReadTable(conn,"pxk_info")
+  product_info <- dbReadTable(conn,'product_info')
   dbDisconnect(conn)
   
   tmp <- import_log %>% select(prod_code,unit,qty,lot,exp_date,warehouse_id)
@@ -77,15 +78,25 @@ update_inventory <- function(config_dict, pos_item=TRUE){
   
   # merge, distinct and remove NA
   totalInventory <- merge(totalInventory,exp_dateData,all.x=T) %>% distinct()
-  totalInventory <- totalInventory[!is.na(totalInventory$prod_code),]
+  inventory <- totalInventory[!is.na(totalInventory$prod_code),]
   
   # calculate the intexp_date, which is the exp_date in standard format
-  totalInventory$exp_date <- gsub('/','-',totalInventory$exp_date)
-  totalInventory$exp_date <- gsub(' .*$','',totalInventory$exp_date)
-  totalInventory$intexp_date <- parse_date_time(
-    totalInventory$exp_date,c('%Y-%m','%m-%Y','%d-%m-%Y','%Y-%m-%d'))
+  inventory$exp_date <- gsub('/','-',inventory$exp_date)
+  inventory$exp_date <- gsub(' .*$','',inventory$exp_date)
+  inventory$intexp_date <- parse_date_time(
+    inventory$exp_date,c('%Y-%m','%m-%Y','%d-%m-%Y','%Y-%m-%d'))
   
-  return(totalInventory)
+  # recover static information
+  product_info <- product_info %>% select(prod_code,name,ref_smn,vendor)
+  inventory <- merge(inventory,product_info,all.x=T)
+  ave_import_cost <- get_est_import_cost(
+    import_log, algorithm='weighted_average')
+  
+  inventory <- merge(inventory,ave_import_cost,all.x=T)
+  inventory$total_inv_value <-
+    inventory$ave_pack_import_cost*inventory$remaining_qty
+  
+  return(inventory)
 }
 
 # convertToPack is a critical function
@@ -255,69 +266,39 @@ build_po_from_draft <- function(draft_name,config_dict){
   
 }
 
-# 
-# # function to render current PXK as an integer
-# getCurrentPXK <- function(conn){
-#   pxk_info <- dbReadTable(conn,"pxk_info")
-#   current_pxk <- pxk_info[pxk_info$completionCode==0,'pxk_num']
-#   if (length(current_pxk)>0){
-#     current_pxk = as.integer(unique(current_pxk))
-#   }else{
-#     currentDate <- strftime(Sys.time(),'%d%m%y')
-#     i <- 1;newPXKNum <- F
-#     while (!newPXKNum){
-#       # for a given day, increase last 2 digit until we cannot find a match
-#       tmpNum = as.integer(
-#         paste0(strftime(Sys.time(),'%d%m%y'),sprintf("%02d",i)))
-#       if (length(pxk_info[pxk_info$PXKNum==tmpNum,'PXKNum'])==0){
-#         current_pxk <- tmpNum
-#         newPXKNum <- T
-#       }else{
-#         i <- i+1
-#       }
-#     }
-#   }
-#   return(current_pxk)
-# }
-# 
-# render raw pxk into readable format
+# function to build estimated import cost from import_log
+get_est_import_cost <- function(import_log, algorithm='weighted_average'){
+  if (algorithm=='weighted_average'){
+    import_log <- convert_to_pack(import_log,packaging,stringSL='qty',
+                               packString = 'pack_qty')
+    import_log$pack_import_cost <-
+      import_log$actual_unit_cost*import_log$units_per_pack
+    import_log$total_import_cost <-
+      import_log$pack_import_cost*import_log$pack_qty
+    tmp <- import_log %>% group_by(prod_code,lot) %>%
+      summarise(total_pack = sum(pack_qty),
+                sum_import_cost = sum(total_import_cost)) %>%
+      ungroup
+    tmp$ave_pack_import_cost <- tmp$sum_import_cost/tmp$total_pack
+    tmp <- tmp %>% select(prod_code,lot,ave_pack_import_cost)
+    return(tmp)
+  }
+}
 
-# 
-# # function to build estimated import cost from import_log
-# getEstImportCost <- function(import_log, algorithm='weighted_average'){
-#   if (algorithm=='weighted_average'){
-#     import_log <- convertToPack(import_log,packaging,stringSL='qty',
-#                                packString = 'packQty')
-#     import_log$packImportCost <- 
-#       import_log$actualunitImportCost*import_log$units_per_pack
-#     import_log$totalImportCost <- 
-#       import_log$packImportCost*import_log$packQty
-#     tmp <- import_log %>% group_by(prod_code,lot) %>%
-#       summarise(totalPack = sum(packQty),
-#                 sumImportCost = sum(totalImportCost)) %>%
-#       ungroup
-#     tmp$avePackImportCost <- tmp$sumImportCost/tmp$totalPack
-#     tmp <- tmp %>% select(prod_code,lot,avePackImportCost)
-#     return(tmp)
-#   }
-# }
-# 
-# buildCompletePath <- function(pathString,sep=';'){
-#   pathString <-unlist(strsplit(pathString,split = ';'))
-#   for (i in c(1:length(pathString))){
-#     if (i==1){
-#       fullPath <- pathString[i]
-#     }else{
-#       fullPath <- file.path(fullPath,pathString[i])
-#     }
-#   }
-#   return(fullPath)
-# }
+# the rename table takes a table and rename the column based on 
+# the localisation table (ui_elem)
+rename_table <- function(tmp_df,ui_elem){
+  oldnames = data.frame(stt = 1:length(tmp_df), label = names(tmp_df))
+  rename_dict <- merge(oldnames,ui_elem,all.x=T)
+  rename_dict <- rename_dict[order(rename_dict$stt),]
+  names(tmp_df) <- rename_dict$actual
+  return(tmp_df)
+}
 
-# # roll back x months from current month, not counting current month,
-# # return the beginning date of the rolled back month
-# roll_back_date <- function(rolling_mth){
-#   beginDate <- as.Date(as.character(cut(Sys.Date(), "month")),'%Y-%m-%d')
-#   backDate <- as.Date(as.character(cut(beginDate - 28*rolling_mth,'month')))
-#   return(backDate)
-# }
+# roll back x months from current month, not counting current month,
+# return the beginning date of the rolled back month
+roll_back_date <- function(rolling_mth){
+  beginDate <- as.Date(as.character(cut(Sys.Date(), "month")),'%Y-%m-%d')
+  backDate <- as.Date(as.character(cut(beginDate - 28*rolling_mth,'month')))
+  return(backDate)
+}

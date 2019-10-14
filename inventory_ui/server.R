@@ -56,7 +56,7 @@ shinyServer(function(input, output,session) {
   }) }
   renderCustomer <- function(){renderUI({
     custChoices <- get_cust_list(config_dict)
-    selectInput(inputId = 'customer_name',
+    selectizeInput(inputId = 'customer_name',
                 label = ui_elem$actual[ui_elem$label=='customer_name'],
                 choices = custChoices)
   }) }
@@ -417,12 +417,62 @@ shinyServer(function(input, output,session) {
     lookup_tbl_output
   })
   
-  # --------------------- UI for the Tools tab -----------------------------------
+  # --------------------- UI for the Reports tab -------------------------------
 
   # printReport action
   observeEvent(input$printReport, {
     report_type <- ui_elem$label[ui_elem$actual==input$report_type]
     print(report_type)
+    if (report_type == 'inventoryValueReport'){
+      rp_file_name <- file.path(
+        config_dict$value[config_dict$name=='report_out_path'],
+        paste0(ui_elem$actual[ui_elem$label=='inventory'],
+               '.',Sys.Date(), '.xlsx')
+        )
+
+      summary_sheet_name <- ui_elem$actual[ui_elem$label=='summary']
+      missing_price_sheet_name <- ui_elem$actual[ui_elem$label=='missing_price']
+      totalNSXcostName <- ui_elem$actual[ui_elem$label=='total_inv_value']
+      removeCountry <- TRUE # format the vendor
+      
+      # refresh information
+      inventory <- update_inventory(config_dict)
+
+      if (removeCountry){
+        inventory$vendor <- gsub('-.*$','',inventory$vendor)
+      }
+      val_by_vendor <- inventory %>% group_by(vendor) %>% summarise(
+        total_inv_value = sum(total_inv_value,na.rm=T)) %>% ungroup
+      val_by_vendor <- val_by_vendor[!is.na(val_by_vendor$vendor),]
+      vendor_list <- gsub('-.*$','',val_by_vendor$vendor)
+
+      # this report use a new excel for now
+      wb <- createWorkbook()
+      addWorksheet(wb, summary_sheet_name)
+      addWorksheet(wb, missing_price_sheet_name)
+
+      # write missing_price
+      missing_price <- inventory[is.na(inventory$ave_pack_import_cost),] %>%
+        select(prod_code,name,ref_smn)
+      missing_price <- rename_table(missing_price,ui_elem)
+      writeData(wb, sheet=missing_price_sheet_name, missing_price)
+      # write summary sheet
+      val_by_vendor$total_inv_value <- format(
+        val_by_vendor$total_inv_value, big.mark = ',')
+      val_by_vendor <- rename_table(val_by_vendor,ui_elem)
+      writeData(wb, sheet=summary_sheet_name, val_by_vendor)
+
+      for (i in 1:length(vendor_list)){
+        addWorksheet(wb, vendor_list[i])
+        tmp_df <- inventory[grepl(vendor_list[i],inventory$vendor),] %>%
+        select(name,ref_smn,lot,exp_date,remaining_qty,ave_pack_import_cost,
+               total_inv_value)
+        tmp_df <- rename_table(tmp_df)
+        writeData(wb, sheet=vendor_list[i], tmp_df)
+      }
+      saveWorkbook(wb,rp_file_name,overwrite = T)
+      
+    }
     if (report_type == 'inventoryAuditReport'|
         report_type == 'inventoryOrderReport'){
       # read the form
