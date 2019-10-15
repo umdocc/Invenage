@@ -53,18 +53,3 @@ if (len(missing_price)>0):
             import_log.qty = po_data.qty and \
             import_log.lot = po_data.lot',tmp_conn)
     tmp_conn.close()
-    
-    # merge and copy price
-#    import_log = pd.merge(import_log,po_data[[
-#            'prod_code','qty','po_name','lot','added_actual_cost']],
-#                          how = 'left')
-    len(import_log.actual_unit_cost[import_log.actual_unit_cost.isnull()])
-    import_log.loc[import_log.actual_unit_cost.isnull(),'actual_unit_cost'] = \
-    import_log.loc[import_log.actual_unit_cost.isnull(),'added_actual_cost']
-    len(import_log.actual_unit_cost[import_log.actual_unit_cost.isnull()])
-    # writing to database
-#    conn = inv.db_open(config_dict)
-#    import_log.to_sql('import_log',conn,index=False,
-#                           if_exists='replace')
-#    conn.commit()
-#    conn.close()

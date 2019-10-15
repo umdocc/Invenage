@@ -11,7 +11,7 @@ shinyServer(function(input, output,session) {
   }) }
   
   renderProdName <- function(){renderUI({
-    selectInput(inputId = "prod_name_selector",
+    selectizeInput(inputId = "prod_name_selector",
                 label = ui_elem$actual[ui_elem$label=='prod_name'],
                 choices=product_info$name)
   }) }
