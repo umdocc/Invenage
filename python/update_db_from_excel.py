@@ -82,6 +82,13 @@ tmp['import_license_exp'] = ''
 tmp['updated_date'] = format(datetime.datetime.today(),'%d%m%y')
 tmp['prod_group'] = ''
 
+append_pkg = tmp.copy()
+append_pkg = append_pkg[['ordering_unit','prod_code','updated_date']]
+append_pkg['unit']=append_pkg.ordering_unit
+append_pkg['last_updated'] = append_pkg.updated_date
+append_pkg['units_per_pack'] = 1 
+append_pkg = append_pkg[['unit','units_per_pack','prod_code','last_updated']]
+
 tmp = tmp[['prod_code','name','vendor','ref_smn','type','packaging_str',
           'import_license_exp','updated_date','prod_group','warehouse_id']]
 append_prod_info = tmp.copy()
@@ -90,7 +97,7 @@ append_prod_info = tmp.copy()
 pkg_sheet_name = config_dict['add_pkg_sheetname']
 append_pkg_info = pd.read_excel(update_file,sheet_name = pkg_sheet_name)
 append_pkg_info = append_pkg_info.rename(columns=acntl_dict)
-
+append_pkg_info.units_per_pack
 # writing to database
 conn = inv.db_open(config_dict)
 if len(append_cust_info)>0:
@@ -99,6 +106,7 @@ if len(append_cust_info)>0:
 if len(append_prod_info)>0:
     append_prod_info.to_sql(
             'product_info',conn,index=False,if_exists='append')
+    append_pkg.to_sql('packaging',conn,index=False,if_exists='append')
 conn.close()
 
 ## clear the form, but keep the first row

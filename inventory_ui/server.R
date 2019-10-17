@@ -242,7 +242,8 @@ shinyServer(function(input, output,session) {
     wb <- loadWorkbook(orig_path)
     
     # get the expDate, if a Lot has 2 expDate, select only the 1st
-    tmp <- update_inventory(config_dict)
+    # we need to get all inventory, not only the positive ones
+    tmp <- update_inventory(config_dict,pos_item = F)
     exp_date <- tmp %>% select(prod_code,lot,exp_date) %>% unique()
     exp_date <- exp_date[!duplicated(exp_date$lot),]
     
@@ -313,7 +314,7 @@ shinyServer(function(input, output,session) {
       output_info$value[output_info$name=='dataToWrite'],';'))
     
     form_data <- form_data[,dataColumns]
-    
+    print(form_data)
     
     # write both data and headers
     dataStartRow <- as.numeric(
