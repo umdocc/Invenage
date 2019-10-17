@@ -52,9 +52,11 @@ tmp = pd.read_excel(update_file,sheet_name = prod_sheet_name)
 tmp = tmp.rename(columns=acntl_dict)
 tmp.ordering_unit = tmp.ordering_unit.str.lower()
 
-# remove entries with invalid ordering unit
+# remove entries with invalid ordering unit, null prod_code
 tmp = tmp[tmp.ordering_unit!='']
 tmp = tmp[tmp.ordering_unit.notnull()]
+tmp = tmp[tmp.prod_code.notnull()]
+tmp = tmp[tmp.prod_code!='']
 
 # need to carefully check this sheet for integrity
 tmp = pd.merge(tmp,vendor_info[['vendor','vendor_id']], how='left')
@@ -75,7 +77,7 @@ if (len(tmp[tmp.vendor_id.isnull()])>0):
             error_file,index=False,sep='\t',mode='a')
     inv.launch_file(error_file)
     raise RuntimeError('check error log')
-
+    
 # otherwise prepare the final output
 tmp['type'] = ''
 tmp['import_license_exp'] = ''
@@ -97,7 +99,7 @@ append_prod_info = tmp.copy()
 pkg_sheet_name = config_dict['add_pkg_sheetname']
 append_pkg_info = pd.read_excel(update_file,sheet_name = pkg_sheet_name)
 append_pkg_info = append_pkg_info.rename(columns=acntl_dict)
-append_pkg_info.units_per_pack
+append_pkg_info.units_per_pack = 1
 # writing to database
 conn = inv.db_open(config_dict)
 if len(append_cust_info)>0:
