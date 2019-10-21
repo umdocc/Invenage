@@ -1,6 +1,7 @@
 # if we have a local import excel file, we handle it here
 # ---------------------- Setup Block ------------------------------------------
 import sys, os, pandas as pd
+import datetime
 sys.path.append(os.path.join(os.path.expanduser('~'),'invenage_data'))
 from python_conf import create_config_dict
 config_dict = create_config_dict()
@@ -50,7 +51,7 @@ product_info.ref_smn = product_info.ref_smn.str.lower()
 product_info.vendor = product_info.vendor.str.lower()
 
 local_import_data = pd.merge(local_import_data,product_info[
-        ['prod_code','vendor','ref_smn']],how='left')
+        ['prod_code','vendor','ref_smn','warehouse_id']],how='left')
 local_import_data.unit = local_import_data.unit.str.lower()
 local_import_data.qty = pd.to_numeric(local_import_data.qty)
 
@@ -108,10 +109,14 @@ local_import_data = inv.checkExists(
 # keep only non-exist entries
 local_import_data = local_import_data[local_import_data.exist.isnull()]
 
+# adding other data
+local_import_data['delivery_date'] = format(datetime.datetime.now(),'%d%m%y')
+
 # keeping relevant column
 local_import_data = local_import_data[['prod_code','unit','qty','po_name',
                                      'lot','exp_date','actual_unit_cost',
-                                     'actual_currency_code']]
+                                     'actual_currency_code','delivery_date',
+                                     'warehouse_id']]
 
 # check appending data for unknown packaging, remove unknown packaging
 testDF = local_import_data.copy()
