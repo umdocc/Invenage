@@ -27,7 +27,7 @@ append_log = po_data.copy()
 append_log = append_log[(append_log.lot!='') & append_log.lot.notnull()]
 
 # check to see if entries in append_log exist in import_log
-append_log = inv.checkExists(append_log,import_log,
+append_log = inv.check_exists(append_log,import_log,
                        ['prod_code','lot','po_name','qty'])
 
 # only keep entries not exist in import_log

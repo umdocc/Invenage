@@ -83,7 +83,7 @@ def db_open(config_dict):
 # the check exists function check if entries in table A already exist in
 # table B, it return table A with a column "exists" that mark entries
 # already exist in table B
-def checkExists(tableA,tableB,colList):
+def check_exists(tableA,tableB,colList):
     tableB = tableB[colList]
         
     tableB['exist'] = True

@@ -104,7 +104,7 @@ local_import_data = local_import_data[
         ~local_import_data.delivery_date.str.contains('nan')]
 
 # check for database existence
-local_import_data = inv.checkExists(
+local_import_data = inv.check_exists(
         local_import_data,import_log,['prod_code','qty','po_name'])
 # keep only non-exist entries
 local_import_data = local_import_data[local_import_data.exist.isnull()]
