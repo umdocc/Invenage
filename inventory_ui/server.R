@@ -135,8 +135,8 @@ shinyServer(function(input, output,session) {
     
     
     # if this PXK is not in the database yet, create new with completed 0
-    # print(nrow(pxk_info[pxk_info$PXKNum==input$pxk_selector,])==0)
-    if (nrow(pxk_info[pxk_info$PXKNum==input$pxk_selector,])==0){
+    # print(nrow(pxk_info[pxk_info$pxk_num==input$pxk_selector,])==0)
+    if (nrow(pxk_info[pxk_info$pxk_num==input$pxk_selector,])==0){
       
       appendPXKInfo <- data.frame(
         pxk_num = input$pxk_selector,
@@ -158,8 +158,8 @@ shinyServer(function(input, output,session) {
     }else{
       conn <- db_open(config_dict)
       current_stt <- dbGetQuery(conn, "select max(Stt) from sale_log
-                               where PXKNum = (
-                               select PXKNum from pxk_info
+                               where pxk_num = (
+                               select pxk_num from pxk_info
                                where completed = 0)")[1,1]
       dbDisconnect(conn)
       is.na(current_stt)
@@ -185,7 +185,7 @@ shinyServer(function(input, output,session) {
       warehouse_id = warehouse_info$warehouse_id[
         warehouse_info$warehouse == input$warehouse_selector]
     )
-    
+    print('debug ok')
     # writing sale_log to database
     conn <- db_open(config_dict)
     dbWriteTable(conn,'sale_log',append_sale_log,append=T)
