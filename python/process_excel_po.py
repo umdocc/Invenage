@@ -12,6 +12,7 @@ import python_func as inv
 #database
 conn = inv.db_open(config_dict)
 import_log = pd.read_sql_query('select * from import_log',conn)
+product_info = pd.read_sql_query('select * from import_log',conn)
 conn.close()
 # other
 error_file = config_dict['error_log']
@@ -23,10 +24,12 @@ po_data = inv.build_po_data(config_dict)
 # split po_data into 2 parts
 # those with Lot gets written into importLog
 append_log = po_data.copy()
-append_log = append_log[append_log.lot!='']
-# check to see if entries in append_log exist in importLog
+append_log = append_log[(append_log.lot!='') & append_log.lot.notnull()]
+
+# check to see if entries in append_log exist in import_log
 append_log = inv.checkExists(append_log,import_log,
                        ['prod_code','lot','po_name','qty'])
+
 # only keep entries not exist in import_log
 append_log = append_log[append_log.exist.isnull()]
 
@@ -35,8 +38,6 @@ append_log.actual_unit_cost = pd.to_numeric(append_log.actual_unit_cost,
                                             errors='coerce')
 append_log['actual_currency_code'] = 1
 
-append_log = append_log[['prod_code','unit','qty','po_name','lot','exp_date',
-                       'actual_unit_cost','actual_currency_code']]
 
 # check that Unit is lower case
 append_log.unit = append_log.unit.str.lower()
@@ -44,8 +45,21 @@ append_log.unit = append_log.unit.str.lower()
 # add deliveryDate
 append_log['delivery_date'] = datetime.date.today().strftime('%d%m%y')
 
+# if there is a warehouse_id ,use it, if not, create from product_info
+if ('warehouse_id' not in append_log.columns):
+    append_log = pd.merge(
+            append_log,product_info[['prod_code', 'warehouse_id']], how='left')
+
+# remove invalid warehouse_id
+append_log = append_log[(append_log.warehouse_id.notnull()) & 
+                        (append_log.warehouse_id != '')]
+
 # clean up
 append_log.exp_date = append_log.exp_date.str.replace(' .*$','')
+append_log = append_log[
+        ['prod_code', 'unit', 'qty', 'po_name', 'lot', 'exp_date',
+         'actual_unit_cost', 'actual_currency_code', 'delivery_date',
+         'warehouse_id']]
 
 # append to _database
 if len(append_log)>0:

@@ -98,8 +98,7 @@ def create_unit_packaging(packaging):
     unit_packaging = unit_packaging[~unit_packaging.prod_code.duplicated()]
     return(unit_packaging)
 
-def build_po_data(config_dict, data_cleaning=True):
-    # create the list of po first
+def build_po_list(config_dict):
     po_file_list = get_files_info(config_dict,
                                   config_dict['po_file_ext'],
                                   config_dict['po_path_exclude'].split(';')
@@ -107,6 +106,11 @@ def build_po_data(config_dict, data_cleaning=True):
     po_file_list = po_file_list[po_file_list.file_name.str.contains(
         config_dict['po_file_include'])]
     po_file_list = po_file_list.reset_index(drop=True)
+    return(po_file_list)
+    
+def build_po_data(config_dict, data_cleaning=True):
+    # create the list of po first
+    po_file_list = build_po_list(config_dict)
     
     error_file = config_dict['error_log']
     nsx_dict = create_dict(config_dict,'vendor_dict')
@@ -116,11 +120,10 @@ def build_po_data(config_dict, data_cleaning=True):
     # database information
     conn = db_open(config_dict)
     product_info = pd.read_sql_query('select * from product_info',conn)
-    packaging = pd.read_sql_query('select * from packaging',conn)
-    
+    packaging = pd.read_sql_query('select * from packaging',conn)    
     conn.close()
+
     for i in range(0,len(po_file_list)):
-        # as paths are relative we need to append homePath
         inputExcelFile = po_file_list.full_path[i]
 #        print(inputExcelFile)
         currentNSX = ''
