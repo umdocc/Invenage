@@ -12,7 +12,7 @@ import python_func as inv
 #database
 conn = inv.db_open(config_dict)
 import_log = pd.read_sql_query('select * from import_log',conn)
-product_info = pd.read_sql_query('select * from import_log',conn)
+product_info = pd.read_sql_query('select * from product_info',conn)
 conn.close()
 # other
 error_file = config_dict['error_log']
@@ -44,11 +44,10 @@ append_log.unit = append_log.unit.str.lower()
 
 # add deliveryDate
 append_log['delivery_date'] = datetime.date.today().strftime('%d%m%y')
-
 # if there is a warehouse_id ,use it, if not, create from product_info
 if ('warehouse_id' not in append_log.columns):
-    append_log = pd.merge(
-            append_log,product_info[['prod_code', 'warehouse_id']], how='left')
+    append_log = append_log.merge(
+            product_info[['prod_code', 'warehouse_id']], how='left')
 
 # remove invalid warehouse_id
 append_log = append_log[(append_log.warehouse_id.notnull()) & 
