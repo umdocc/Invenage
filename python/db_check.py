@@ -1,4 +1,5 @@
-#check the database integrity and write to log file
+# check the database integrity and write to log file
+#
 # ---------------------------- Setup ------------------------------------------
 import sys, os, pandas as pd #import
 inv_data_path = os.path.join(os.path.expanduser('~'),'invenage_data') 
@@ -41,6 +42,21 @@ testDF = testDF[testDF.name.duplicated()][['prod_code','name']]
 if (len(testDF)>0):
     inv.write_log(error_file,msg_dict['dup_prod_name'])
     testDF.to_csv(error_file,index=False,sep='\t',mode='a')
+    
+#check product info for missing warehouse_id
+testDF = product_info.copy()
+testDF = testDF[testDF.warehouse_id.isnull()]
+if (len(testDF)>0):
+    inv.write_log(error_file,msg_dict['missing_warehouse_id'])
+    testDF.to_csv(error_file,index=False,sep='\t',mode='a')
+
+
+testDF = product_info.copy()
+testDF = testDF[testDF.name.duplicated()][['prod_code','name']]
+if (len(testDF)>0):
+    inv.write_log(error_file,msg_dict['dup_prod_name'])
+    testDF.to_csv(error_file,index=False,sep='\t',mode='a')
+
     
 # check import_log for missing packaging
 testDF = import_log.copy()
