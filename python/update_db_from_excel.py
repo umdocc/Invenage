@@ -52,15 +52,21 @@ tmp = pd.read_excel(update_file,sheet_name = prod_sheet_name)
 tmp = tmp.rename(columns=acntl_dict)
 tmp.ordering_unit = tmp.ordering_unit.str.lower()
 
-# remove entries with invalid ordering unit, null prod_code
+# remove entries with invalid ordering unit, null prod_code, null warehouse
 tmp = tmp[tmp.ordering_unit!='']
 tmp = tmp[tmp.ordering_unit.notnull()]
 tmp = tmp[tmp.prod_code.notnull()]
 tmp = tmp[tmp.prod_code!='']
+tmp = tmp[tmp.warehouse.notnull()]
+tmp = tmp[tmp.warehouse!='']
+
 
 # need to carefully check this sheet for integrity
 tmp = pd.merge(tmp,vendor_info[['vendor','vendor_id']], how='left')
+tmp = tmp[tmp.vendor_id.notnull()]
 tmp = pd.merge(tmp,warehouse_info[['warehouse','warehouse_id']], how='left')
+tmp = tmp[tmp.warehouse_id.notnull()]
+
 
 # if there is an error. launch the log and shut down the script to protect
 # data integrity
