@@ -49,17 +49,30 @@ def get_po_data_loc(inputExcelFile,headerStr):
             break
     return(rLoc,cLoc)
 
+# convert a renameDF to dict, with input_str being key and 
+# output_str being value
+def convert_to_dict(rename_df):
+    output_dict = {}
+    if 'input_str' not in rename_df:
+        raise RuntimeError('input_str column not in rename_dict')
+    if 'output_str' not in rename_df:
+        raise RuntimeError('input_str column not in rename_dict')
+    for i in range(0,len(rename_df)):
+        output_dict[rename_df.input_str[i]] = rename_df.output_str[i]
+    return(output_dict)
+
 # current dictType = ['NSX','colRename']
 def create_dict(config_dict, dict_name):
     conn = db_open(config_dict)
     # rename dictionary
     if ((dict_name=='rename_dict') or (dict_name=='vendor_dict')):
-        renameDF = pd.read_sql_query(
+        rename_df = pd.read_sql_query(
             'select * from guess_table where guess_type = "'+dict_name+'"',
             conn)
-        output_dict = {}
-        for i in range(0,len(renameDF)):
-            output_dict[renameDF.input_str[i]] = renameDF.output_str[i]
+        output_dict = convert_to_dict(rename_df)
+#        output_dict = {}
+#        for i in range(0,len(rename_df)):
+#            output_dict[rename_df.input_str[i]] = rename_df.output_str[i]
 
     if (dict_name=='msg_dict'):
         localisation = pd.read_sql_query('select * from localisation',conn)
@@ -68,6 +81,30 @@ def create_dict(config_dict, dict_name):
         output_dict = df_to_dict(output_dict,'label','actual')
     conn.close()
     return(output_dict)
+    
+# read the po data using a single excel file as input
+def read_po_data(input_file,config_dict):
+    nsx_dict = create_dict(config_dict,'vendor_dict')
+    rename_dict = create_dict(config_dict,'rename_dict')
+    currentNSX = ''
+    for k in nsx_dict:
+        if k in input_file:
+            currentNSX = nsx_dict[k]
+    (rLoc,cLoc) = get_po_data_loc(input_file,'Description')
+    tmp = pd.read_excel(input_file, skiprows = rLoc+1,
+                           skipcolumns=cLoc+1,dtype=str)
+    tmp['vendor'] = currentNSX
+
+    tmp['po_name'] = os.path.basename(input_file)
+
+    tmp = tmp.rename(columns = rename_dict)
+    # if we cannot find the actual_unit_cost, set it to ''
+    if 'actual_unit_cost' not in tmp.columns:
+        tmp['actual_unit_cost'] = ''
+        
+    tmp = tmp[['name','qty','ref_smn','lot','exp_date',
+               'vendor','actual_unit_cost','po_name']]
+    return(tmp)
 
 def db_open(config_dict):
     if (config_dict['db_type']=='MariaDB'):
@@ -109,30 +146,7 @@ def build_po_list(config_dict):
     po_file_list = po_file_list.reset_index(drop=True)
     return(po_file_list)
 
-# read the po data using a single excel file as input
 
-def read_po_data(input_file,config_dict):
-    nsx_dict = create_dict(config_dict,'vendor_dict')
-    rename_dict = create_dict(config_dict,'rename_dict')
-    currentNSX = ''
-    for k in nsx_dict:
-        if k in input_file:
-            currentNSX = nsx_dict[k]
-    (rLoc,cLoc) = get_po_data_loc(input_file,'Description')
-    tmp = pd.read_excel(input_file, skiprows = rLoc+1,
-                           skipcolumns=cLoc+1,dtype=str)
-    tmp['vendor'] = currentNSX
-
-    tmp['po_name'] = os.path.basename(input_file)
-
-    tmp = tmp.rename(columns = rename_dict)
-    # if we cannot find the actual_unit_cost, set it to ''
-    if 'actual_unit_cost' not in tmp.columns:
-        tmp['actual_unit_cost'] = ''
-        
-    tmp = tmp[['name','qty','ref_smn','lot','exp_date',
-               'vendor','actual_unit_cost','po_name']]
-    return(tmp)
 
 def build_po_data(config_dict, data_cleaning=True):
     # create the list of po first
