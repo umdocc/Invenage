@@ -11,10 +11,10 @@ def write_log(error_file,message):
     text_file.write('\n'+message+'\n')
     text_file.close()
 
-def get_files_info(config_dict,extension,exclude=''):
+def get_files_info(dir_path,extension,exclude=''):
     if isinstance(exclude,str):
         exclude = exclude.split()
-    file_list = pd.DataFrame(glob.glob(os.path.join(config_dict['po_path'],
+    file_list = pd.DataFrame(glob.glob(os.path.join(dir_path,
                                                    '**','*.'+extension), 
                           recursive=True),columns=['full_path'])
     # create the locked column
@@ -99,7 +99,8 @@ def create_unit_packaging(packaging):
     return(unit_packaging)
 
 def build_po_list(config_dict):
-    po_file_list = get_files_info(config_dict,
+    dir_path = config_dict['po_path']
+    po_file_list = get_files_info(dir_path,
                                   config_dict['po_file_ext'],
                                   config_dict['po_path_exclude'].split(';')
                                   )
@@ -107,14 +108,37 @@ def build_po_list(config_dict):
         config_dict['po_file_include'])]
     po_file_list = po_file_list.reset_index(drop=True)
     return(po_file_list)
-    
+
+# read the po data using a single excel file as input
+
+def read_po_data(input_file,config_dict):
+    nsx_dict = create_dict(config_dict,'vendor_dict')
+    rename_dict = create_dict(config_dict,'rename_dict')
+    currentNSX = ''
+    for k in nsx_dict:
+        if k in input_file:
+            currentNSX = nsx_dict[k]
+    (rLoc,cLoc) = get_po_data_loc(input_file,'Description')
+    tmp = pd.read_excel(input_file, skiprows = rLoc+1,
+                           skipcolumns=cLoc+1,dtype=str)
+    tmp['vendor'] = currentNSX
+
+    tmp['po_name'] = os.path.basename(input_file)
+
+    tmp = tmp.rename(columns = rename_dict)
+    # if we cannot find the actual_unit_cost, set it to ''
+    if 'actual_unit_cost' not in tmp.columns:
+        tmp['actual_unit_cost'] = ''
+        
+    tmp = tmp[['name','qty','ref_smn','lot','exp_date',
+               'vendor','actual_unit_cost','po_name']]
+    return(tmp)
+
 def build_po_data(config_dict, data_cleaning=True):
     # create the list of po first
     po_file_list = build_po_list(config_dict)
     
     error_file = config_dict['error_log']
-    nsx_dict = create_dict(config_dict,'vendor_dict')
-    rename_dict = create_dict(config_dict,'rename_dict')
     msg_dict = create_dict(config_dict,'msg_dict')
     
     # database information
@@ -125,25 +149,7 @@ def build_po_data(config_dict, data_cleaning=True):
 
     for i in range(0,len(po_file_list)):
         inputExcelFile = po_file_list.full_path[i]
-#        print(inputExcelFile)
-        currentNSX = ''
-        for k in nsx_dict:
-            if k in inputExcelFile:
-                currentNSX = nsx_dict[k]
-        (rLoc,cLoc) = get_po_data_loc(inputExcelFile,'Description')
-        tmp = pd.read_excel(inputExcelFile, skiprows = rLoc+1,
-                               skipcolumns=cLoc+1,dtype=str)
-        tmp['vendor'] = currentNSX
-    
-        tmp['po_name'] = os.path.basename(inputExcelFile)
-    
-        tmp = tmp.rename(columns = rename_dict)
-        # if we cannot find the actual_unit_cost, set it to ''
-        if 'actual_unit_cost' not in tmp.columns:
-            tmp['actual_unit_cost'] = ''
-            
-        tmp = tmp[['name','qty','ref_smn','lot','exp_date',
-                   'vendor','actual_unit_cost','po_name']]
+        tmp = read_po_data(inputExcelFile,config_dict)
         if (i == 0):
             po_data = tmp.copy()
         else:
