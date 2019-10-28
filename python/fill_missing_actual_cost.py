@@ -37,6 +37,7 @@ if (len(missing_price)>0):
     po_data = po_data[po_data.actual_unit_cost.notnull()]
     po_data['added_actual_cost'] = po_data.actual_unit_cost
     po_data = po_data[['prod_code','qty','po_name','lot','added_actual_cost']]
+    
     tmp_conn = sqlite3.connect('tmp.sqlite')
     po_data.to_sql('po_data',tmp_conn,index=False,if_exists='replace')
     import_log.to_sql('import_log',tmp_conn,index=False,if_exists='replace')
@@ -53,3 +54,11 @@ if (len(missing_price)>0):
             import_log.qty = po_data.qty and \
             import_log.lot = po_data.lot',tmp_conn)
     tmp_conn.close()
+    merged_log.actual_unit_cost[merged_log.actual_unit_cost.isnull() & 
+                                merged_log.added_actual_cost.notnull()] =   \
+    merged_log.added_actual_cost[merged_log.actual_unit_cost.isnull() & 
+                                 merged_log.added_actual_cost.notnull()]
+    
+    conn = inv.db_open(config_dict)
+    merged_log.to_sql('import_log',tmp_conn,index=False,if_exists='replace')
+    conn.close()
