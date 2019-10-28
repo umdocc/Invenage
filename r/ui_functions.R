@@ -96,6 +96,8 @@ update_inventory <- function(config_dict, pos_item=TRUE){
   inventory$total_inv_value <-
     inventory$ave_pack_import_cost*inventory$remaining_qty
   
+  # remove NAs
+  inventory <- inventory[!is.na(inventory$prod_code),]
   return(inventory)
 }
 

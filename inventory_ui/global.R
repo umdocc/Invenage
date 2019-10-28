@@ -91,3 +91,15 @@ report_list <- merge(report_list_label,ui_elem)
 col_name_label <- localisation$label[localisation$group=='col_rename']
 col_name_actual <- localisation$actual[localisation$group=='col_rename']
 # print(home_path)
+
+# # codes
+# # inventory exp_date report section
+# report_type = 'inv_exp_date_report'
+# rp_file_name <- file.path(
+#   config_dict$value[config_dict$name=='report_out_path'],
+#   paste0(ui_elem$actual[ui_elem$label=='inventory'],
+#          '.',Sys.Date(), '.xlsx')
+# )
+# inventory <- update_inventory(config_dict)
+# 
+# inventory <- inventory[order(inventory$intexp_date),]

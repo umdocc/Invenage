@@ -93,6 +93,7 @@ tmp['prod_group'] = ''
 append_pkg = tmp.copy()
 append_pkg = append_pkg[['ordering_unit','prod_code','updated_date']]
 append_pkg['unit']=append_pkg.ordering_unit
+append_pkg.unit = append_pkg.unit.str.lower()
 append_pkg['last_updated'] = append_pkg.updated_date
 append_pkg['units_per_pack'] = 1 
 append_pkg = append_pkg[['unit','units_per_pack','prod_code','last_updated']]
@@ -105,7 +106,9 @@ append_prod_info = tmp.copy()
 pkg_sheet_name = config_dict['add_pkg_sheetname']
 append_pkg_info = pd.read_excel(update_file,sheet_name = pkg_sheet_name)
 append_pkg_info = append_pkg_info.rename(columns=acntl_dict)
-append_pkg_info.units_per_pack = 1
+append_pkg_info['last_updated'] = format(datetime.datetime.now(),'%d%m%y')
+append_pkg_info = append_pkg_info[['unit','units_per_pack','prod_code',
+                                   'last_updated']]
 # writing to database
 conn = inv.db_open(config_dict)
 if len(append_cust_info)>0:
@@ -118,7 +121,7 @@ if len(append_prod_info)>0:
 conn.close()
 
 ## clear the form, but keep the first row
-sheets_to_clear = [customer_sheet_name,prod_sheet_name]
+sheets_to_clear = [customer_sheet_name,prod_sheet_name,pkg_sheet_name]
 wb = load_workbook(filename = update_file)
 for sheet in sheets_to_clear:
     ws = wb[sheet]

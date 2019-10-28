@@ -434,11 +434,12 @@ shinyServer(function(input, output,session) {
       summary_sheet_name <- ui_elem$actual[ui_elem$label=='summary']
       missing_price_sheet_name <- ui_elem$actual[ui_elem$label=='missing_price']
       totalNSXcostName <- ui_elem$actual[ui_elem$label=='total_inv_value']
-      removeCountry <- TRUE # format the vendor
+
       
       # refresh information
       inventory <- update_inventory(config_dict)
-
+      
+      removeCountry <- TRUE # format the vendor
       if (removeCountry){
         inventory$vendor <- gsub('-.*$','',inventory$vendor)
       }
