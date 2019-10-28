@@ -418,3 +418,68 @@ create_report <- function(report_type,config_dict){
   }
   return(rp_file)
 }
+
+# format the table column name from label to localised output
+format_output_tbl <- function(input_dt,ui_elem){
+  rename_tbl <- data.frame(label=names(input_dt))
+  rename_tbl <- merge(rename_tbl,ui_elem)
+  
+  # rename using old school method is much safer
+  oldnames <- rename_tbl$label
+  newnames <- rename_tbl$actual
+  for(i in 1:length(oldnames)) names(input_dt)[
+    names(input_dt) == oldnames[i]] = newnames[i]
+  return(input_dt)
+}
+
+create_lookup_tbl <- function(table_name,config_dict){
+  if (table_name=='inventory'){
+    lookup_tbl_output <- update_inventory(config_dict)
+    lookup_tbl_output <- merge(
+      lookup_tbl_output, product_info %>% select(prod_code,name,ref_smn),
+      all.x = T) %>%
+      select(name,ref_smn,lot,exp_date,remaining_qty)
+  }else{
+    # query on simple table
+    if (table_name=='product_info'){
+      query <- paste("SELECT prod_code,name,vendor,ref_smn from product_info")
+    }
+    if (table_name=='import_price'){
+      query <- paste("SELECT product_info.name, product_info.vendor,
+                        product_info.ref_smn, import_price.import_price,
+                        import_price.currency_code,
+                        import_price.min_order, import_price.last_updated
+                        FROM import_price INNER JOIN product_info
+                        ON import_price.prod_code = product_info.prod_code")
+    }
+    if (table_name=='sale_log'){
+      query <- paste("SELECT product_info.name, product_info.vendor,
+                        product_info.ref_smn, sale_log.unit,
+                        sale_log.unit_price, sale_log.qty,
+                        sale_log.lot, sale_log.pxk_num, customer_info.customer_name
+                        FROM sale_log INNER JOIN product_info
+                        ON sale_log.prod_code = product_info.prod_code
+                        INNER JOIN pxk_info
+                        ON sale_log.pxk_num = pxk_info.pxk_num
+                        INNER JOIN customer_info
+                        ON pxk_info.customer_id = customer_info.customer_id"
+      )
+    }
+    if (table_name=='import_log'){
+      query <- paste("SELECT product_info.name, product_info.vendor,
+                        product_info.ref_smn, import_log.unit,
+                        import_log.qty, import_log.po_name,
+                        import_log.lot, import_log.exp_date, 
+                        import_log.delivery_date
+                        FROM import_log INNER JOIN product_info
+                        ON import_log.prod_code = product_info.prod_code"
+      )
+    }
+    conn <- db_open(config_dict)
+    lookup_tbl_output <- dbGetQuery(conn,query)
+    dbDisconnect(conn)
+  }
+  lookup_tbl_output <- format_output_tbl(lookup_tbl_output,ui_elem)
+  return(lookup_tbl_output)
+}
+
