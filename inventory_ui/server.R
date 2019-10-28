@@ -401,7 +401,7 @@ shinyServer(function(input, output,session) {
   # create the report and open it
   observeEvent(input$printReport, {
     report_type <- ui_elem$label[ui_elem$actual==input$report_type]
-    create_report(report_type)
+    rp_file <- create_report(report_type,config_dict)
     system(paste0('open ','"',rp_file,'"'))
   })
 })

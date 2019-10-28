@@ -306,28 +306,31 @@ roll_back_date <- function(rolling_mth){
 }
 
 # create_report function
-create_report <- function(report_type){
+create_report <- function(report_type,config_dict){
+  ui_elem <- localisation[localisation$group=='ui_elements',]
+  rp_file <- file.path(
+    config_dict$value[config_dict$name=='report_out_path'],
+    paste0(ui_elem$actual[ui_elem$label=='inventory'],
+           '.',Sys.Date(), '.xlsx') )
   if (report_type == 'inv_exp_date_report'){
-    # report_type = 'inv_exp_date_report'
-    rp_file <- file.path(
-      config_dict$value[config_dict$name=='report_out_path'],
-      paste0(ui_elem$actual[ui_elem$label=='inventory'],
-             '.',Sys.Date(), '.xlsx') )
-    inventory <- update_inventory(config_dict)
-    inventory <- inventory[order(inventory$intexp_date),]
-    
+    output_rp <- update_inventory(config_dict)
+    output_rp$remaining_days <- output_rp$intexp_date-Sys.time()
+    output_rp$label[output_rp$remaining_days<180] <- 'less_than_6mth'
+    output_rp$label[output_rp$remaining_days<90] <- 'less_than_3mth'
+    output_rp <- output_rp[order(output_rp$intexp_date),]
+    output_rp <- merge(output_rp,ui_elem,all.x=T)
+    output_rp$note <- output_rp$actual
+    output_rp <- output_rp %>% select(name,vendor,ref_smn,remaining_qty,
+                                      exp_date,note)
+    wb <- createWorkbook()
+    addWorksheet(wb, 'Sheet1')
+    writeData(wb,sheet='Sheet1',output_rp)
+    saveWorkbook(wb,rp_file,overwrite = T)
   }
   if (report_type == 'inventoryValueReport'){
-    rp_file_name <- file.path(
-      config_dict$value[config_dict$name=='report_out_path'],
-      paste0(ui_elem$actual[ui_elem$label=='inventory'],
-             '.',Sys.Date(), '.xlsx')
-    )
-    
     summary_sheet_name <- ui_elem$actual[ui_elem$label=='summary']
     missing_price_sheet_name <- ui_elem$actual[ui_elem$label=='missing_price']
     totalNSXcostName <- ui_elem$actual[ui_elem$label=='total_inv_value']
-    
     
     # refresh information
     inventory <- update_inventory(config_dict)
@@ -372,7 +375,7 @@ create_report <- function(report_type){
       tmp_df <- rename_table(tmp_df,ui_elem)
       writeData(wb, sheet=vendor_list[i], tmp_df)
     }
-    saveWorkbook(wb,rp_file_name,overwrite = T)
+    saveWorkbook(wb,rp_file,overwrite = T)
   }
   if (report_type == 'inventoryAuditReport'|
       report_type == 'inventoryOrderReport'){
@@ -411,11 +414,7 @@ create_report <- function(report_type){
     
     # write data to destination file then open file
     writeData(wb, 1, inventoryReport, startRow=5, startCol=1)
-    file_name <- paste(input$report_type,format(Sys.Date(),'%d%m%y'),'xlsx',
-                       sep='.')
-    rp_file <- file.path(
-      config_dict$value[config_dict$name=='report_out_path'],file_name)
-    print(dest_file)
     saveWorkbook(wb,rp_file,overwrite = T)
   }
+  return(rp_file)
 }
