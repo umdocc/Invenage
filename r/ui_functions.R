@@ -304,3 +304,118 @@ roll_back_date <- function(rolling_mth){
   backDate <- as.Date(as.character(cut(beginDate - 28*rolling_mth,'month')))
   return(backDate)
 }
+
+# create_report function
+create_report <- function(report_type){
+  if (report_type == 'inv_exp_date_report'){
+    # report_type = 'inv_exp_date_report'
+    rp_file <- file.path(
+      config_dict$value[config_dict$name=='report_out_path'],
+      paste0(ui_elem$actual[ui_elem$label=='inventory'],
+             '.',Sys.Date(), '.xlsx') )
+    inventory <- update_inventory(config_dict)
+    inventory <- inventory[order(inventory$intexp_date),]
+    
+  }
+  if (report_type == 'inventoryValueReport'){
+    rp_file_name <- file.path(
+      config_dict$value[config_dict$name=='report_out_path'],
+      paste0(ui_elem$actual[ui_elem$label=='inventory'],
+             '.',Sys.Date(), '.xlsx')
+    )
+    
+    summary_sheet_name <- ui_elem$actual[ui_elem$label=='summary']
+    missing_price_sheet_name <- ui_elem$actual[ui_elem$label=='missing_price']
+    totalNSXcostName <- ui_elem$actual[ui_elem$label=='total_inv_value']
+    
+    
+    # refresh information
+    inventory <- update_inventory(config_dict)
+    
+    removeCountry <- TRUE # format the vendor
+    if (removeCountry){
+      inventory$vendor <- gsub('-.*$','',inventory$vendor)
+    }
+    val_by_vendor <- inventory %>% group_by(vendor) %>% summarise(
+      total_inv_value = sum(total_inv_value,na.rm=T)) %>% ungroup
+    val_by_vendor <- val_by_vendor[!is.na(val_by_vendor$vendor),]
+    vendor_list <- gsub('-.*$','',val_by_vendor$vendor)
+    
+    # add total cost, and format the ouput
+    tmp <- val_by_vendor[1:2,]
+    tmp[1,] <- ''
+    tmp$vendor[2] <- ui_elem$actual[ui_elem$label=='total_inv_value']
+    tmp$total_inv_value[2] <- sum(val_by_vendor$total_inv_value,na.rm=T)
+    val_by_vendor <- rbind(val_by_vendor,tmp)
+    val_by_vendor$total_inv_value <- format(
+      as.numeric(val_by_vendor$total_inv_value), big.mark=",")
+    
+    # this report use a new excel for now
+    wb <- createWorkbook()
+    addWorksheet(wb, summary_sheet_name)
+    addWorksheet(wb, missing_price_sheet_name)
+    
+    # write missing_price
+    missing_price <- inventory[is.na(inventory$ave_pack_import_cost),] %>%
+      select(prod_code,name,ref_smn)
+    missing_price <- rename_table(missing_price,ui_elem)
+    writeData(wb, sheet=missing_price_sheet_name, missing_price)
+    # write summary sheet
+    val_by_vendor <- rename_table(val_by_vendor,ui_elem)
+    writeData(wb, sheet=summary_sheet_name, val_by_vendor)
+    
+    for (i in 1:length(vendor_list)){
+      addWorksheet(wb, vendor_list[i])
+      tmp_df <- inventory[grepl(vendor_list[i],inventory$vendor),] %>%
+        select(name,ref_smn,lot,exp_date,remaining_qty,ave_pack_import_cost,
+               total_inv_value)
+      tmp_df <- rename_table(tmp_df,ui_elem)
+      writeData(wb, sheet=vendor_list[i], tmp_df)
+    }
+    saveWorkbook(wb,rp_file_name,overwrite = T)
+  }
+  if (report_type == 'inventoryAuditReport'|
+      report_type == 'inventoryOrderReport'){
+    # read the form
+    orig_file <- config_dict$value[config_dict$name=='report_form_path']
+    wb <- loadWorkbook(orig_file)
+    
+    # read the inventory
+    inventoryReport <- update_inventory(config_dict)
+    # set all negative number to 0
+    inventoryReport <- inventoryReport[inventoryReport$remaining_qty>0,]
+    
+    # if this is ordering report, group and sum
+    if (report_type == 'inventoryOrderReport'){
+      inventoryReport <- inventoryReport %>% group_by(prod_code) %>% 
+        summarise(total_remaining_qty = sum(remaining_qty)) %>% ungroup
+      # merge with prod_info so that we get zero items as well
+      inventoryReport <- merge(inventoryReport,product_info %>% 
+                                 select(prod_code,type),all.y=T)
+    }
+    #recover human-readble info
+    inventoryReport <- merge(
+      inventoryReport, product_info %>% select(
+        prod_code,name,vendor,ref_smn,warehouse_id))
+    inventoryReport <- merge(
+      inventoryReport,warehouse_info %>% select(warehouse_id,warehouse))
+    # select the appropriate column
+    if (report_type == 'inventoryOrderReport'){
+      inventoryReport <- inventoryReport %>%
+        select(name,vendor,ref_smn,total_remaining_qty,warehouse)
+    }else{
+      inventoryReport <- inventoryReport %>%
+        select(name,vendor,ref_smn,remaining_qty,
+               lot,exp_date,warehouse)
+    }
+    
+    # write data to destination file then open file
+    writeData(wb, 1, inventoryReport, startRow=5, startCol=1)
+    file_name <- paste(input$report_type,format(Sys.Date(),'%d%m%y'),'xlsx',
+                       sep='.')
+    rp_file <- file.path(
+      config_dict$value[config_dict$name=='report_out_path'],file_name)
+    print(dest_file)
+    saveWorkbook(wb,rp_file,overwrite = T)
+  }
+}
