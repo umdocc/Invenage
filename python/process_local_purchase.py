@@ -24,7 +24,7 @@ rename_dict = inv.create_dict(config_dict,'rename_dict')
 
 # -------------------------- processing ---------------------------------------
 local_import_str = config_dict['local_import_str'] # the special PO
-po_file_list = inv.get_files_info(config_dict,
+po_file_list = inv.get_files_info(config_dict['po_path'],
                                   config_dict['po_file_ext'])
 local_import_file = po_file_list.full_path[
         po_file_list.file_name.str.contains(local_import_str)].reset_index(
