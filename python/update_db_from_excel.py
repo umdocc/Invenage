@@ -106,6 +106,7 @@ append_prod_info = tmp.copy()
 pkg_sheet_name = config_dict['add_pkg_sheetname']
 append_pkg_info = pd.read_excel(update_file,sheet_name = pkg_sheet_name)
 append_pkg_info = append_pkg_info.rename(columns=acntl_dict)
+append_pkg_info =append_pkg_info[append_pkg_info.prod_code.notnull()]
 append_pkg_info['last_updated'] = format(datetime.datetime.now(),'%d%m%y')
 append_pkg_info = append_pkg_info[['unit','units_per_pack','prod_code',
                                    'last_updated']]
