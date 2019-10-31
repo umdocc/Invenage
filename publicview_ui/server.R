@@ -344,10 +344,11 @@ shinyServer(function(input, output,session) {
   })
   #   
   # ------------------------ UI for the Lookup Tab -----------------------------
-  output$lookup_tbl_output <- renderDataTable({
+  output$lookup_tbl_output <- renderTable({
     table_name <- ui_elem$label[
       ui_elem$actual==input$lu_tbl_selector]
-    create_lookup_tbl(table_name,config_dict)
+    lu_out <- create_lookup_tbl(table_name,config_dict)
+    lu_out
   })
   
   # --------------------- UI for the Reports tab -------------------------------

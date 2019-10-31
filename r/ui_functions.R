@@ -432,7 +432,7 @@ format_output_tbl <- function(input_dt,ui_elem){
   return(input_dt)
 }
 
-create_lookup_tbl <- function(table_name,config_dict){
+create_lookup_tbl <- function(table_name,config_dict,local_name=TRUE){
   if (table_name=='inventory'){
     lookup_tbl_output <- update_inventory(config_dict)
     lookup_tbl_output <- merge(
@@ -479,7 +479,29 @@ create_lookup_tbl <- function(table_name,config_dict){
     lookup_tbl_output <- dbGetQuery(conn,query)
     dbDisconnect(conn)
   }
-  lookup_tbl_output <- format_output_tbl(lookup_tbl_output,ui_elem)
+  if (local_name){
+    lookup_tbl_output <- format_output_tbl(lookup_tbl_output,ui_elem)
+  }
   return(lookup_tbl_output)
 }
 
+# get_latest_price is a function to get the last price sold to a customer
+get_latest_price <- function(customer_name,prod_name,config_dict){
+  sale_lookup <- create_lookup_tbl('sale_log',config_dict,local_name = F)
+  conn <- db_open(config_dict)
+  pxk_info <- dbReadTable(conn,'pxk_info')
+  dbDisconnect(conn)
+  tmp <- sale_lookup[sale_lookup$name == prod_name & sale_lookup$customer_name == 
+                customer_name,]
+  tmp <- merge(tmp,pxk_info %>% select(pxk_num,sale_datetime))
+  if (class(tmp$sale_datetime) == "character"){
+    tmp$sale_datetime <- strptime(tmp$sale_datetime,'%Y-%m-%d %H:%M:%S')
+    latest_price <- tmp$unit_price[
+      tmp$sale_datetime == max(tmp$sale_datetime)]
+  }
+  # if the price is NA, assign it to -9999
+  if (is.na(latest_price)){
+    latest_price <- -9999
+  }
+  return(latest_price)
+}
