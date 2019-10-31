@@ -17,6 +17,7 @@ dashboardPage(
   dashboardBody(
     # ---------------------------- Xuat Kho tab UI -----------------------------
     tabItems(
+
       tabItem(tabName = 'Lookup',
               fluidRow(
                 selectInput(inputId = 'lu_tbl_selector',
