@@ -1,6 +1,6 @@
 # if we have a local import excel file, we handle it here
 # ---------------------- Setup Block ------------------------------------------
-import sys, os, pandas as pd
+import sys, os, pandas as pd, numpy as np
 import datetime
 sys.path.append(os.path.join(os.path.expanduser('~'),'invenage_data'))
 from python_conf import create_config_dict
@@ -91,7 +91,7 @@ for in_str in invalid_str:
         local_import_data[local_import_data.lot==in_str].to_csv(
                 error_file,index=False,sep='\t',mode='a')
         local_import_data = local_import_data[
-                ~local_import_data.lot==in_str]
+                local_import_data.lot!=in_str]
     
 
 testDF = local_import_data.copy()
@@ -104,8 +104,11 @@ local_import_data = local_import_data[
         ~local_import_data.delivery_date.str.contains('nan')]
 
 # check for database existence
+local_import_data.qty = local_import_data.qty.astype(np.float64)
 local_import_data = inv.check_exists(
-        local_import_data,import_log,['prod_code','qty','po_name'])
+        local_import_data,
+        import_log,['prod_code','unit','qty','po_name','lot'])
+
 # keep only non-exist entries
 local_import_data = local_import_data[local_import_data.exist.isnull()]
 
