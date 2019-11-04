@@ -124,7 +124,7 @@ def check_exists(tableA,tableB,colList):
     tableB = tableB[colList]
         
     tableB['exist'] = True
-    tableA = pd.merge(tableA,tableB,how='left',on = colList)
+    tableA = pd.merge(tableA,tableB,how='left')
     return(tableA)
 
 def create_unit_packaging(packaging):
