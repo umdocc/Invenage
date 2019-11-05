@@ -243,7 +243,7 @@ shinyServer(function(input, output,session) {
     
     # get the expDate, if a Lot has 2 expDate, select only the 1st
     # need to get all items, not just positive ones
-    tmp <- update_inventory(config_dict,pos_item=TRUE)
+    tmp <- update_inventory(config_dict,pos_item=FALSE)
     exp_date <- tmp %>% select(prod_code,lot,exp_date) %>% unique()
     exp_date <- exp_date[!duplicated(exp_date$lot),]
     
