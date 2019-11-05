@@ -13,7 +13,8 @@ config_dict = create_config_dict()
 # add pythonPath
 sys.path.append(os.path.join(config_dict['app_path'],'python'))
 import python_func as inv
-app_lang = config_dict['app_lang']
+app_lang = config_dict['app_lang'] # get app_lang
+
 # read the database
 conn = inv.db_open(config_dict)
 localisation = pd.read_sql_query(
@@ -23,17 +24,25 @@ max_cust_id = pd.read_sql_query(
 vendor_info = pd.read_sql_query('select * from vendor_info',conn)
 warehouse_info = pd.read_sql_query('select * from warehouse_info',conn)
 product_info = pd.read_sql_query('select * from product_info',conn)
-
+packaging = pd.read_sql_query('select * from packaging',conn)
 conn.close()
 
 # error handling
 error_file = config_dict['error_log']
 msg_dict = inv.create_dict(config_dict,'msg_dict')
 
+# function to clear sheet
+def clear_exceldb_sheet(update_file,sheet_name):
+    wb = load_workbook(filename = update_file)
+    ws = wb[sheet_name]
+    for r in range(2,200):
+        for c in range (1,30):
+            ws.cell(row=r,column=c).value = ''
+    wb.save(update_file)
+
 # ------------------------------- Main ----------------------------------------
 #update file location
 update_file = config_dict['db_update_form']
-
 #manupulate the localisation table to create a actual_col_name_to_label dict
 acntl_dict = {}
 for i in range(0,len(localisation)):
@@ -45,6 +54,18 @@ append_cust_info = pd.read_excel(update_file,sheet_name = customer_sheet_name)
 append_cust_info = append_cust_info.rename(columns=acntl_dict)
 # add customer id
 append_cust_info['customer_id'] = max_cust_id.value[0]+1
+# Remove all spaces in tfn
+append_cust_info.customer_tfn = append_cust_info.customer_tfn.str.replace(
+        ' ','')
+
+# writing to database
+conn = inv.db_open(config_dict)
+if len(append_cust_info)>0:
+    append_cust_info.to_sql(
+            'customer_info',conn,index=False,if_exists='append')
+conn.commit()
+conn.close()
+clear_exceldb_sheet(update_file,customer_sheet_name)
 
 # ----------------------- process add product ---------------------------------
 prod_sheet_name = config_dict['add_prod_sheetname']
@@ -96,11 +117,28 @@ append_pkg['unit']=append_pkg.ordering_unit
 append_pkg.unit = append_pkg.unit.str.lower()
 append_pkg['last_updated'] = append_pkg.updated_date
 append_pkg['units_per_pack'] = 1 
+# check for db existence and prepare output
+append_pkg = inv.check_exists(
+        append_pkg,packaging,['prod_code','unit'])
+append_pkg = append_pkg[append_pkg.exist.isnull()]
+
 append_pkg = append_pkg[['unit','units_per_pack','prod_code','last_updated']]
 
+# check for db eistence and prepare output
+tmp = inv.check_exists(tmp,product_info,['vendor','ref_smn'])
+tmp = tmp[tmp.exist.isnull()]
 tmp = tmp[['prod_code','name','vendor','ref_smn','type','packaging_str',
           'import_license_exp','updated_date','prod_group','warehouse_id']]
 append_prod_info = tmp.copy()
+
+conn = inv.db_open(config_dict)
+if len(append_prod_info)>0:
+    append_prod_info.to_sql(
+            'product_info',conn,index=False,if_exists='append')
+    append_pkg.to_sql('packaging',conn,index=False,if_exists='append')
+conn.commit()
+conn.close()
+clear_exceldb_sheet(update_file,prod_sheet_name)
 
 # ------------------------ process add packaging ------------------------------
 pkg_sheet_name = config_dict['add_pkg_sheetname']
@@ -108,26 +146,28 @@ append_pkg_info = pd.read_excel(update_file,sheet_name = pkg_sheet_name)
 append_pkg_info = append_pkg_info.rename(columns=acntl_dict)
 append_pkg_info =append_pkg_info[append_pkg_info.prod_code.notnull()]
 append_pkg_info['last_updated'] = format(datetime.datetime.now(),'%d%m%y')
+
+# convert units_per_pack to number, removing invalid entries
+append_pkg_info.units_per_pack = pd.to_numeric(
+        append_pkg_info.units_per_pack,errors='coerce')
+append_pkg_info = append_pkg_info[append_pkg_info.units_per_pack.notnull()]
+
+# check if the prod_code is valid
+append_pkg_info = pd.merge(
+        append_pkg_info,product_info[['prod_code','name']],how='left')
+append_pkg_info = append_pkg_info[append_pkg_info.prod_code.notnull()]
+
+# clean up and prepare output
+append_pkg_info.unit = append_pkg_info.unit.str.lower()
+append_pkg_info = inv.check_exists(append_pkg_info,
+                                   packaging,['prod_code','unit'])
+append_pkg_info = append_pkg_info[append_pkg_info.exist.isnull()]
 append_pkg_info = append_pkg_info[['unit','units_per_pack','prod_code',
                                    'last_updated']]
 # writing to database
 conn = inv.db_open(config_dict)
-if len(append_cust_info)>0:
-    append_cust_info.to_sql(
-            'customer_info',conn,index=False,if_exists='append')
-if len(append_prod_info)>0:
-    append_prod_info.to_sql(
-            'product_info',conn,index=False,if_exists='append')
-    append_pkg.to_sql('packaging',conn,index=False,if_exists='append')
+if len(append_pkg_info)>0:
+    append_pkg_info.to_sql(
+        'packaging',conn,index=False,if_exists='append')
 conn.close()
-
-## clear the form, but keep the first row
-sheets_to_clear = [customer_sheet_name,prod_sheet_name,pkg_sheet_name]
-wb = load_workbook(filename = update_file)
-for sheet in sheets_to_clear:
-    ws = wb[sheet]
-    for r in range(2,200):
-        for c in range (1,30):
-            ws.cell(row=r,column=c).value = ''
-wb.save(update_file)
-
+clear_exceldb_sheet(update_file,pkg_sheet_name)
