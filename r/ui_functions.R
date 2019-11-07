@@ -490,22 +490,26 @@ create_lookup_tbl <- function(table_name,config_dict,local_name=TRUE){
 }
 
 # get_latest_price is a function to get the last price sold to a customer
-get_latest_price <- function(customer_name,prod_name,config_dict){
+get_latest_price <- function(customer_name,prod_name,current_unit,config_dict){
   sale_lookup <- create_lookup_tbl('sale_log',config_dict,local_name = F)
   conn <- db_open(config_dict)
   pxk_info <- dbReadTable(conn,'pxk_info')
   dbDisconnect(conn)
-  tmp <- sale_lookup[sale_lookup$name == prod_name & sale_lookup$customer_name == 
-                customer_name,]
-  tmp <- merge(tmp,pxk_info %>% select(pxk_num,sale_datetime))
-  if (class(tmp$sale_datetime) == "character"){
-    tmp$sale_datetime <- strptime(tmp$sale_datetime,'%Y-%m-%d %H:%M:%S')
-    latest_price <- tmp$unit_price[
-      tmp$sale_datetime == max(tmp$sale_datetime)]
-  }
-  # if the price is NA, assign it to -9999
-  if (is.na(latest_price)){
-    latest_price <- -9999
+  # set default to -9999
+  latest_price <- -9999
+  # filter through sale_lookup to find price
+  tmp <- sale_lookup[sale_lookup$name == prod_name & 
+                       sale_lookup$customer_name == customer_name &
+                       sale_lookup$unit == current_unit,]
+  tmp <- tmp[!is.na(tmp$unit_price),]
+  # if we can find something, update latest price
+  if (nrow(tmp)>0){
+    tmp <- merge(tmp,pxk_info %>% select(pxk_num,sale_datetime))
+    if (class(tmp$sale_datetime) == "character"){
+      tmp$sale_datetime <- strptime(tmp$sale_datetime,'%Y-%m-%d %H:%M:%S')
+      latest_price <- tmp$unit_price[
+        tmp$sale_datetime == max(tmp$sale_datetime)]
+    }
   }
   return(latest_price)
 }
@@ -530,4 +534,17 @@ get_sales_summary <- function(config_dict,max_backdate=365){
     difftime(Sys.time(),tmp$oldest_sale_datetime,units = 'days'))
   tmp$ave_mth_sale <- 30*(tmp$total_sale_pack/tmp$days_diff)
   return(tmp)
+}
+
+get_sales_report <- function(config_dict,period='weeks'){
+  conn <- db_open(config_dict)
+  tmp <- dbReadTable(conn,'sale_log')
+  pxk_info <- dbReadTable(conn,'pxk_info')
+  import_log <- dbReadTable(conn,'import_log')
+  dbDisconnect(conn)
+  tmp <- merge(tmp,pxk_info %>% select(pxk_num,sale_datetime))
+  tmp$sale_datetime <- strptime(tmp$sale_datetime,"%Y-%m-%d %H:%M:%S")
+  tmp$sale_week <- week(tmp$sale_datetime)
+  current_week <- week(Sys.Date())
+  tmp <- merge(tmp,import_log %>% select(prod_code,lot,actual_unit_cost))
 }

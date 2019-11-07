@@ -16,6 +16,17 @@ shinyServer(function(input, output,session) {
                 choices=product_info$name)
   }) }
   
+  render_price <- function(){renderUI({
+    current_customer <- input$customer_name
+    current_prod <- input$prod_name_selector
+    current_unit <- input$unit_selector
+    latest_price <- get_latest_price(
+      current_customer,current_prod,current_unit,config_dict)
+    selectizeInput(inputId = "unit_price",
+                   label = ui_elem$actual[
+                     ui_elem$label=='unit_price'],
+                   choices=latest_price,options = list(create=T))
+  }) }
   renderQty <- function(){renderUI({
     selectizeInput(inputId = "qty_selector",
                    label = ui_elem$actual[ui_elem$label=='qty'],
@@ -112,6 +123,7 @@ shinyServer(function(input, output,session) {
   output$prod_name_selector <- renderProdName() # prod_name
   output$qty_selector <- renderQty() #Qty
   output$unit_selector <- renderUnit() #Unit
+  output$unit_price <- render_price()
   output$pxk_note <- renderNote() #Note
   output$prod_info_str <- renderProdInfo() #product Info pane
   output$customer_selector <- renderCustomer() # customer

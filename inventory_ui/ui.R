@@ -33,10 +33,7 @@ dashboardPage(
                     h5('')
                 ),
                 box(width = 2, height = 600,
-                    selectizeInput(inputId = "unit_price",
-                                   label = ui_elem$actual[
-                                     ui_elem$label=='unit_price'],
-                                   choices='',options = list(create=T)),
+                    htmlOutput("unit_price"),
                     htmlOutput("payment_selector"),
                     htmlOutput("pxk_note"),
                     h4(ui_elem$actual[ui_elem$label=='product_info']),
