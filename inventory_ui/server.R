@@ -20,8 +20,13 @@ shinyServer(function(input, output,session) {
     current_customer <- input$customer_name
     current_prod <- input$prod_name_selector
     current_unit <- input$unit_selector
-    latest_price <- get_latest_price(
-      current_customer,current_prod,current_unit,config_dict)
+    sale_lookup <- create_lookup_tbl('sale_log',config_dict,local_name = F)
+    conn <- db_open(config_dict)
+    pxk_info <- dbReadTable(conn,'pxk_info')
+    dbDisconnect(conn)
+    # get latest price
+    latest_price <- get_latest_price(current_customer,current_prod,current_unit,
+                                     sale_lookup,pxk_info)
     selectizeInput(inputId = "unit_price",
                    label = ui_elem$actual[
                      ui_elem$label=='unit_price'],

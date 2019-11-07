@@ -490,12 +490,9 @@ create_lookup_tbl <- function(table_name,config_dict,local_name=TRUE){
 }
 
 # get_latest_price is a function to get the last price sold to a customer
-get_latest_price <- function(customer_name,prod_name,current_unit,config_dict){
-  sale_lookup <- create_lookup_tbl('sale_log',config_dict,local_name = F)
-  conn <- db_open(config_dict)
-  pxk_info <- dbReadTable(conn,'pxk_info')
-  dbDisconnect(conn)
-  # set default to -9999
+get_latest_price <- function(customer_name,prod_name,current_unit,
+                             sale_lookup,pxk_info){
+
   latest_price <- -9999
   # filter through sale_lookup to find price
   tmp <- sale_lookup[sale_lookup$name == prod_name & 
