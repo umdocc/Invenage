@@ -17,14 +17,7 @@ extra_df = pd.read_csv(os.path.join(
 ext_data_dict = {}
 for i in range(0,len(extra_df)):
     ext_data_dict[extra_df.name[i]] = extra_df.value[i]
-    
-invoice_1518 = pd.read_excel(ext_data_dict['invoice_1518'])
 invoice_19 = pd.read_excel(ext_data_dict['invoice_19'], skiprows=2, dtype=str)
-
-
-# spn
-tmp = invoice_1518.copy()
-tmp = tmp[tmp.vendor_id==7]
 
 # this section read tables from various databases and writing to master
 
@@ -32,9 +25,16 @@ tmp = tmp[tmp.vendor_id==7]
 iconn = sqlite3.connect(inv_db)
 sale_log = pd.read_sql_query('select * from sale_log',iconn)
 import_log = pd.read_sql_query('select * from import_log',iconn)
+product_info = pd.read_sql_query('select * from product_info',iconn)
 iconn.close()
 
 mconn = sqlite3.connect(master_db)
 sale_log.to_sql('sale_log',mconn,index=False,if_exists='replace')
 import_log.to_sql('import_log',mconn,index=False,if_exists='replace')
 mconn.close()
+
+
+# these get written as one-off
+#invoice_1518 = pd.read_excel(ext_data_dict['invoice_1518'])
+#mconn = sqlite3.connect(master_db)
+#mconn.close()

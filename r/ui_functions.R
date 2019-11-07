@@ -402,10 +402,14 @@ create_report <- function(report_type,config_dict){
         prod_code,name,vendor,ref_smn,warehouse_id))
     inventoryReport <- merge(
       inventoryReport,warehouse_info %>% select(warehouse_id,warehouse))
+    # for order report, use sales_summary
+    sales_summary <- get_sales_summary(config_dict)
+    inventoryReport <- merge(inventoryReport,sales_summary %>% select(
+      prod_code,ave_mth_sale), all.x=T)
     # select the appropriate column
     if (report_type == 'inventoryOrderReport'){
       inventoryReport <- inventoryReport %>%
-        select(name,vendor,ref_smn,total_remaining_qty,warehouse)
+        select(name,vendor,ref_smn,total_remaining_qty,warehouse,ave_mth_sale)
     }else{
       inventoryReport <- inventoryReport %>%
         select(name,vendor,ref_smn,remaining_qty,
@@ -504,4 +508,26 @@ get_latest_price <- function(customer_name,prod_name,config_dict){
     latest_price <- -9999
   }
   return(latest_price)
+}
+
+# a function to get the sales summary by prod_code
+get_sales_summary <- function(config_dict,max_backdate=365){
+  conn <- db_open(config_dict)
+  tmp <- dbReadTable(conn,'sale_log')
+  packaging <- dbReadTable(conn,'packaging')
+  pxk_info <- dbReadTable(conn,'pxk_info')
+  dbDisconnect(conn)
+  tmp <- convert_to_pack(tmp,packaging,'qty','pack_qty')
+  tmp <- merge(tmp, pxk_info %>% select(pxk_num,sale_datetime))
+  min_date <- Sys.time() - as.difftime(max_backdate, unit = "days")
+  tmp <- tmp[tmp$sale_datetime>min_date,]
+  tmp <- tmp %>% group_by(prod_code) %>% summarise(
+    oldest_sale_datetime = min(sale_datetime),total_sale_pack=sum(pack_qty)) %>%
+    ungroup
+  tmp$oldest_sale_datetime <- strptime(tmp$oldest_sale_datetime,
+                                       "%Y-%m-%d %H:%M:%S")
+  tmp$days_diff <- as.numeric(
+    difftime(Sys.time(),tmp$oldest_sale_datetime,units = 'days'))
+  tmp$ave_mth_sale <- 30*(tmp$total_sale_pack/tmp$days_diff)
+  return(tmp)
 }
