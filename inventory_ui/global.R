@@ -92,5 +92,14 @@ col_name_label <- localisation$label[localisation$group=='col_rename']
 col_name_actual <- localisation$actual[localisation$group=='col_rename']
 # print(home_path)
 
-# # codes
-# # inventory exp_date report section
+# variables that should be read from config_dict
+date_format <- config_dict$value[config_dict$name=='date_format']
+date_range_tbl <- config_dict$value[config_dict$name=='date_range_tbl']
+
+#formatting variables
+date_range_tbl_local <- ui_elem$actual[ui_elem$label == date_range_tbl]
+
+date_format_alt <- gsub('%d','dd',date_format)
+date_format_alt <- gsub('%m','mm',date_format_alt)
+date_format_alt <- gsub('%Y','yyyy',date_format_alt)
+

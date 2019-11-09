@@ -27,6 +27,7 @@ shinyServer(function(input, output,session) {
     # get latest price
     latest_price <- get_latest_price(current_customer,current_prod,current_unit,
                                      sale_lookup,pxk_info)
+    latest_price <- as.integer(latest_price)
     selectizeInput(inputId = "unit_price",
                    label = ui_elem$actual[
                      ui_elem$label=='unit_price'],

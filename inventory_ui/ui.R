@@ -66,12 +66,24 @@ dashboardPage(
       , # end of Lookup tab
       tabItem(tabName = 'Reports',
               fluidRow(
-                box(width = 4, height = 400,
+                box(width = 3, height = 400,
                     h3(ui_elem$actual[ui_elem$label=='Reports']),
                     selectInput(inputId = 'report_type',
                                 label = ui_elem$actual[
                                   ui_elem$label=='reportType'],
                                 choices = report_list$actual),
+                    conditionalPanel(
+                      condition = paste0(
+                      "input.report_type == '",date_range_tbl_local,"'"),
+                      dateInput(inputId = 'from_date',
+                              label = ui_elem$actual[
+                                ui_elem$label=='from_date'], 
+                              value = "2019-01-15", format = date_format_alt)
+                      ),
+                    dateInput(inputId = 'to_date',
+                              label = ui_elem$actual[
+                                ui_elem$label=='to_date'], 
+                              value = "2019-01-30", format = date_format_alt),
                     actionButton("printReport",
                                  ui_elem$actual[
                                    ui_elem$label=='printReport'])
