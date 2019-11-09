@@ -536,12 +536,56 @@ get_sales_summary <- function(config_dict,max_backdate=365){
 get_sales_report <- function(config_dict,period='weeks'){
   conn <- db_open(config_dict)
   tmp <- dbReadTable(conn,'sale_log')
+  sale_log <- dbReadTable(conn,'sale_log')
   pxk_info <- dbReadTable(conn,'pxk_info')
   import_log <- dbReadTable(conn,'import_log')
+  customer_info <- dbReadTable(conn,'customer_info')
+  product_info <- dbReadTable(conn,'product_info')
+  packaging <- dbReadTable(conn,'packaging')
   dbDisconnect(conn)
-  tmp <- merge(tmp,pxk_info %>% select(pxk_num,sale_datetime))
+  tmp <- merge(tmp,packaging %>% 
+                 select(unit,units_per_pack,prod_code),all.x=T)
+  tmp <- merge(tmp,pxk_info %>% select(
+    pxk_num,customer_id,sale_datetime),all.x = T)
+  
   tmp$sale_datetime <- strptime(tmp$sale_datetime,"%Y-%m-%d %H:%M:%S")
   tmp$sale_week <- week(tmp$sale_datetime)
+  tmp$sale_year <- year(tmp$sale_datetime)
   current_week <- week(Sys.Date())
-  tmp <- merge(tmp,import_log %>% select(prod_code,lot,actual_unit_cost))
+
+  min_year <- 2019
+  min_week <- 40
+  tmp <- tmp[(!is.na(tmp$sale_week) & !is.na(tmp$sale_year)),]
+  tmp <- tmp[(tmp$sale_week>=min_week & tmp$sale_year>=min_year),]
+  
+  tmp <- tmp[tmp$sale_week==(current_week-1),]
+  
+  ave_import_cost <- get_est_import_cost(
+    import_log, algorithm='weighted_average')
+  tmp <- merge(tmp,ave_import_cost,all.x = T)
+  
+  # sales for last week
+  tmp <- tmp[tmp$sale_week==(current_week-1),]
+  tmp <- merge(tmp,customer_info %>% select(customer_id,customer_name),all.x=T)
+  tmp <- merge(tmp,product_info %>% select(prod_code,name,ref_smn),all.x=T)
+  
+  # calculating all prices data
+  tmp$unit_import_cost <- tmp$ave_pack_import_cost/tmp$units_per_pack
+  tmp$unit_profit <- tmp$unit_price-tmp$unit_import_cost
+  tmp$total_profit <- tmp$unit_profit*tmp$qty
+  tmp$profit_margin <- round(100*((tmp$unit_price/tmp$unit_import_cost)-1),
+                             digits=1)
+  
+  # preparing output
+  tmp <- tmp[order(tmp$customer_name),]
+  tmp$sale_date <- strftime(tmp$sale_datetime,'%d-%m-%Y')
+  tmp <- tmp %>% select(
+    customer_name, sale_date, pxk_num, name, ref_smn, unit, qty, unit_price,
+    unit_import_cost, unit_profit, total_profit, profit_margin)
+  
+  output_filename <- file.path(app_path,'output_test.xlsx')
+  wb <- createWorkbook()
+  addWorksheet(wb, "Sheet1")
+  writeData(wb, sheet = 1,tmp)
+  saveWorkbook(wb,output_filename,overwrite = T)
 }

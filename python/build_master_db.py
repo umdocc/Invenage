@@ -23,14 +23,22 @@ invoice_19 = pd.read_excel(ext_data_dict['invoice_19'], skiprows=2, dtype=str)
 
 # ------------------ read tables from inventory -------------------------------
 iconn = sqlite3.connect(inv_db)
+pxk_info = pd.read_sql_query('select * from pxk_info',iconn)
 sale_log = pd.read_sql_query('select * from sale_log',iconn)
 import_log = pd.read_sql_query('select * from import_log',iconn)
 product_info = pd.read_sql_query('select * from product_info',iconn)
+localisation = pd.read_sql_query('select * from localisation',iconn)
+packaging = pd.read_sql_query('select * from packaging',iconn)
 iconn.close()
 
 mconn = sqlite3.connect(master_db)
+pxk_info.to_sql('pxk_info',mconn,index=False,if_exists='replace')
 sale_log.to_sql('sale_log',mconn,index=False,if_exists='replace')
 import_log.to_sql('import_log',mconn,index=False,if_exists='replace')
+product_info.to_sql('product_info',mconn,index=False,if_exists='replace')
+localisation.to_sql('localisation',mconn,index=False,if_exists='replace')
+packaging.to_sql('packaging',mconn,index=False,if_exists='replace')
+
 mconn.close()
 
 
