@@ -60,5 +60,5 @@ if (len(missing_price)>0):
                                  merged_log.added_actual_cost.notnull()]
     
     conn = inv.db_open(config_dict)
-    merged_log.to_sql('import_log',tmp_conn,index=False,if_exists='replace')
+    merged_log.to_sql('import_log',conn,index=False,if_exists='replace')
     conn.close()

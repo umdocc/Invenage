@@ -80,10 +80,14 @@ dashboardPage(
                                 ui_elem$label=='from_date'], 
                               value = "2019-01-15", format = date_format_alt)
                       ),
+                    conditionalPanel(
+                      condition = paste0(
+                        "input.report_type == '",date_range_tbl_local,"'"),
                     dateInput(inputId = 'to_date',
                               label = ui_elem$actual[
                                 ui_elem$label=='to_date'], 
-                              value = "2019-01-30", format = date_format_alt),
+                              value = "2019-01-30", format = date_format_alt)
+                    ),
                     actionButton("printReport",
                                  ui_elem$actual[
                                    ui_elem$label=='printReport'])

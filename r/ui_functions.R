@@ -558,14 +558,12 @@ get_sales_report <- function(config_dict,period='weeks'){
   tmp <- tmp[(!is.na(tmp$sale_week) & !is.na(tmp$sale_year)),]
   tmp <- tmp[(tmp$sale_week>=min_week & tmp$sale_year>=min_year),]
   
-  tmp <- tmp[tmp$sale_week==(current_week-1),]
-  
   ave_import_cost <- get_est_import_cost(
     import_log, algorithm='weighted_average')
   tmp <- merge(tmp,ave_import_cost,all.x = T)
   
-  # sales for last week
-  tmp <- tmp[tmp$sale_week==(current_week-1),]
+  # sales for current week
+  tmp <- tmp[tmp$sale_week==(current_week),]
   tmp <- merge(tmp,customer_info %>% select(customer_id,customer_name),all.x=T)
   tmp <- merge(tmp,product_info %>% select(prod_code,name,ref_smn),all.x=T)
   
@@ -583,9 +581,15 @@ get_sales_report <- function(config_dict,period='weeks'){
     customer_name, sale_date, pxk_num, name, ref_smn, unit, qty, unit_price,
     unit_import_cost, unit_profit, total_profit, profit_margin)
   
-  output_filename <- file.path(app_path,'output_test.xlsx')
+  output_filename <- '~/Downloads/output_test.xlsx'
   wb <- createWorkbook()
   addWorksheet(wb, "Sheet1")
   writeData(wb, sheet = 1,tmp)
   saveWorkbook(wb,output_filename,overwrite = T)
+}
+
+# create fifo_sale_log create a sale table with ammended import data using
+# a fifo algorithm, it is needed for sale report accuracy
+create_fifo_sale_log <- function(sale_log,import_log){
+  
 }
