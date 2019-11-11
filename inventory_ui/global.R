@@ -59,6 +59,7 @@ app_lang <- config_dict$value[config_dict$name=='app_lang']
 
 # connect to database and read start-up information
 conn <- db_open(config_dict)
+report_info <- dbReadTable(conn,"output_info")
 product_info <- dbReadTable(conn,"product_info")
 localisation <- dbReadTable(conn,"localisation")
 import_log <- dbReadTable(conn,"import_log")
@@ -68,7 +69,7 @@ sale_log <- dbReadTable(conn,"sale_log")
 pxk_info <- dbReadTable(conn,"pxk_info")
 warehouse_info <- dbReadTable(conn,"warehouse_info")
 dbDisconnect(conn)
-
+report_info <- report_info[report_info$type=='report_output',]
 # --------------------- UI Configurations --------------------------------------
 # use the configured language
 localisation <- localisation[localisation$app_lang==app_lang,]

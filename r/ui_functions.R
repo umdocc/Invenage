@@ -308,17 +308,18 @@ roll_back_date <- function(rolling_mth){
 # create_report function
 create_report <- function(report_type,config_dict,input){
   ui_elem <- localisation[localisation$group=='ui_elements',]
-  
+  report_name <- ui_elem$actual[ui_elem$label==report_type]
   # get the input,output file
   rp_form <- config_dict$value[config_dict$name=='report_form_path']
   rp_file <- file.path(
     config_dict$value[config_dict$name=='report_out_path'], paste0(
       config_dict$value[config_dict$name=='company_name'], '.',
-      ui_elem$actual[ui_elem$label==report_type],'.',
+      report_name,'.',
       format(Sys.Date(),config_dict$value[config_dict$name=='date_format']),
       '.xlsx') )
   
   if (report_type == 'sale_profit_report'){
+    
     from_date <- input$from_date
     to_date <- input$to_date
     wb <- loadWorkbook(rp_form)
@@ -328,10 +329,21 @@ create_report <- function(report_type,config_dict,input){
     output_rp <- format_output_tbl(output_rp,ui_elem)
     
     #writing data
-    writeData(wb,sheet=1,from_date, startRow = 2, startCol = 2)
-    writeData(wb,sheet=1,to_date, startRow = 3, startCol = 2)
+    writeData( # report name
+      wb,sheet=1,report_name, 
+      startRow = report_info$value[report_info$name=='report_name_r'], 
+      startCol = report_info$value[report_info$name=='report_name_c'])
+    writeData( # from_date
+      wb,sheet=1,from_date, 
+      startRow = report_info$value[report_info$name=='from_date_r'], 
+      startCol = report_info$value[report_info$name=='from_date_c'])
+    writeData( # to_date
+      wb,sheet=1,to_date, 
+      startRow = report_info$value[report_info$name=='to_date_r'], 
+      startCol = report_info$value[report_info$name=='to_date_c'])
+    # actual data
     writeData(wb,sheet=1,output_rp, startRow = 5)
-    saveWorkbook(wb,rp_file,overwrite = T)
+    saveWorkbook(wb,rp_file,overwrite = T) #save the workbook
   }
   
   if (report_type == 'inv_exp_date_report'){
