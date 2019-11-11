@@ -1,4 +1,8 @@
-# rm(list=ls()) # boot clean-up
+# the global script main purpose is to read the configuration file
+# and help Invenage figure out all variables
+rm(list=ls()) # boot clean-up
+options(warn=-1) # supress warnings
+# load required packages
 required_package <- c('RSQLite','shiny','shinydashboard','ggplot2',
                           'scales','openxlsx','dplyr','data.table','lubridate')
 new.packages <- required_package[
@@ -12,7 +16,6 @@ lapply(required_package, require, character.only = TRUE)
 home_path <- path.expand('~')
 home_path <- gsub('\\\\','/',home_path) #windows fix
 home_path <- gsub('/Documents','',home_path)
-
 config_path <- file.path(home_path,'invenage_data','invenage_conf.csv')
 
 if (file.exists(config_path)){

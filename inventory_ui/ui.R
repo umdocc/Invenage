@@ -78,7 +78,7 @@ dashboardPage(
                       dateInput(inputId = 'from_date',
                               label = ui_elem$actual[
                                 ui_elem$label=='from_date'], 
-                              value = "2019-01-15", format = date_format_alt)
+                              value = "2019-11-04", format = date_format_alt)
                       ),
                     conditionalPanel(
                       condition = paste0(
@@ -86,7 +86,7 @@ dashboardPage(
                     dateInput(inputId = 'to_date',
                               label = ui_elem$actual[
                                 ui_elem$label=='to_date'], 
-                              value = "2019-01-30", format = date_format_alt)
+                              value = "2019-11-10", format = date_format_alt)
                     ),
                     actionButton("printReport",
                                  ui_elem$actual[

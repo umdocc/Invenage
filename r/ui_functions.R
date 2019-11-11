@@ -306,12 +306,34 @@ roll_back_date <- function(rolling_mth){
 }
 
 # create_report function
-create_report <- function(report_type,config_dict){
+create_report <- function(report_type,config_dict,input){
   ui_elem <- localisation[localisation$group=='ui_elements',]
+  
+  # get the input,output file
+  rp_form <- config_dict$value[config_dict$name=='report_form_path']
   rp_file <- file.path(
-    config_dict$value[config_dict$name=='report_out_path'],
-    paste0(ui_elem$actual[ui_elem$label=='inventory'],
-           '.',Sys.Date(), '.xlsx') )
+    config_dict$value[config_dict$name=='report_out_path'], paste0(
+      config_dict$value[config_dict$name=='company_name'], '.',
+      ui_elem$actual[ui_elem$label==report_type],'.',
+      format(Sys.Date(),config_dict$value[config_dict$name=='date_format']),
+      '.xlsx') )
+  
+  if (report_type == 'sale_profit_report'){
+    from_date <- input$from_date
+    to_date <- input$to_date
+    wb <- loadWorkbook(rp_form)
+    output_rp <- get_sales_report(config_dict,from_date,to_date)
+    output_rp <- clean_duplicates(
+      output_rp,col_list = c("customer_name", "sale_date", "pxk_num"))
+    output_rp <- format_output_tbl(output_rp,ui_elem)
+    
+    #writing data
+    writeData(wb,sheet=1,from_date, startRow = 2, startCol = 2)
+    writeData(wb,sheet=1,to_date, startRow = 3, startCol = 2)
+    writeData(wb,sheet=1,output_rp, startRow = 5)
+    saveWorkbook(wb,rp_file,overwrite = T)
+  }
+  
   if (report_type == 'inv_exp_date_report'){
     output_rp <- update_inventory(config_dict)
     output_rp$remaining_days <- output_rp$intexp_date-Sys.time()
@@ -533,7 +555,12 @@ get_sales_summary <- function(config_dict,max_backdate=365){
   return(tmp)
 }
 
-get_sales_report <- function(config_dict,period='weeks'){
+get_sales_report <- function(config_dict, from_date='2019-11-04',
+                             to_date = '2019-11-10'){
+  # getting variables ready
+  from_date <- strptime(from_date,'%Y-%m-%d')
+  to_date <- strptime(to_date,'%Y-%m-%d')
+  # database read
   conn <- db_open(config_dict)
   tmp <- dbReadTable(conn,'sale_log')
   sale_log <- dbReadTable(conn,'sale_log')
@@ -543,27 +570,26 @@ get_sales_report <- function(config_dict,period='weeks'){
   product_info <- dbReadTable(conn,'product_info')
   packaging <- dbReadTable(conn,'packaging')
   dbDisconnect(conn)
+  
+  # data manipulation
   tmp <- merge(tmp,packaging %>% 
                  select(unit,units_per_pack,prod_code),all.x=T)
   tmp <- merge(tmp,pxk_info %>% select(
     pxk_num,customer_id,sale_datetime),all.x = T)
-  
   tmp$sale_datetime <- strptime(tmp$sale_datetime,"%Y-%m-%d %H:%M:%S")
-  tmp$sale_week <- week(tmp$sale_datetime)
-  tmp$sale_year <- year(tmp$sale_datetime)
-  current_week <- week(Sys.Date())
 
-  min_year <- 2019
-  min_week <- 40
-  tmp <- tmp[(!is.na(tmp$sale_week) & !is.na(tmp$sale_year)),]
-  tmp <- tmp[(tmp$sale_week>=min_week & tmp$sale_year>=min_year),]
+  tmp <- tmp[((tmp$sale_datetime>=from_date) & (tmp$sale_datetime<= to_date)),]
+  tmp <- tmp[!is.na(tmp$prod_code),]
+  # check data integrity
+  if (nrow(tmp[duplicated(tmp %>% select(pxk_num,prod_code,lot)),])>0){
+    stop('Critical error! duplications found in sale_log')
+  }
   
   ave_import_cost <- get_est_import_cost(
     import_log, algorithm='weighted_average')
   tmp <- merge(tmp,ave_import_cost,all.x = T)
   
   # sales for current week
-  tmp <- tmp[tmp$sale_week==(current_week),]
   tmp <- merge(tmp,customer_info %>% select(customer_id,customer_name),all.x=T)
   tmp <- merge(tmp,product_info %>% select(prod_code,name,ref_smn),all.x=T)
   
@@ -580,16 +606,24 @@ get_sales_report <- function(config_dict,period='weeks'){
   tmp <- tmp %>% select(
     customer_name, sale_date, pxk_num, name, ref_smn, unit, qty, unit_price,
     unit_import_cost, unit_profit, total_profit, profit_margin)
-  
-  output_filename <- '~/Downloads/output_test.xlsx'
-  wb <- createWorkbook()
-  addWorksheet(wb, "Sheet1")
-  writeData(wb, sheet = 1,tmp)
-  saveWorkbook(wb,output_filename,overwrite = T)
+  return(tmp)
+}
+
+# a function to replace duplicated line with NA
+clean_duplicates <- function(
+  data_df, col_list = c('customer_name','sale_date','pxk_num')){
+  i <- nrow(data_df)
+  while (i>=2){
+    if (data_df[(i-1),col_list]==data_df[i,col_list]){
+      data_df[i,col_list] <- NA
+    }
+    i <- i-1
+  }
+  return(data_df)
 }
 
 # create fifo_sale_log create a sale table with ammended import data using
 # a fifo algorithm, it is needed for sale report accuracy
 create_fifo_sale_log <- function(sale_log,import_log){
-  
+  return('under dev')
 }

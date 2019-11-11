@@ -29,6 +29,7 @@ import_log = pd.read_sql_query('select * from import_log',iconn)
 product_info = pd.read_sql_query('select * from product_info',iconn)
 localisation = pd.read_sql_query('select * from localisation',iconn)
 packaging = pd.read_sql_query('select * from packaging',iconn)
+customer_info = pd.read_sql_query('select * from customer_info',iconn)
 iconn.close()
 
 mconn = sqlite3.connect(master_db)
@@ -38,7 +39,7 @@ import_log.to_sql('import_log',mconn,index=False,if_exists='replace')
 product_info.to_sql('product_info',mconn,index=False,if_exists='replace')
 localisation.to_sql('localisation',mconn,index=False,if_exists='replace')
 packaging.to_sql('packaging',mconn,index=False,if_exists='replace')
-
+customer_info.to_sql('customer_info',mconn,index=False,if_exists='replace')
 mconn.close()
 
 
