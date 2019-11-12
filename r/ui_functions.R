@@ -571,7 +571,9 @@ get_sales_report <- function(config_dict, from_date='2019-11-04',
                              to_date = '2019-11-10'){
   # getting variables ready
   from_date <- strptime(from_date,'%Y-%m-%d')
-  to_date <- strptime(to_date,'%Y-%m-%d')
+  # since strptime start from 00:00:00 we need to add a day in seconds 
+  # to include the to_date
+  to_date <- strptime(to_date,'%Y-%m-%d')+(24*60*60-1)
   # database read
   conn <- db_open(config_dict)
   tmp <- dbReadTable(conn,'sale_log')
