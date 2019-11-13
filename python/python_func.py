@@ -280,4 +280,31 @@ def df_to_excelsheet(data_df,excel_file,sheet_name,start_row=1,start_col=1):
             ws.cell(row=r+start_row,column=c+start_col).value =               \
             data_df.iloc[r,c]
     wb.save(excel_file)
-    
+
+# add import price to po_data
+def add_import_price(po_data,import_price,method='min_qty'):
+    if (method=='min_qty'):
+        po_data = po_data.merge(import_price,how='left')
+        # calculate the import_price using min_order
+        tmp = po_data.copy()
+        tmp['order_ratio'] = pd.to_numeric(tmp.qty) /           \
+        pd.to_numeric(tmp.min_order)
+        # filter out rows that does not meet min order qty
+        tmp = tmp[tmp.order_ratio>=1]
+        
+        # min order_ratio is when qty fit min_order the best
+        tmp = tmp[['prod_code','order_ratio']].groupby(
+                'prod_code',as_index=False).min()
+        tmp = tmp.rename(columns={'order_ratio':'min_order_ratio'})
+        po_data = pd.merge(po_data,tmp,how='left')
+    return(po_data)
+
+# sometime pandas merge on windows is not reliable
+def tbl_left_join(tbl1,tbl2):
+    tmpconn = sqlite3.connect('tmp.sqlite')
+    tbl1.to_sql('tbl1',tmpconn,index=False,if_exists='replace')
+    tbl2.to_sql('tbl2',tmpconn,index=False,if_exists='replace')
+    tmpconn.commit()
+    ouput_tbl = pd.read_sql_query('select * from tbl1 left join tbl2',tmpconn)
+    tmpconn.close()
+    return(ouput_tbl)
