@@ -16,3 +16,7 @@ error_log.txt
 .DS_Store
 .DS_Store
 .DS_Store
+python/private/convert_db.py
+python/private/fix_import_log.py
+r/private/fix_import_log.R
+python/private/build_master_db.py

@@ -113,7 +113,7 @@ local_import_data = inv.check_exists(
 local_import_data = local_import_data[local_import_data.exist.isnull()]
 
 # adding other data
-local_import_data['delivery_date'] = format(datetime.datetime.now(),'%d%m%y')
+local_import_data['delivery_date'] = format(datetime.datetime.now(),'%Y-%m-%d')
 
 # keeping relevant column
 local_import_data = local_import_data[['prod_code','unit','qty','po_name',

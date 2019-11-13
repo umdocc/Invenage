@@ -43,7 +43,7 @@ append_log['actual_currency_code'] = 1
 append_log.unit = append_log.unit.str.lower()
 
 # add deliveryDate
-append_log['delivery_date'] = datetime.date.today().strftime('%d%m%y')
+append_log['delivery_date'] = datetime.date.today().strftime('%Y-%m-%d')
 # if there is a warehouse_id ,use it, if not, create from product_info
 if ('warehouse_id' not in append_log.columns):
     append_log = append_log.merge(
