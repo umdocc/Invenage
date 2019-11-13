@@ -123,7 +123,7 @@ local_import_data = local_import_data[['prod_code','unit','qty','po_name',
 
 # check appending data for unknown packaging, remove unknown packaging
 testDF = local_import_data.copy()
-testDF = testDF[['prod_code','unit']].drop_duplicates()
+testDF = testDF[['prod_code','unit','po_name']].drop_duplicates()
 testDF = pd.merge(testDF,packaging,how='left')
 testDF = testDF[testDF.units_per_pack.isnull()]
 if len(testDF)>0:
