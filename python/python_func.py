@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #Functions for extension scripts
-import pandas as pd, sqlite3
+import pandas as pd, sqlite3, openpyxl
 import platform, subprocess, glob, os
 from sqlalchemy import create_engine
 #from sqlalchemy import NullPool
@@ -259,3 +259,25 @@ def df_to_dict(data_df,key_col,value_col):
         data_dict[data_df.loc[i,key_col]] = data_df.loc[i,value_col]
     
     return(data_dict)
+
+def clear_exceldb_sheet(excel_file,sheet_name):
+    wb = openpyxl.load_workbook(filename = excel_file)
+    ws = wb[sheet_name]
+    for r in range(2,2000):
+        for c in range (1,100):
+            ws.cell(row=r,column=c).value = ''
+    wb.save(excel_file)
+
+# function to write to excel sheet using openpyxl
+def df_to_excelsheet(data_df,excel_file,sheet_name,start_row=1,start_col=1):
+    wb = openpyxl.load_workbook(filename = excel_file)
+    ws = wb[sheet_name]
+    for r in range(0,200): # clear the area first
+        for c in range (0,100):
+            ws.cell(row=r+start_row,column=c+start_col).value = ''
+    for r in range(0,data_df.shape[0]): # then write the data
+        for c in range (0,data_df.shape[1]):
+            ws.cell(row=r+start_row,column=c+start_col).value =               \
+            data_df.iloc[r,c]
+    wb.save(excel_file)
+    
