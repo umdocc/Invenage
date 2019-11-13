@@ -53,6 +53,7 @@ customer_sheet_name = config_dict['add_customer_sheetname']
 append_cust_info = pd.read_excel(update_file,sheet_name = customer_sheet_name,
                                  dtype=str)
 append_cust_info = append_cust_info.rename(columns=acntl_dict)
+
 # add customer id
 append_cust_info['customer_id'] = max_cust_id.value[0]+1
 append_cust_info.loc[
@@ -74,7 +75,13 @@ clear_exceldb_sheet(update_file,customer_sheet_name)
 prod_sheet_name = config_dict['add_prod_sheetname']
 tmp = pd.read_excel(update_file,sheet_name = prod_sheet_name)
 tmp = tmp.rename(columns=acntl_dict)
+# lower the unit
 tmp.ordering_unit = tmp.ordering_unit.str.lower()
+# remove whitespaces
+tmp.ordering_unit = tmp.ordering_unit.str.strip()
+tmp.prod_code = tmp.prod_code.str.replace(' ','')
+
+
 tmp.ref_smn = tmp.ref_smn.astype(str)
 # remove entries with invalid ordering unit, null prod_code, null warehouse
 tmp = tmp[tmp.ordering_unit!='']
@@ -113,6 +120,8 @@ tmp['type'] = ''
 tmp['import_license_exp'] = ''
 tmp['updated_date'] = format(datetime.datetime.today(),'%d%m%y')
 tmp['prod_group'] = ''
+
+
 
 append_pkg = tmp.copy()
 append_pkg = append_pkg[['ordering_unit','prod_code','updated_date']]
