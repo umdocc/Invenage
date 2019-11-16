@@ -18,6 +18,7 @@ packaging = pd.read_sql_query('select * from packaging',conn)
 import_log = pd.read_sql_query('select * from import_log',conn)
 sale_log = pd.read_sql_query('select * from sale_log',conn)
 localisation = pd.read_sql_query('select * from localisation',conn)
+pxk_info = pd.read_sql_query('select * from pxk_info',conn)
 conn.close()
 
 # misc
@@ -104,6 +105,10 @@ test_df = test_df[test_df.remaining<0]
 if len(test_df)>0:
     inv.write_log(error_file,msg_dict['neg_inventory'])
     test_df.to_csv(error_file,index=False,sep='\t',mode='a')
+    
+# ------------------------------ pxk_info ------------------------------------
+if len(pxk_info[pxk_info.pxk_num.duplicated()])>0:
+    pxk_info = pxk_info[~pxk_info.pxk_num.duplicated()]
 
 
 

@@ -307,43 +307,12 @@ roll_back_date <- function(rolling_mth){
 
 # create_report function
 create_report <- function(report_type,config_dict,input){
-  ui_elem <- localisation[localisation$group=='ui_elements',]
-  report_name <- ui_elem$actual[ui_elem$label==report_type]
-  # get the input,output file
-  rp_form <- config_dict$value[config_dict$name=='report_form_path']
-  rp_file <- file.path(
-    config_dict$value[config_dict$name=='report_out_path'], paste0(
-      config_dict$value[config_dict$name=='company_name'], '.',
-      report_name,'.',
-      format(Sys.Date(),config_dict$value[config_dict$name=='date_format']),
-      '.xlsx') )
-  
+
   if (report_type == 'sale_profit_report'){
-    
     from_date <- input$from_date
     to_date <- input$to_date
-    wb <- loadWorkbook(rp_form)
-    output_rp <- get_sales_report(config_dict,from_date,to_date)
-    output_rp <- clean_duplicates(
-      output_rp,col_list = c("customer_name", "sale_date", "pxk_num"))
-    output_rp <- format_output_tbl(output_rp,ui_elem)
-    
-    #writing data
-    writeData( # report name
-      wb,sheet=1,report_name, 
-      startRow = report_info$value[report_info$name=='report_name_r'], 
-      startCol = report_info$value[report_info$name=='report_name_c'])
-    writeData( # from_date
-      wb,sheet=1,from_date, 
-      startRow = report_info$value[report_info$name=='from_date_r'], 
-      startCol = report_info$value[report_info$name=='from_date_c'])
-    writeData( # to_date
-      wb,sheet=1,to_date, 
-      startRow = report_info$value[report_info$name=='to_date_r'], 
-      startCol = report_info$value[report_info$name=='to_date_c'])
-    # actual data
-    writeData(wb,sheet=1,output_rp, startRow = 5)
-    saveWorkbook(wb,rp_file,overwrite = T) #save the workbook
+    rp_file <- create_excel_report(
+      config_dict,report_type,from_date,to_date)
   }
   
   if (report_type == 'inv_exp_date_report'){
@@ -443,13 +412,23 @@ create_report <- function(report_type,config_dict,input){
     # select the appropriate column
     if (report_type == 'inventoryOrderReport'){
       inventoryReport <- inventoryReport %>%
-        select(name,vendor,ref_smn,total_remaining_qty,warehouse,ave_mth_sale)
+        select(vendor,ref_smn,warehouse,name,total_remaining_qty,ave_mth_sale)
+      inventoryReport$mth_supply_left <- inventoryReport$total_remaining_qty / 
+      inventoryReport$ave_mth_sale
     }else{
       inventoryReport <- inventoryReport %>%
         select(name,vendor,ref_smn,remaining_qty,
                lot,exp_date,warehouse)
     }
-    
+    # formatting the data frame
+    for (i in (1:length(names(inventoryReport)))){
+      oldname <- names(inventoryReport)[i]
+      print(oldname)
+      if (length(ui_elem$actual[ui_elem$label==oldname])==1){
+        names(inventoryReport)[names(inventoryReport)==oldname] <- 
+          ui_elem$actual[ui_elem$label==oldname]
+      }
+    }
     # write data to destination file then open file
     writeData(wb, 1, inventoryReport, startRow=5, startCol=1)
     saveWorkbook(wb,rp_file,overwrite = T)
@@ -567,61 +546,7 @@ get_sales_summary <- function(config_dict,max_backdate=365){
   return(tmp)
 }
 
-get_sales_report <- function(config_dict, from_date='2019-11-04',
-                             to_date = '2019-11-10'){
-  # getting variables ready
-  from_date <- strptime(from_date,'%Y-%m-%d')
-  # since strptime start from 00:00:00 we need to add a day in seconds 
-  # to include the to_date
-  to_date <- strptime(to_date,'%Y-%m-%d')+(24*60*60-1)
-  # database read
-  conn <- db_open(config_dict)
-  tmp <- dbReadTable(conn,'sale_log')
-  sale_log <- dbReadTable(conn,'sale_log')
-  pxk_info <- dbReadTable(conn,'pxk_info')
-  import_log <- dbReadTable(conn,'import_log')
-  customer_info <- dbReadTable(conn,'customer_info')
-  product_info <- dbReadTable(conn,'product_info')
-  packaging <- dbReadTable(conn,'packaging')
-  dbDisconnect(conn)
-  
-  # data manipulation
-  tmp <- merge(tmp,packaging %>% 
-                 select(unit,units_per_pack,prod_code),all.x=T)
-  tmp <- merge(tmp,pxk_info %>% select(
-    pxk_num,customer_id,sale_datetime),all.x = T)
-  tmp$sale_datetime <- strptime(tmp$sale_datetime,"%Y-%m-%d %H:%M:%S")
 
-  tmp <- tmp[((tmp$sale_datetime>=from_date) & (tmp$sale_datetime<= to_date)),]
-  tmp <- tmp[!is.na(tmp$prod_code),]
-  # check data integrity
-  if (nrow(tmp[duplicated(tmp %>% select(pxk_num,prod_code,lot)),])>0){
-    stop('Critical error! duplications found in sale_log')
-  }
-  
-  ave_import_cost <- get_est_import_cost(
-    import_log, algorithm='weighted_average')
-  tmp <- merge(tmp,ave_import_cost,all.x = T)
-  
-  # sales for current week
-  tmp <- merge(tmp,customer_info %>% select(customer_id,customer_name),all.x=T)
-  tmp <- merge(tmp,product_info %>% select(prod_code,name,ref_smn),all.x=T)
-  
-  # calculating all prices data
-  tmp$unit_import_cost <- tmp$ave_pack_import_cost/tmp$units_per_pack
-  tmp$unit_profit <- tmp$unit_price-tmp$unit_import_cost
-  tmp$total_profit <- tmp$unit_profit*tmp$qty
-  tmp$profit_margin <- round(100*((tmp$unit_price/tmp$unit_import_cost)-1),
-                             digits=1)
-  
-  # preparing output
-  tmp <- tmp[order(tmp$customer_name),]
-  tmp$sale_date <- strftime(tmp$sale_datetime,'%d-%m-%Y')
-  tmp <- tmp %>% select(
-    customer_name, sale_date, pxk_num, name, ref_smn, unit, qty, unit_price,
-    unit_import_cost, unit_profit, total_profit, profit_margin)
-  return(tmp)
-}
 
 # a function to replace duplicated line with NA
 clean_duplicates <- function(
@@ -638,6 +563,31 @@ clean_duplicates <- function(
 
 # create fifo_sale_log create a sale table with ammended import data using
 # a fifo algorithm, it is needed for sale report accuracy
-create_fifo_sale_log <- function(sale_log,import_log){
+create_fifo_sale_log <- function(sale_log,import_log,pxk_info){
+  import_log$delivery_date <- strptime(import_log$delivery_date,'%Y-%m-%d')
+  sale_log <- merge(sale_log,pxk_info,all.x=T)
+  sale_log$sale_datetime <- strptime(sale_log$sale_datetime,
+                                     '%Y-%m-%d %H:%M:%S')
+  # pack conversion
+  sale_log <- convert_to_pack(sale_log,packaging,'qty','pack_qty')
+  sale_log$pack_price <- sale_log$unit_price*sale_log$units_per_pack
+  sale_log$pack_cost <- NA
+  import_log <- convert_to_pack(import_log,packaging,'qty','pack_qty')
+  import_log$pack_cost <- import_log$actual_unit_cost*import_log$units_per_pack
+  import_log <- import_log[order(import_log$delivery_date),]
+  sale_log <- sale_log[order(sale_log$sale_datetime),]
+  for (i in 1:nrow(sale_log)){
+    print(i)
+    tmp <- import_log[import_log$prod_code == sale_log$prod_code[i] &
+                       import_log$lot == sale_log$lot[i] ,][1,]
+    if (!is.na(tmp$pack_qty)){
+    if (tmp$pack_qty>=sale_log$pack_qty[i]){
+      sale_log$pack_cost[i] <- tmp$pack_cost[1]
+      new_pack_num <- tmp$pack_qty - sale_log$pack_qty[i]
+      import_log[import_log$prod_code == sale_log$prod_code[i] &
+                   import_log$lot == sale_log$lot[i] ,]$pack_qty[1] <- 
+        new_pack_num
+    }}
+  }
   return('under dev')
 }

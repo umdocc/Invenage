@@ -1,0 +1,110 @@
+# functions related to preparing reports
+
+get_sales_report <- function(config_dict, from_date='2019-11-04',
+                             to_date = '2019-11-10'){
+  # getting variables ready
+  from_date <- strptime(from_date,'%Y-%m-%d')
+  # since strptime start from 00:00:00 we need to add a day in seconds 
+  # to include the to_date
+  to_date <- strptime(to_date,'%Y-%m-%d')+(24*60*60-1)
+  # database read
+  conn <- db_open(config_dict)
+  tmp <- dbReadTable(conn,'sale_log')
+  sale_log <- dbReadTable(conn,'sale_log')
+  pxk_info <- dbReadTable(conn,'pxk_info')
+  import_log <- dbReadTable(conn,'import_log')
+  customer_info <- dbReadTable(conn,'customer_info')
+  product_info <- dbReadTable(conn,'product_info')
+  packaging <- dbReadTable(conn,'packaging')
+  dbDisconnect(conn)
+  
+  # data manipulation
+  tmp <- merge(tmp,packaging %>% 
+                 select(unit,units_per_pack,prod_code),all.x=T)
+  tmp <- merge(tmp,pxk_info %>% select(
+    pxk_num,customer_id,sale_datetime),all.x = T)
+  tmp$sale_datetime <- strptime(tmp$sale_datetime,"%Y-%m-%d %H:%M:%S")
+  
+  tmp <- tmp[((tmp$sale_datetime>=from_date) & (tmp$sale_datetime<= to_date)),]
+  tmp <- tmp[!is.na(tmp$prod_code),]
+  # check data integrity
+  if (nrow(tmp[duplicated(tmp %>% select(pxk_num,prod_code,lot)),])>0){
+    print(tmp[duplicated(tmp %>% select(pxk_num,prod_code,lot)),])
+    stop('Critical error! duplications found in sale_log')
+  }
+  
+  ave_import_cost <- get_est_import_cost(
+    import_log, algorithm='weighted_average')
+  tmp <- merge(tmp,ave_import_cost,all.x = T)
+  
+  # sales for current week
+  tmp <- merge(tmp,customer_info %>% select(customer_id,customer_name),all.x=T)
+  tmp <- merge(tmp,product_info %>% select(prod_code,name,ref_smn),all.x=T)
+  
+  # calculating all prices data
+  tmp$unit_import_cost <- tmp$ave_pack_import_cost/tmp$units_per_pack
+  tmp$unit_profit <- tmp$unit_price-tmp$unit_import_cost
+  tmp$total_profit <- tmp$unit_profit*tmp$qty
+  tmp$profit_margin <- round(100*((tmp$unit_price/tmp$unit_import_cost)-1),
+                             digits=1)
+  
+  # preparing output
+  tmp <- tmp[order(tmp$customer_name),]
+  tmp$sale_date <- strftime(tmp$sale_datetime,'%d-%m-%Y')
+  tmp <- tmp %>% select(
+    customer_name, sale_date, pxk_num, name, ref_smn, unit, qty, unit_price,
+    unit_import_cost, unit_profit, total_profit, profit_margin)
+  return(tmp)
+}
+
+write_report_data <- function(
+  rp_form,rp_file,report_name,report_info,rp_data,from_date,to_date){
+  wb <- loadWorkbook(rp_form)
+  #writing data
+  writeData( # report name
+    wb,sheet=1,report_name, 
+    startRow = report_info$value[report_info$name=='report_name_r'], 
+    startCol = report_info$value[report_info$name=='report_name_c'])
+  writeData( # from_date
+    wb,sheet=1,from_date, 
+    startRow = report_info$value[report_info$name=='from_date_r'], 
+    startCol = report_info$value[report_info$name=='from_date_c'])
+  writeData( # to_date
+    wb,sheet=1,to_date, 
+    startRow = report_info$value[report_info$name=='to_date_r'], 
+    startCol = report_info$value[report_info$name=='to_date_c'])
+  # actual data
+  writeData(wb,sheet=1,rp_data, startRow = 5)
+  saveWorkbook(wb,rp_file,overwrite = T) #save the workbook
+  return(1)
+}
+
+create_excel_report <- function(config_dict,report_type,from_date,to_date){
+  conn <- db_open(config_dict)
+  report_info <- dbReadTable(conn,"output_info")
+  report_info <- report_info[report_info$type=='report_output',]
+  ui_elem <- dbReadTable(conn,"localisation")
+  ui_elem <- ui_elem[
+    ui_elem$app_lang == config_dict$value[config_dict$name=='app_lang'],]
+  ui_elem <- ui_elem[ui_elem$group=='ui_elements',]
+  dbDisconnect(conn)
+  
+  # get the input,output file, report name
+  report_name <- ui_elem$actual[ui_elem$label==report_type]
+  rp_form <- config_dict$value[config_dict$name=='report_form_path']
+  rp_file <- file.path(
+    config_dict$value[config_dict$name=='report_out_path'], paste0(
+      config_dict$value[config_dict$name=='company_name'], '.',
+      report_name,'.',
+      format(Sys.Date(),config_dict$value[config_dict$name=='date_format']),
+      '.xlsx') )
+  
+  output_rp <- get_sales_report(config_dict,from_date,to_date)
+  output_rp <- clean_duplicates(
+    output_rp,col_list = c("customer_name", "sale_date", "pxk_num"))
+  rp_data <- format_output_tbl(output_rp,ui_elem)
+  write_report_data(
+    rp_form,rp_file,report_name,report_info,rp_data,from_date,to_date)
+  
+  return(rp_file)
+}

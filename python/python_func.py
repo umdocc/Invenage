@@ -299,12 +299,11 @@ def add_import_price(po_data,import_price,method='min_qty'):
         po_data = pd.merge(po_data,tmp,how='left')
     return(po_data)
 
-# sometime pandas merge on windows is not reliable
-def tbl_left_join(tbl1,tbl2):
-    tmpconn = sqlite3.connect('tmp.sqlite')
-    tbl1.to_sql('tbl1',tmpconn,index=False,if_exists='replace')
-    tbl2.to_sql('tbl2',tmpconn,index=False,if_exists='replace')
-    tmpconn.commit()
-    ouput_tbl = pd.read_sql_query('select * from tbl1 left join tbl2',tmpconn)
-    tmpconn.close()
-    return(ouput_tbl)
+def rename_column(data_df,config_dict):
+    app_lang = config_dict['app_lang']
+    conn = db_open(config_dict)
+    ui_elem = pd.read_sql_query(
+            "select * from localisation",conn)
+    ui_elem = ui_elem[
+            (ui_elem.group=='ui_elements') & (ui_elem.app_lang==app_lang)]
+    conn.close()
