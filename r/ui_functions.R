@@ -307,29 +307,30 @@ roll_back_date <- function(rolling_mth){
 
 # create_report function
 create_report <- function(report_type,config_dict,input){
-
+  # creating common varialbes
+  # report_name (in local language)
+  report_name <- ui_elem$actual[ui_elem$label==report_type]
+  rp_filename <- file.path( # report file name
+    config_dict$value[config_dict$name=='report_out_path'], paste0(
+      config_dict$value[config_dict$name=='company_name'], '.',
+      report_name,'.',
+      format(Sys.Date(),config_dict$value[config_dict$name=='date_format']),
+      '.xlsx') )
+  # customise data based on report type
   if (report_type == 'sale_profit_report'){
-    from_date <- input$from_date
+    from_date <- input$from_date # from_date and to_date depends on rp type
     to_date <- input$to_date
-    rp_file <- create_excel_report(
-      config_dict,report_type,from_date,to_date)
+    create_excel_report(
+      config_dict,report_type,from_date,to_date,rp_filename)
   }
   
   if (report_type == 'inv_exp_date_report'){
-    output_rp <- update_inventory(config_dict)
-    output_rp$remaining_days <- output_rp$intexp_date-Sys.time()
-    output_rp$label[output_rp$remaining_days<180] <- 'less_than_6mth'
-    output_rp$label[output_rp$remaining_days<90] <- 'less_than_3mth'
-    output_rp <- output_rp[order(output_rp$intexp_date),]
-    output_rp <- merge(output_rp,ui_elem,all.x=T)
-    output_rp$note <- output_rp$actual
-    output_rp <- output_rp %>% select(name,vendor,ref_smn,remaining_qty,
-                                      exp_date,note)
-    wb <- createWorkbook()
-    addWorksheet(wb, 'Sheet1')
-    writeData(wb,sheet='Sheet1',output_rp)
-    saveWorkbook(wb,rp_file,overwrite = T)
+    from_date <- strftime(Sys.Date())
+    to_date <- from_date
+    create_excel_report(
+      config_dict, report_type, from_date, to_date, rp_filename)
   }
+  
   if (report_type == 'inventoryValueReport'){
     summary_sheet_name <- ui_elem$actual[ui_elem$label=='summary']
     missing_price_sheet_name <- ui_elem$actual[ui_elem$label=='missing_price']
@@ -378,7 +379,7 @@ create_report <- function(report_type,config_dict,input){
       tmp_df <- rename_table(tmp_df,ui_elem)
       writeData(wb, sheet=vendor_list[i], tmp_df)
     }
-    saveWorkbook(wb,rp_file,overwrite = T)
+    saveWorkbook(wb,rp_filename,overwrite = T)
   }
   if (report_type == 'inventoryAuditReport'|
       report_type == 'inventoryOrderReport'){
@@ -431,9 +432,9 @@ create_report <- function(report_type,config_dict,input){
     }
     # write data to destination file then open file
     writeData(wb, 1, inventoryReport, startRow=5, startCol=1)
-    saveWorkbook(wb,rp_file,overwrite = T)
+    saveWorkbook(wb,rp_filename,overwrite = T)
   }
-  return(rp_file)
+  return(rp_filename)
 }
 
 # format the table column name from label to localised output

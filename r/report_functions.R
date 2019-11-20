@@ -57,8 +57,9 @@ get_sales_report <- function(config_dict, from_date='2019-11-04',
   return(tmp)
 }
 
+# a report comprise of report_name, from_date, to_date and rp_data
 write_report_data <- function(
-  rp_form,rp_file,report_name,report_info,rp_data,from_date,to_date){
+  rp_form,rp_filename,report_name,report_info,rp_data,from_date,to_date){
   wb <- loadWorkbook(rp_form)
   #writing data
   writeData( # report name
@@ -75,11 +76,12 @@ write_report_data <- function(
     startCol = report_info$value[report_info$name=='to_date_c'])
   # actual data
   writeData(wb,sheet=1,rp_data, startRow = 5)
-  saveWorkbook(wb,rp_file,overwrite = T) #save the workbook
+  saveWorkbook(wb,rp_filename,overwrite = T) #save the workbook
   return(1)
 }
 
-create_excel_report <- function(config_dict,report_type,from_date,to_date){
+create_excel_report <- function(config_dict,report_type,from_date,to_date,
+                                rp_filename){
   conn <- db_open(config_dict)
   report_info <- dbReadTable(conn,"output_info")
   report_info <- report_info[report_info$type=='report_output',]
@@ -92,19 +94,33 @@ create_excel_report <- function(config_dict,report_type,from_date,to_date){
   # get the input,output file, report name
   report_name <- ui_elem$actual[ui_elem$label==report_type]
   rp_form <- config_dict$value[config_dict$name=='report_form_path']
-  rp_file <- file.path(
-    config_dict$value[config_dict$name=='report_out_path'], paste0(
-      config_dict$value[config_dict$name=='company_name'], '.',
-      report_name,'.',
-      format(Sys.Date(),config_dict$value[config_dict$name=='date_format']),
-      '.xlsx') )
-  
-  output_rp <- get_sales_report(config_dict,from_date,to_date)
-  output_rp <- clean_duplicates(
-    output_rp,col_list = c("customer_name", "sale_date", "pxk_num"))
-  rp_data <- format_output_tbl(output_rp,ui_elem)
+
+  # get the report data
+  if (report_type == 'sale_profit_report'){
+    output_rp <- get_sales_report(config_dict,from_date,to_date)
+    output_rp <- clean_duplicates(
+      output_rp,col_list = c("customer_name", "sale_date", "pxk_num"))
+    rp_data <- format_output_tbl(output_rp,ui_elem)
+  }
+  if (report_type == 'inv_exp_date_report'){
+    rp_data <- get_inv_exp_report(config_dict)
+  }
   write_report_data(
-    rp_form,rp_file,report_name,report_info,rp_data,from_date,to_date)
+    rp_form,rp_filename,report_name,report_info,rp_data,from_date,to_date)
   
-  return(rp_file)
+  return(rp_filename)
+}
+
+# data for inventory sorted by date
+get_inv_exp_report <- function(config_dict){
+  output_rp <- update_inventory(config_dict)
+  output_rp$remaining_days <- output_rp$intexp_date-Sys.time()
+  output_rp$label[output_rp$remaining_days<180] <- 'less_than_6mth'
+  output_rp$label[output_rp$remaining_days<90] <- 'less_than_3mth'
+  output_rp <- output_rp[order(output_rp$intexp_date),]
+  output_rp <- merge(output_rp,ui_elem,all.x=T)
+  output_rp$note <- output_rp$actual
+  output_rp <- output_rp %>% select(name,vendor,ref_smn,remaining_qty,
+                                    exp_date,note)
+  return(output_rp)
 }
