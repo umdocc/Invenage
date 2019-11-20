@@ -55,8 +55,8 @@ append_cust_info = pd.read_excel(update_file,sheet_name = customer_sheet_name,
 append_cust_info = append_cust_info.rename(columns=acntl_dict)
 
 # will not add customer without a name
-#append_cust_info = append_cust_info[append_cust_info.customer_name.notnull()]
-#append_cust_info = append_cust_info[append_cust_info.customer_name!='']
+append_cust_info = append_cust_info[append_cust_info.customer_name.notnull()]
+append_cust_info = append_cust_info[append_cust_info.customer_name!='']
 
 
 # add customer id
