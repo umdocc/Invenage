@@ -98,12 +98,13 @@ def read_po_data(input_file,config_dict):
     tmp['po_name'] = os.path.basename(input_file)
 
     tmp = tmp.rename(columns = rename_dict)
-    # if we cannot find the actual_unit_cost, set it to ''
+    # if we cannot find the actual_unit_cost, note set it to ''
     if 'actual_unit_cost' not in tmp.columns:
         tmp['actual_unit_cost'] = ''
-        
+    if 'note' not in tmp.columns:
+        tmp['note'] = ''        
     tmp = tmp[['name','qty','ref_smn','lot','exp_date',
-               'vendor','actual_unit_cost','po_name']]
+               'vendor','actual_unit_cost','po_name','note']]
     return(tmp)
 
 def db_open(config_dict):
@@ -307,3 +308,14 @@ def rename_column(data_df,config_dict):
     ui_elem = ui_elem[
             (ui_elem.group=='ui_elements') & (ui_elem.app_lang==app_lang)]
     conn.close()
+    
+# clean the entire data frame from white space
+def clean_ws(data_df):
+    df_obj = data_df.select_dtypes(['object'])
+    data_df[df_obj.columns] = df_obj.apply(lambda x: x.str.strip())
+    return(data_df)
+    
+def to_lower(data_df,col_list):
+    df_low = data_df[col_list]
+    data_df[col_list] = df_low.apply(lambda x: x.str.lower())
+    return(data_df)

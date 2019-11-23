@@ -41,18 +41,18 @@ local_import_data['po_name'] = 'localImport.'+                                \
 # data cleaning
 local_import_data['actual_currency_code'] = 1
 local_import_data.exp_date = local_import_data.exp_date.str.replace(' .*$','') 
-
 local_import_data.unit = local_import_data.unit.str.lower()
 
+# remove all white space
+local_import_data = inv.clean_ws(local_import_data)
+
 # if we compare in non-case sensitive manner, convert to lower case
-local_import_data.ref_smn = local_import_data.ref_smn.str.lower()
-local_import_data.vendor = local_import_data.vendor.str.lower()
-product_info.ref_smn = product_info.ref_smn.str.lower()
-product_info.vendor = product_info.vendor.str.lower()
+local_import_data = inv.to_lower(local_import_data,['vendor','ref_smn','unit'])
+product_info = inv.to_lower(product_info,['vendor','ref_smn'])
+
 
 local_import_data = pd.merge(local_import_data,product_info[
         ['prod_code','vendor','ref_smn','warehouse_id']],how='left')
-local_import_data.unit = local_import_data.unit.str.lower()
 local_import_data.qty = pd.to_numeric(local_import_data.qty)
 
 # -------------------------- logic checks -------------------------------------
