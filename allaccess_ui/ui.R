@@ -8,8 +8,6 @@ dashboardPage(
   ## Sidebar content
   dashboardSidebar(width=200,
                    sidebarMenu(
-                     menuItem(ui_elem$actual[ui_elem$label=='inv_out'],
-                              tabName="inventoryOut", icon = icon("minus")),
                      menuItem(ui_elem$actual[ui_elem$label=='lookups'],
                               tabName = "Lookup", icon = icon("search")),
                      menuItem(ui_elem$actual[ui_elem$label=='reports'],
@@ -19,42 +17,6 @@ dashboardPage(
   dashboardBody(
     # ---------------------------- Xuat Kho tab UI -----------------------------
     tabItems(
-      tabItem(tabName = "inventoryOut",
-              fluidRow(
-                box(width=3, height = 600,
-                    htmlOutput('pxk_selector'),
-                    htmlOutput('customer_selector'),
-                    htmlOutput('prod_name_selector'),
-                    htmlOutput("qty_selector"),
-                    htmlOutput("unit_selector"),
-                    htmlOutput("lot_selector"),
-                    htmlOutput("warehouse_selector"),
-                    
-                    h5('')
-                ),
-                box(width = 2, height = 600,
-                    htmlOutput("unit_price"),
-                    htmlOutput("payment_selector"),
-                    htmlOutput("pxk_note"),
-                    h4(ui_elem$actual[ui_elem$label=='product_info']),
-                    htmlOutput("prod_info_str"),
-                    actionButton("inventory_out",
-                                 ui_elem$actual[ui_elem$label=='inv_out']),
-                    h5('')
-                ),
-                box(width = 7, height = 500,
-                    h3(ui_elem$actual[ui_elem$label=='current_pxk']),
-                    tableOutput("current_pxk_tbl"),
-                    actionButton("del_last_entry",
-                                 ui_elem$actual[ui_elem$label=='del_last_entry']),
-                    actionButton("complete_form",
-                                 ui_elem$actual[ui_elem$label=='complete_form']),
-                    actionButton("reload_pxk",
-                                 ui_elem$actual[ui_elem$label=='reload_pxk'])
-                )
-              )
-      )
-      , # end of export tab
       tabItem(tabName = 'Lookup',
               fluidRow(
                 selectInput(inputId = 'lu_tbl_selector',
