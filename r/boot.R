@@ -26,7 +26,7 @@ if (db_type == 'SQLite'){
   require(RSQLite)
 }
 if (db_type == 'MariaDB'){
-  require(odbc);require(RMariaDB)
+  require(RMariaDB)
 }
 
 # ------------------------- chrome config for windows --------------------------
