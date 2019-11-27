@@ -109,24 +109,14 @@ def read_po_data(input_file,config_dict):
 
 def db_open(config_dict):
     if (config_dict['db_type']=='MariaDB'):
-        db = create_engine('mysql+mysqlconnector://'+                \
+        conn = create_engine('mysql+mysqlconnector://'+                \
                              config_dict['sql_usr']+                    \
                                ":"+config_dict['sql_pswd']+"@"+         \
                                config_dict['sql_host']+"/invenage")
-        conn = db.connect()
     if (config_dict['db_type']=='SQLite'):
-        db = ''
         db_file = config_dict['db_file']
         conn = sqlite3.connect(db_file)
-    return(db,conn)
-
-def db_close(db,conn,config_dict):
-    if (config_dict['db_type']=='MariaDB'):
-        conn.close()
-        db.dispose()
-    if (config_dict['db_type']=='SQLite'):
-        conn.close()
-    
+    return(conn)
 
 # the check exists function check if entries in table A already exist in
 # table B, it return table A with a column "exists" that mark entries
@@ -167,10 +157,10 @@ def build_po_data(config_dict, data_cleaning=True):
     msg_dict = create_dict(config_dict,'msg_dict')
     
     # database information
-    (db,conn) = db_open(config_dict)
+    conn = db_open(config_dict)
     product_info = pd.read_sql_query('select * from product_info',conn)
     packaging = pd.read_sql_query('select * from packaging',conn)    
-    db_close(db,conn,config_dict)
+    conn.close()
 
     for i in range(0,len(po_file_list)):
         inputExcelFile = po_file_list.full_path[i]
