@@ -9,20 +9,25 @@ dashboardPage(
   dashboardSidebar(width=200,
                    sidebarMenu(
                      menuItem(ui_elem$actual[ui_elem$label=='inv_out'],
-                              tabName="inventoryOut", icon = icon("minus")),
+                              tabName="inv_out", icon = icon("minus")),
                      menuItem(ui_elem$actual[ui_elem$label=='lookups'],
                               tabName = "Lookup", icon = icon("search")),
                      menuItem(ui_elem$actual[ui_elem$label=='reports'],
-                              tabName = "Reports", icon = icon("wrench"))
+                              tabName = "Reports", icon = icon("list-alt")),
+                     menuItem(ui_elem$actual[ui_elem$label=='pxk_man'],
+                              tabName = "pxk_man", icon = icon("list-alt")),
+                     
+                     menuItem('TT',
+                              tabName = "sys_info", icon = icon("cog"))
                    )
   ),
   dashboardBody(
     # ---------------------------- Xuat Kho tab UI -----------------------------
     tabItems(
-      tabItem(tabName = "inventoryOut",
+      tabItem(tabName = "inv_out",
               fluidRow(
                 box(width=3, height = 600,
-                    htmlOutput('pxk_selector'),
+                    # htmlOutput('pxk_selector'),
                     htmlOutput('customer_selector'),
                     htmlOutput('prod_name_selector'),
                     htmlOutput("qty_selector"),
@@ -43,7 +48,7 @@ dashboardPage(
                     h5('')
                 ),
                 box(width = 7, height = 500,
-                    h3(ui_elem$actual[ui_elem$label=='current_pxk']),
+                    htmlOutput("current_pxk_info"),
                     tableOutput("current_pxk_tbl"),
                     actionButton("del_last_entry",
                                  ui_elem$actual[ui_elem$label=='del_last_entry']),
@@ -93,7 +98,21 @@ dashboardPage(
                                    ui_elem$label=='printReport'])
                 )
               )
-      )
+      ),
+      tabItem(tabName = 'pxk_man',
+              fluidRow(
+                box(width = 3, height = 400,
+                    htmlOutput('pxk_list')
+                )
+              )
+      ), # end of pxk_man tab
+      tabItem(tabName = 'sys_info',
+              fluidRow(
+                box(width = 3, height = 400,
+                    h3('invenage development build')
+                    )
+                )
+      ) # end of sys_info tab
     ) # end tabItems
   ) # end dashboardBody
 ) # end dashboardPage

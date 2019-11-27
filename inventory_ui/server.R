@@ -3,13 +3,21 @@ source("global.R",local = F)
 require(dplyr)
 require(DT)
 shinyServer(function(input, output,session) {
-  # # --------------------- custom render functions ------------------------------
-  renderPXK <- function(){renderUI({
-    current_pxk <- get_current_pxk(config_dict)
-    selectizeInput( inputId = "pxk_selector",
-                    label = ui_elem$actual[ui_elem$label=='pxkNum'],
-                    choices = current_pxk, options = list(create = T))
+  # # --------------------- custom render functions ----------------------------
+  render_pxk_list <- function(){renderUI({
+    conn <- db_open(config_dict)
+    pxk_num_list <- dbGetQuery(conn,'select pxk_num from pxk_info')
+    dbDisconnect
+    selectizeInput( inputId = "pxk_list",
+                    label = ui_elem$actual[ui_elem$label=='select_pxk'],
+                    choices = pxk_num_list)
   }) }
+  # renderPXK <- function(){renderUI({
+  #   current_pxk <- get_current_pxk(config_dict)
+  #   selectizeInput( inputId = "pxk_selector",
+  #                   label = ui_elem$actual[ui_elem$label=='pxkNum'],
+  #                   choices = current_pxk, options = list(create = T))
+  # }) }
   
   renderProdName <- function(){renderUI({
     selectizeInput(inputId = "prod_name_selector",
@@ -72,6 +80,13 @@ shinyServer(function(input, output,session) {
     product_info_str <- build_prod_info(config_dict,input)
     HTML(product_info_str)
   }) }
+  
+  render_current_pxk_info <- function(){renderUI({
+    current_pxk <- get_current_pxk(config_dict)
+    current_pxk_str <- render_current_pxk_str(current_pxk,config_dict)
+    HTML(current_pxk_str)
+  }) }  
+  
   renderCustomer <- function(){renderUI({
     custChoices <- get_cust_list(config_dict)
     selectizeInput(inputId = 'customer_name',
@@ -125,7 +140,7 @@ shinyServer(function(input, output,session) {
   
   # ---------------------------- Inventory Out Tab -------------------------------
   # Inputs
-  output$pxk_selector <- renderPXK() # PXK
+  # output$pxk_selector <- renderPXK() # PXK
   output$lot_selector <- renderLot() # Lot
   output$prod_name_selector <- renderProdName() # prod_name
   output$qty_selector <- renderQty() #Qty
@@ -133,9 +148,11 @@ shinyServer(function(input, output,session) {
   output$unit_price <- render_price()
   output$pxk_note <- renderNote() #Note
   output$prod_info_str <- renderProdInfo() #product Info pane
+  output$current_pxk_info <- render_current_pxk_info() #current pxk info
   output$customer_selector <- renderCustomer() # customer
-  output$payment_selector <- renderPaymentType() # customer
-  output$warehouse_selector <- renderWarehouse() # customer
+  output$payment_selector <- renderPaymentType() # payment
+  output$warehouse_selector <- renderWarehouse() # warehouse
+  output$pxk_list <- render_pxk_list() #pxk_list
   
   
   # Buttons

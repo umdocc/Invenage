@@ -611,3 +611,8 @@ create_fifo_sale_log <- function(sale_log,import_log,pxk_info){
   }
   return('under dev')
 }
+
+render_current_pxk_str <- function(current_pxk,config_dict){
+  return(paste("<font size='+2'>REF: ",current_pxk,'</font><br/>')
+         )
+}
