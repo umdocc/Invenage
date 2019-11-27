@@ -1,15 +1,22 @@
 # All functions shared by the UIs
 # call all required packages
 # ------------------------------- Base functions -------------------------------
-# the db_open create the appropriate connection for Invenage
+# the db_open create the appropriate db connection for Invenage
 db_open <- function(config_dict){
   db_type <- config_dict$value[config_dict$name=='db_type']
   if (db_type == 'SQLite'){
     database_path <- config_dict$value[config_dict$name=='db_file']
     sqlite.driver <- dbDriver("SQLite")
     conn <- dbConnect(sqlite.driver, dbname = database_path)
-    return(conn)
   }
+  if (db_type == 'MariaDB'){
+  conn <- dbConnect(drv = RMariaDB::MariaDB(), 
+    username = config_dict$value[config_dict$name=='sql_usr'],
+    password = config_dict$value[config_dict$name=='sql_pswd'], 
+    host = config_dict$value[config_dict$name=='sql_host'],
+    port = 3306, dbname = 'invenage')
+  }
+  return(conn)
 }
 
 # get current_pxk is a function that use the database connection object conn
@@ -523,6 +530,26 @@ get_latest_price <- function(customer_name,prod_name,current_unit,
     }
   }
   return(latest_price)
+}
+
+get_current_pricelist <- function(
+  sale_log, pxk_info, customer_info, product_info){
+  tmp <- sale_log[!is.na(sale_log$unit_price),]
+  tmp <- tmp[tmp$unit_price>0,]
+  tmp <- merge(tmp,pxk_info %>% select(pxk_num,customer_id,sale_datetime))
+  tmp$sale_datetime <- strptime(tmp$sale_datetime,'%Y-%m-%d %H:%M:%S')
+  tmp$sale_datetime <- as.POSIXct(tmp$sale_datetime)
+  tmp <- merge(tmp,customer_info %>% select(customer_id,customer_name))
+  tmp <- tmp %>% group_by(customer_id, prod_code,unit) %>% mutate(
+    latest_date=max(sale_datetime))
+  tmp$latest_price <- tmp$sale_datetime==tmp$latest_date
+  tmp <- tmp[tmp$latest_price,]
+  tmp <- merge(tmp,product_info %>% select(prod_code,name,vendor,ref_smn))
+  tmp <- tmp %>% 
+    select(customer_name,name,ref_smn,unit,unit_price,latest_date) %>%
+    arrange(customer_name,name)
+  # write.xlsx(tmp,'~/Downloads/price_list.xlsx')
+  return(tmp)
 }
 
 # a function to get the sales summary by prod_code
