@@ -85,7 +85,7 @@ shinyServer(function(input, output,session) {
     current_pxk <- get_current_pxk(config_dict)
     current_pxk_str <- render_current_pxk_str(current_pxk,config_dict)
     HTML(current_pxk_str)
-  }) }  
+  }) }
   
   renderCustomer <- function(){renderUI({
     custChoices <- get_cust_list(config_dict)
