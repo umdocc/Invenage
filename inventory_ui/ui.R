@@ -15,7 +15,7 @@ dashboardPage(
                      menuItem(ui_elem$actual[ui_elem$label=='reports'],
                               tabName = "Reports", icon = icon("list-alt")),
                      menuItem(ui_elem$actual[ui_elem$label=='pxk_man'],
-                              tabName = "pxk_man", icon = icon("list-alt")),
+                              tabName = "pxk_man", icon = icon("wrench")),
                      
                      menuItem('TT',
                               tabName = "sys_info", icon = icon("cog"))
@@ -101,8 +101,12 @@ dashboardPage(
       ),
       tabItem(tabName = 'pxk_man',
               fluidRow(
-                box(width = 3, height = 400,
+                box(width = 3, height = 600,
                     htmlOutput('pxk_list')
+                ),
+                box(width = 9, height = 600,
+                    h3(ui_elem$actual[ui_elem$label=='pxk_info']),
+                    DT::dataTableOutput('pxk_detail')
                 )
               )
       ), # end of pxk_man tab

@@ -613,6 +613,22 @@ create_fifo_sale_log <- function(sale_log,import_log,pxk_info){
 }
 
 render_current_pxk_str <- function(current_pxk,config_dict){
-  return(paste("<font size='+2'>REF: ",current_pxk,'</font><br/>')
+  return(paste("<font size='+2'>PXK: ",current_pxk,' Status: ','</font><br/>')
          )
+}
+
+# return the pxk data from pxk_num
+render_selected_pxk <- function(selected_pxk_num,config_dict){
+  conn <- db_open(config_dict)
+  sale_log <- dbReadTable(conn,'sale_log')
+  product_info <- dbReadTable(conn,'product_info')
+  pxk_info <- dbReadTable(conn,'pxk_info')
+  customer_info <- dbReadTable(conn,'customer_info')
+  dbDisconnect(conn)
+  output_pxk <- sale_log[sale_log$pxk_num==selected_pxk_num,]
+  output_pxk <- merge(output_pxk,product_info %>% select(prod_code,name))
+  output_pxk <- merge(output_pxk,pxk_info)
+  output_pxk <- merge(output_pxk,customer_info)
+  return(
+    output_pxk %>% select(name,unit,unit_price,qty,pxk_num,customer_name))
 }

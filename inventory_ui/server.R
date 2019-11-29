@@ -125,6 +125,7 @@ shinyServer(function(input, output,session) {
   }) }
   
   renderCurrentPXK <- function(){renderTable({
+    
     query <- paste("select sale_log.stt, product_info.name, sale_log.unit,
                 sale_log.unit_price,sale_log.qty, sale_log.lot,
                 sale_log.pxk_num, sale_log.note
@@ -394,5 +395,12 @@ shinyServer(function(input, output,session) {
     report_type <- ui_elem$label[ui_elem$actual==input$report_type]
     rp_filename <- create_report(report_type,config_dict,input)
     system(paste0('open ','"',rp_filename,'"'))
+  })
+  # ------------------------ ui for pxk_man tab ----------------------------
+  
+  output$pxk_detail <- DT::renderDataTable({
+    selected_pxk_num <- as.integer(input$pxk_list)
+    output_pxk <- render_selected_pxk(selected_pxk_num,config_dict)
+    output_pxk
   })
 })
