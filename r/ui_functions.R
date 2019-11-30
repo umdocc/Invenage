@@ -630,5 +630,27 @@ render_selected_pxk <- function(selected_pxk_num,config_dict){
   output_pxk <- merge(output_pxk,pxk_info)
   output_pxk <- merge(output_pxk,customer_info)
   return(
-    output_pxk %>% select(name,unit,unit_price,qty,pxk_num,customer_name))
+    output_pxk %>% select(stt,name,unit,unit_price,qty,pxk_num,customer_name))
+}
+
+get_pxk_entry_num <- function(selected_pxk_num,config_dict){
+  conn <- db_open(config_dict)
+  sale_log <- dbReadTable(conn,'sale_log')
+  dbDisconnect(conn)
+  output_pxk <- sale_log[sale_log$pxk_num==selected_pxk_num,]
+  entry_list <- output_pxk$stt
+  return(entry_list)
+}
+
+# a function to delete certain stt on pxk, or if stt = 'all' will delete all
+delete_pxk <- function(pxk_num,stt,config_dict){
+  if (stt=='all'){
+    query <- paste0('delete from sale_log where pxk_num = ',
+                    pxk_num)
+  }else{
+    query <- paste0('delete from sale_log where pxk_num = ',
+                    pxk_num,' and stt = ',stt)
+  }
+  conn = db_open(config_dict)
+  res <- dbSendQuery(conn,query)
 }

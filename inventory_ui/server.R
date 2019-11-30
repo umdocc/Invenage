@@ -24,7 +24,13 @@ shinyServer(function(input, output,session) {
                 label = ui_elem$actual[ui_elem$label=='prod_name'],
                 choices=product_info$name)
   }) }
-  
+  render_entry_list <- function(){renderUI({
+    selected_pxk_num <- as.integer(input$pxk_list)
+    entry_list <- get_pxk_entry_num(selected_pxk_num,config_dict)
+    selectInput(inputId = "stt_select",
+                   label = ui_elem$actual[ui_elem$label=='select_stt'],
+                   choices=c(entry_list,ui_elem$actual[ui_elem$label=='all']))
+  }) }
   render_price <- function(){renderUI({
     current_customer <- input$customer_name
     current_prod <- input$prod_name_selector
@@ -154,7 +160,7 @@ shinyServer(function(input, output,session) {
   output$payment_selector <- renderPaymentType() # payment
   output$warehouse_selector <- renderWarehouse() # warehouse
   output$pxk_list <- render_pxk_list() #pxk_list
-  
+  output$stt_select <- render_entry_list() #select_stt
   
   # Buttons
   # Inventory Out will write transaction to database
@@ -386,7 +392,7 @@ shinyServer(function(input, output,session) {
       ui_elem$actual==input$lu_tbl_selector]
     print(table_name)
     create_lookup_tbl(table_name,config_dict)
-  })
+  },rownames=F)
   
   # --------------------- UI for the Reports tab -------------------------------
 
@@ -397,10 +403,29 @@ shinyServer(function(input, output,session) {
     system(paste0('open ','"',rp_filename,'"'))
   })
   # ------------------------ ui for pxk_man tab ----------------------------
+  render_current_pxktable <- function(){DT::renderDataTable({
+      selected_pxk_num <- as.integer(input$pxk_list)
+      output_pxk <- render_selected_pxk(selected_pxk_num,config_dict)
+      output_pxk
+    }, rownames=F)
+  }
+  output$pxk_detail <- render_current_pxktable()
   
-  output$pxk_detail <- DT::renderDataTable({
+  observeEvent(input$delete_stt,{
+    # print(input$pxk_list)
     selected_pxk_num <- as.integer(input$pxk_list)
-    output_pxk <- render_selected_pxk(selected_pxk_num,config_dict)
-    output_pxk
+    full_stt_list <- get_pxk_entry_num(selected_pxk_num,config_dict)
+    trans_list <- data.frame(label=c(full_stt_list,'all'),
+                             localised=c(full_stt_list,
+                                         ui_elem$actual[ui_elem$label=='all'])
+                             )
+    stt_to_proc <- as.character(
+      trans_list$label[
+      as.character(trans_list$localised)==as.character(input$stt_select)]
+    )
+    delete_pxk(selected_pxk_num,stt_to_proc,config_dict)
+    # refresh the UI
+    output$pxk_detail <- render_current_pxktable()
+    output$stt_select <- render_entry_list()
   })
 })
