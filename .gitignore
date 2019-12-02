@@ -22,3 +22,5 @@ r/private/fix_import_log.R
 python/private/build_master_db.py
 python/private/build_tender_detail.py
 r/private/build_tender_status.R
+inventory_ui/.RData
+.DS_Store

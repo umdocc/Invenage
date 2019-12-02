@@ -10,16 +10,6 @@ if(length(new.packages)) install.packages(
   new.packages, repos = 'https://cloud.r-project.org')
 lapply(required_package, require, character.only = TRUE)
 
-# ----------------------- build paths in config_dict ---------------------------
-config_dict$value <- gsub('/;',';',config_dict$value)
-config_dict$value[config_dict$type=='abs'] <- 
-  gsub(';','/',config_dict$value[config_dict$type=='abs'])
-app_path <- config_dict$value[config_dict$name=='app_path']
-config_dict$value[config_dict$type=='relative'] <- 
-  gsub(';','/',config_dict$value[config_dict$type=='relative'])
-config_dict$value[config_dict$type=='relative'] <- 
-  file.path(app_path,config_dict$value[config_dict$type=='relative'])
-
 # ------------------------ database configuration ------------------------------
 db_type <- config_dict$value[config_dict$name=='db_type']
 if (db_type == 'SQLite'){

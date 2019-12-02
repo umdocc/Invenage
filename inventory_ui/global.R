@@ -14,6 +14,18 @@ if (file.exists(config_path)){
 }else{
   stop('invenage_conf.csv not found!')
 }
+
+# ----------------------- build paths in config_dict ---------------------------
+config_dict$value <- gsub('/;',';',config_dict$value)
+config_dict$value[config_dict$type=='abs'] <- 
+  gsub(';','/',config_dict$value[config_dict$type=='abs'])
+app_path <- config_dict$value[config_dict$name=='app_path']
+config_dict$value[config_dict$type=='relative'] <- 
+  gsub(';','/',config_dict$value[config_dict$type=='relative'])
+config_dict$value[config_dict$type=='relative'] <- 
+  file.path(app_path,config_dict$value[config_dict$type=='relative'])
+
+
 # load the boot.r
-source('~/Documents/GitHub/invenage/r/boot.R')
+source(file.path(app_path,'r','boot.R'))
 
