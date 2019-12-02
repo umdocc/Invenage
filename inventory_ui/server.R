@@ -4,14 +4,7 @@ require(dplyr)
 require(DT)
 shinyServer(function(input, output,session) {
   # # --------------------- custom render functions ----------------------------
-  render_pxk_list <- function(){renderUI({
-    conn <- db_open(config_dict)
-    pxk_num_list <- dbGetQuery(conn,'select pxk_num from pxk_info')
-    dbDisconnect(conn)
-    selectizeInput( inputId = "pxk_list",
-                    label = ui_elem$actual[ui_elem$label=='select_pxk'],
-                    choices = pxk_num_list)
-  }) }
+
   
   renderProdName <- function(){renderUI({
     selectizeInput(inputId = "prod_name_selector",
@@ -152,7 +145,7 @@ shinyServer(function(input, output,session) {
   output$customer_selector <- renderCustomer() # customer
   output$payment_selector <- renderPaymentType() # payment
   output$warehouse_selector <- renderWarehouse() # warehouse
-  output$pxk_list <- render_pxk_list() #pxk_list
+  output$man_pxk_list <- render_pxk_list(input,config_dict,'man_pxk_list') #pxk_list
   output$stt_select <- render_entry_list() #select_stt
   
   # Buttons
@@ -400,7 +393,7 @@ shinyServer(function(input, output,session) {
   })
   # ------------------------ ui for pxk_man tab ----------------------------
   render_current_pxktable <- function(){DT::renderDataTable({
-      selected_pxk_num <- as.integer(input$pxk_list)
+      selected_pxk_num <- as.integer(input$man_pxk_list)
       output_pxk <- render_selected_pxk(selected_pxk_num,config_dict)
       output_pxk
     }, rownames=F)

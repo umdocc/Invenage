@@ -32,15 +32,14 @@ if (all(grepl('windows',os_name))){
 }
 
 # ------------------------ load remaining scripts ------------------------------
-ui_func_path <- file.path(
-  config_dict$value[config_dict$name=='app_path'],
-  'r','ui_functions.R')
-report_func_path <- file.path(
-  config_dict$value[config_dict$name=='app_path'],
-  'r','report_functions.R')
+function_paths <- file.path(config_dict$value[config_dict$name=='app_path'], 
+                            'r')
+ui_func_path <- file.path(function_paths,'ui_functions.R')
+report_func_path <- file.path(function_paths,'report_functions.R')
+render_func_path <- file.path(function_paths,'render_functions.R')
 source(ui_func_path)
 source(report_func_path)
-
+source(render_func_path)
 
 
 company_name <- config_dict$value[config_dict$name=='company_name']

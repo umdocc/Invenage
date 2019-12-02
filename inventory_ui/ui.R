@@ -102,7 +102,7 @@ dashboardPage(
       tabItem(tabName = 'pxk_man',
               fluidRow(
                 box(width = 3, height = 600,
-                    htmlOutput('pxk_list'),
+                    htmlOutput('man_pxk_list'),
                     htmlOutput('stt_select'),
                     actionButton("delete_stt",
                                  ui_elem$actual[
