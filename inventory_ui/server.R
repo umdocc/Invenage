@@ -12,12 +12,6 @@ shinyServer(function(input, output,session) {
                     label = ui_elem$actual[ui_elem$label=='select_pxk'],
                     choices = pxk_num_list)
   }) }
-  # renderPXK <- function(){renderUI({
-  #   current_pxk <- get_current_pxk(config_dict)
-  #   selectizeInput( inputId = "pxk_selector",
-  #                   label = ui_elem$actual[ui_elem$label=='pxkNum'],
-  #                   choices = current_pxk, options = list(create = T))
-  # }) }
   
   renderProdName <- function(){renderUI({
     selectizeInput(inputId = "prod_name_selector",
@@ -131,14 +125,14 @@ shinyServer(function(input, output,session) {
   }) }
   
   renderCurrentPXK <- function(){renderTable({
-    
+    current_pxk <- get_current_pxk(config_dict)
     query <- paste("select sale_log.stt, product_info.name, sale_log.unit,
                 sale_log.unit_price,sale_log.qty, sale_log.lot,
                 sale_log.pxk_num, sale_log.note
                 from sale_log inner join product_info
                  on sale_log.prod_code = product_info.prod_code
                  where sale_log.pxk_num =",
-                   input$pxk_selector)
+                   current_pxk)
     conn <- db_open(config_dict)
     outTable <- dbGetQuery(conn,query)
     dbDisconnect(conn)
@@ -147,7 +141,6 @@ shinyServer(function(input, output,session) {
   
   # ---------------------------- Inventory Out Tab -------------------------------
   # Inputs
-  # output$pxk_selector <- renderPXK() # PXK
   output$lot_selector <- renderLot() # Lot
   output$prod_name_selector <- renderProdName() # prod_name
   output$qty_selector <- renderQty() #Qty
@@ -167,6 +160,7 @@ shinyServer(function(input, output,session) {
   observeEvent(input$inventory_out, {
     # Write the event to transaction table to keep track of the transaction
     # connect to database, also re-read pxk_info
+    current_pxk <- get_current_pxk(config_dict)
     conn <- db_open(config_dict)
     sale_log <- dbReadTable(conn,"sale_log")
     pxk_info <- dbReadTable(conn,"pxk_info")
@@ -178,11 +172,11 @@ shinyServer(function(input, output,session) {
     
     
     # if this PXK is not in the database yet, create new with completed 0
-    # print(nrow(pxk_info[pxk_info$pxk_num==input$pxk_selector,])==0)
-    if (nrow(pxk_info[pxk_info$pxk_num==input$pxk_selector,])==0){
+
+    if (nrow(pxk_info[pxk_info$pxk_num==current_pxk,])==0){
       
       appendPXKInfo <- data.frame(
-        pxk_num = input$pxk_selector,
+        pxk_num = current_pxk,
         sale_datetime = format(Sys.time(),'%Y-%m-%d %H:%M:%S'),
         customer_id = customer_info[
           customer_info$customer_name==input$customer_name,'customer_id'],
@@ -190,7 +184,7 @@ shinyServer(function(input, output,session) {
           payment_type$actual == input$payment_type],
         completed = 0
       )
-      
+      # print(appendPXKInfo)
       conn <- db_open(config_dict)
       dbWriteTable(conn,'pxk_info',appendPXKInfo,append=T)
       pxk_info <- dbReadTable(conn,"pxk_info")
@@ -213,7 +207,7 @@ shinyServer(function(input, output,session) {
         current_stt <- current_stt+1
       }
     }
-    
+
     # append the data from input
     append_sale_log <- data.frame(
       stt = current_stt,
@@ -223,12 +217,12 @@ shinyServer(function(input, output,session) {
       unit_price = as.integer(input$unit_price),
       qty = input$qty_selector,
       lot = input$lot_selector,
-      pxk_num = input$pxk_selector,
+      pxk_num = current_pxk,
       note = input$pxk_note,
       warehouse_id = warehouse_info$warehouse_id[
         warehouse_info$warehouse == input$warehouse_selector]
     )
-    print('debug ok')
+    
     # writing sale_log to database
     conn <- db_open(config_dict)
     dbWriteTable(conn,'sale_log',append_sale_log,append=T)
@@ -241,7 +235,6 @@ shinyServer(function(input, output,session) {
     output$lot_selector <- renderLot() # Lot
     output$prod_info_str <- renderProdInfo() #product Info pane
     output$pxk_note <- renderNote() #Note
-    output$pxk_selector <- renderPXK() # PXK
     output$current_pxk_tbl <- renderCurrentPXK() # reload the PXK table
   })
   
@@ -250,10 +243,11 @@ shinyServer(function(input, output,session) {
   })
   
   observeEvent(input$del_last_entry,{
+    current_pxk <- get_current_pxk(config_dict)
     conn <- db_open(config_dict)
-    query <- paste("delete from sale_log where pxk_num =",input$pxk_selector,
+    query <- paste("delete from sale_log where pxk_num =",current_pxk,
                    "and stt = (select max(stt) from sale_log where pxk_num =",
-                   input$pxk_selector,")")
+                   current_pxk,")")
     res <- dbSendStatement(conn,query)
     dbClearResult(res)
     dbDisconnect(conn)
@@ -264,17 +258,18 @@ shinyServer(function(input, output,session) {
   })
   
   observeEvent(input$complete_form,{
+    # getting data to write to excel
+    finalised_pxk_warehouse <- input$warehouse_selector
+    finalised_pxk_num <- get_current_pxk(config_dict)
+
     conn <- db_open(config_dict)
     query <- paste0("update pxk_info set completed = 1
-                    where pxk_num = '",input$pxk_selector,"'")
+                    where pxk_num = '",finalised_pxk_num,"'")
     res <- dbSendStatement(conn,query)
     dbClearResult(res)
     dbDisconnect(conn)
     new_pxk <- get_current_pxk(cofig_dict)
     
-    # getting data to write to excel
-    finalised_pxk_num <- input$pxk_selector
-    finalised_pxk_warehouse <- input$warehouse_selector
     
     # create new PXK file
     orig_path <- config_dict$value[config_dict$name=='pxk_form']
@@ -297,7 +292,7 @@ shinyServer(function(input, output,session) {
                    sale_log.qty,sale_log.lot
                    FROM   sale_log INNER JOIN product_info
                    ON     sale_log.prod_code = product_info.prod_code
-                   WHERE  sale_log.pxk_num =",input$pxk_selector)
+                   WHERE  sale_log.pxk_num =",finalised_pxk_num)
     
     form_data <- dbGetQuery(conn,query)
     form_data <- merge(form_data,exp_date,all.x=T)
@@ -309,7 +304,7 @@ shinyServer(function(input, output,session) {
     query <- paste("SELECT DISTINCT customer_info.customer_name
                     FROM pxk_info INNER JOIN customer_info
                     ON pxk_info.customer_id = customer_info.customer_id
-                    WHERE pxk_info.PXK_num =", input$pxk_selector)
+                    WHERE pxk_info.PXK_num =", finalised_pxk_num)
     printingCustomerName <- dbGetQuery(conn,query)
     printingCustomerName <- printingCustomerName$customer_name[1]
     
@@ -377,8 +372,9 @@ shinyServer(function(input, output,session) {
     system(paste0('open ','"',dest_path,'"'))
     
     # ------------- completeForm UI refresh ------------------------------------
-    output$pxk_selector <- renderPXK() # PXK
     output$customer_selector <- renderCustomer() # customer
+    output$current_pxk_tbl <- renderCurrentPXK() # current_pxk_tbl
+    output$current_pxk_info <- render_current_pxk_info() #current pxk info
     output$prod_name_selector <- renderProdName() # prod_name
     output$qty_selector <- renderQty() #Qty
     output$lot_selector <- renderLot() # Lot
@@ -390,7 +386,7 @@ shinyServer(function(input, output,session) {
   output$lookup_tbl_output <- DT::renderDataTable({
     table_name <- ui_elem$label[
       ui_elem$actual==input$lu_tbl_selector]
-    print(table_name)
+    # print(table_name)
     create_lookup_tbl(table_name,config_dict)
   },rownames=F)
   
