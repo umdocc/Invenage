@@ -47,7 +47,7 @@ dashboardPage(
                                  ui_elem$actual[ui_elem$label=='inv_out']),
                     h5('')
                 ),
-                box(width = 7, height = 500,
+                box(width = 7, height = 600,
                     htmlOutput("current_pxk_info"),
                     tableOutput("current_pxk_tbl"),
                     actionButton("del_last_entry",

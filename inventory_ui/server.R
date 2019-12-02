@@ -7,7 +7,7 @@ shinyServer(function(input, output,session) {
   render_pxk_list <- function(){renderUI({
     conn <- db_open(config_dict)
     pxk_num_list <- dbGetQuery(conn,'select pxk_num from pxk_info')
-    dbDisconnect
+    dbDisconnect(conn)
     selectizeInput( inputId = "pxk_list",
                     label = ui_elem$actual[ui_elem$label=='select_pxk'],
                     choices = pxk_num_list)

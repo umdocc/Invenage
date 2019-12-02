@@ -25,7 +25,6 @@ config_dict$value[config_dict$type=='relative'] <-
 config_dict$value[config_dict$type=='relative'] <- 
   file.path(app_path,config_dict$value[config_dict$type=='relative'])
 
-
-# load the boot.r
+# load the boot.r, only work after config_dict paths are built
 source(file.path(app_path,'r','boot.R'))
 

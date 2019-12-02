@@ -19,6 +19,18 @@ db_open <- function(config_dict){
   return(conn)
 }
 
+get_ui_elem <- function(config_dict){
+  app_lang <- config_dict$value[config_dict$name=='app_lang']
+  conn <- db_open(config_dict)
+  localisation <- dbReadTable(conn,"localisation")
+  dbDisconnect(conn)
+  # use the configured language
+  localisation <- localisation[localisation$app_lang==app_lang,]
+  # extract ui_elem
+  ui_elem <- localisation[localisation$group=='ui_elements',]
+  return(ui_elem)
+}
+
 # get current_pxk is a function that use the database connection object conn
 get_current_pxk <- function(cofig_dict){
   conn <- db_open(config_dict)
@@ -618,7 +630,7 @@ render_current_pxk_str <- function(current_pxk,config_dict){
 }
 
 # return the pxk data from pxk_num
-render_selected_pxk <- function(selected_pxk_num,config_dict){
+render_selected_pxk <- function(selected_pxk_num,config_dict,localised=T){
   conn <- db_open(config_dict)
   sale_log <- dbReadTable(conn,'sale_log')
   product_info <- dbReadTable(conn,'product_info')
@@ -629,8 +641,24 @@ render_selected_pxk <- function(selected_pxk_num,config_dict){
   output_pxk <- merge(output_pxk,product_info %>% select(prod_code,name))
   output_pxk <- merge(output_pxk,pxk_info)
   output_pxk <- merge(output_pxk,customer_info)
-  return(
-    output_pxk %>% select(stt,name,unit,unit_price,qty,pxk_num,customer_name))
+  output_pxk <- output_pxk %>% 
+    select(stt,name,unit,unit_price,qty,pxk_num,customer_name)
+  # if (localised){
+  #   ui_elem <- get_ui_elem(config_dict)
+  #   output_pxk <- localise_tbl(output_pxk,ui_elem)
+  # }
+  return(output_pxk)
+}
+
+# a function to translate table from label to localised name
+localise_tbl <- function(input_tbl,ui_elem){
+  # input_tbl <- render_selected_pxk(17071905,config_dict,localised=F)
+  for (i in 1:length(input_tbl)){
+    if (length(ui_elem$actual[ui_elem$label==names(input_tbl)[i]])==1){
+      names(input_tbl)[i] = ui_elem$actual[ui_elem$label==names(input_tbl)[i]]
+    }
+  }
+  return(input_tbl)
 }
 
 get_pxk_entry_num <- function(selected_pxk_num,config_dict){
