@@ -1,3 +1,6 @@
+# all functions used to render shiny UI
+
+# render a list of pxk
 render_pxk_list <- function(input,config_dict,iid){renderUI({
   conn <- db_open(config_dict)
   pxk_num_list <- dbGetQuery(conn,'select pxk_num from pxk_info')
@@ -5,4 +8,165 @@ render_pxk_list <- function(input,config_dict,iid){renderUI({
   selectizeInput( inputId = iid,
                   label = ui_elem$actual[ui_elem$label=='select_pxk'],
                   choices = pxk_num_list)
+}) }
+
+# render a list of active product
+render_prod_name_list <- function(input,product_info,iid){renderUI({
+  active_prod <- product_info$name[product_info$active==1]
+  selectizeInput(inputId = iid,
+                 label = ui_elem$actual[ui_elem$label=='prod_name'],
+                 choices=active_prod)
+}) }
+
+#render latest price
+render_price <- function(input,iid){renderUI({
+  current_customer <- input$customer_name
+  current_prod <- input$prod_name_select
+  current_unit <- input$unit_selector
+  sale_lookup <- create_lookup_tbl('sale_log',config_dict,local_name = F)
+  conn <- db_open(config_dict)
+  pxk_info <- dbReadTable(conn,'pxk_info')
+  dbDisconnect(conn)
+  # get latest price
+  latest_price <- get_latest_price(current_customer,current_prod,current_unit,
+                                   sale_lookup,pxk_info)
+  latest_price <- as.integer(latest_price)
+  selectizeInput(inputId = iid,
+                 label = ui_elem$actual[
+                   ui_elem$label=='unit_price'],
+                 choices=latest_price,options = list(create=T))
+}) }
+
+#render a list of stt, used for pxk_man and inv_out
+render_entry_list <- function(input, config_dict, uid, iid){renderUI({
+  selected_pxk_num <- as.integer(input[[uid]])
+  entry_list <- get_pxk_entry_num(selected_pxk_num,config_dict)
+  selectInput(inputId = iid,
+              label = ui_elem$actual[ui_elem$label=='select_stt'],
+              choices=c(entry_list,ui_elem$actual[ui_elem$label=='all']))
+}) }
+
+# render qty
+render_qty <- function(iid){renderUI({
+  selectizeInput(inputId = iid,
+                 label = ui_elem$actual[ui_elem$label=='qty'],
+                 choices=c(1:100),options = list(create=T))
+}) }
+
+render_unit <- function(input,iid){renderUI({
+  current_prod_code<- product_info[product_info$name==input$prod_name_select,
+                                   "prod_code"]
+  unitList <- packaging[packaging$prod_code == current_prod_code,"unit"]
+  unitList <- unique(unitList)
+  unitList <- unitList[unitList!='pack']
+  selectInput(
+    inputId = iid,
+    label = ui_elem$actual[ui_elem$label=='unit'],
+    choices = unitList
+  )
+}) }
+
+render_lot <- function(input,iid){renderUI({
+  current_prod_code <- product_info[product_info$name==input$prod_name_select,
+                                    "prod_code"]
+  avaiLot <- get_avail_lot(current_prod_code,config_dict)
+  selectizeInput(
+    inputId = iid, label = "Lot",
+    choices = unique(avaiLot), options = list(create = TRUE)
+  )
+})
+}
+
+render_note <- function(iid){renderUI({
+  textInput(inputId = iid,
+            label = ui_elem$actual[ui_elem$label=='Note'],
+            value = '')
+}) }
+
+render_prod_info <- function(input){renderUI({
+  product_info_str <- build_prod_info(config_dict,input)
+  HTML(product_info_str)
+}) }
+
+# function to rebuild the productInfo HTML string
+build_prod_info <- function(config_dict,input){
+  conn <- db_open(config_dict)
+  product_info <- dbReadTable(conn,"product_info")
+  dbDisconnect(conn)
+  inventory <- update_inventory(config_dict)
+  
+  current_select <- product_info[product_info$name==input$prod_name_select,]
+
+  total_available <- inventory[
+    inventory$prod_code == current_select$prod_code &
+            inventory$lot == input$lot_select,
+    'remaining_qty']
+  current_exp_date <- inventory[
+    inventory$prod_code == current_select$prod_code &
+      inventory$lot == input$lot_select, 'exp_date']
+  packaging_str <- packaging[
+    packaging$prod_code == current_select$prod_code &
+      packaging$unit == input$unit_selector,]
+  packaging_str <- paste0(packaging_str$units_per_pack[1],
+                          packaging_str$unit[1],'/pack')
+  return(paste("REF: ",current_select$ref_smn,'<br/>',
+               ui_elem$actual[ui_elem$label=='prod_code'],':',
+               current_select$prod_code, '<br/>',
+               ui_elem$actual[ui_elem$label=='vendor'],':',
+               current_select$vendor, '<br/>',
+               ui_elem$actual[ui_elem$label=='exp_date'],':',
+               current_exp_date, '<br/>',
+               ui_elem$actual[ui_elem$label=='total_available'],':',
+               total_available, '<br/>',
+               ui_elem$actual[ui_elem$label=='packaging_str'],
+               ':',packaging_str)
+  )
+}
+
+render_current_pxk_infostr <- function(config_dict){renderUI({
+  current_pxk <- get_current_pxk(config_dict)
+  current_pxk_str <- build_pxk_status_str(current_pxk,config_dict)
+  HTML(current_pxk_str)
+}) }
+
+
+
+build_pxk_status_str <- function(pxk_num,config_dict){
+  conn <- db_open(config_dict)
+  pxk_status_code <- dbGetQuery(
+    conn,paste('select completed from pxk_info where pxk_num =', pxk_num))
+  if (nrow(pxk_status_code)<=0){
+    status <- ui_elem$actual[ui_elem$label=='new']
+  }else{
+    if (pxk_status_code == 1){
+      status <- 'completed'
+    }else{
+      status <- 'in_progress'
+    }
+  }
+  dbDisconnect(conn)
+  return(paste("<font size='+1'>PXK: ",pxk_num,' Status: ',
+               status,'</font><br/>')
+  )
+}
+
+# render table for the pxk_man tab
+render_man_pxktable <- function(input){DT::renderDataTable({
+  selected_pxk_num <- as.integer(input$man_pxk_list)
+  output <- render_selected_pxk(selected_pxk_num,config_dict)
+  DT::datatable(output, options = list(pageLength = 5),rownames=F)
+})
+}
+
+# render table for the invout tab
+render_invout_pxktable <- function(){DT::renderDataTable({
+  current_pxk <- get_current_pxk(config_dict)
+  # print(current_pxk)
+  output <- render_selected_pxk(current_pxk,config_dict)
+  DT::datatable(output, options = list(pageLength = 5),rownames=F)
+})
+}
+
+render_sys_message <- function(sys_msg){renderUI({
+  HTML(sys_msg)
 }) }

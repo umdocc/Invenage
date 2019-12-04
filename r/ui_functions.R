@@ -169,38 +169,7 @@ get_avail_lot <- function(current_prod_code,config_dict,sort_type='fifo'){
   return(avail_lot)
 }
 
-# function to rebuild the productInfo HTML string
-build_prod_info <- function(config_dict,input){
-  conn <- db_open(config_dict)
-  product_info <- dbReadTable(conn,"product_info")
-  dbDisconnect(conn)
-  inventory <- update_inventory(config_dict)
-  
-  current_select <- product_info[product_info$name==input$prod_name_selector,]
 
-  total_available <- inventory[inventory$prod_code == current_select$prod_code &
-                            inventory$lot == input$lot_selector, 'remaining_qty']
-  current_exp_date <- inventory[
-    inventory$prod_code == current_select$prod_code &
-                      inventory$lot == input$lot_selector, 'exp_date']
-  packaging_str <- packaging[
-    packaging$prod_code == current_select$prod_code &
-      packaging$unit == input$unit_selector,]
-  packaging_str <- paste0(packaging_str$units_per_pack[1],
-                          packaging_str$unit[1],'/pack')
-  return(paste("REF: ",current_select$ref_smn,'<br/>',
-               ui_elem$actual[ui_elem$label=='prod_code'],':',
-               current_select$prod_code, '<br/>',
-               ui_elem$actual[ui_elem$label=='vendor'],':',
-               current_select$vendor, '<br/>',
-               ui_elem$actual[ui_elem$label=='exp_date'],':',
-               current_exp_date, '<br/>',
-               ui_elem$actual[ui_elem$label=='total_available'],':',
-               total_available, '<br/>',
-               ui_elem$actual[ui_elem$label=='packaging_str'],
-               ':',packaging_str)
-  )
-}
 
 get_current_po_info <- function(config_dict){
   file_list <- data.frame(
@@ -624,10 +593,7 @@ create_fifo_sale_log <- function(sale_log,import_log,pxk_info){
   return('under dev')
 }
 
-render_current_pxk_str <- function(current_pxk,config_dict){
-  return(paste("<font size='+2'>PXK: ",current_pxk,' Status: ','</font><br/>')
-         )
-}
+
 
 # return the pxk data from pxk_num
 render_selected_pxk <- function(selected_pxk_num,config_dict,localised=T){

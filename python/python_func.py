@@ -319,3 +319,14 @@ def to_lower(data_df,col_list):
     df_low = data_df[col_list]
     data_df[col_list] = df_low.apply(lambda x: x.str.lower())
     return(data_df)
+    
+def convert_to_pack(input_df,packaging,qty_str):
+#    input_df = tender_detail
+    input_df.unit = input_df.unit.str.lower()
+    input_df = pd.merge(
+            input_df,packaging[['prod_code','unit','units_per_pack']],
+            how='left')
+    if (len(input_df[input_df.units_per_pack.isnull()])>0):
+        raise RuntimeError('units_per_pack not found for some product!')
+    input_df[qty_str+'_pack'] = input_df[qty_str]/input_df.units_per_pack
+    return(input_df)

@@ -26,16 +26,14 @@ dashboardPage(
     tabItems(
       tabItem(tabName = "inv_out",
               fluidRow(
-                box(width=3, height = 600,
+                box(width=2, height = 600,
                     # htmlOutput('pxk_selector'),
                     htmlOutput('customer_selector'),
-                    htmlOutput('prod_name_selector'),
+                    htmlOutput('prod_name_select'),
                     htmlOutput("qty_selector"),
                     htmlOutput("unit_selector"),
-                    htmlOutput("lot_selector"),
-                    htmlOutput("warehouse_selector"),
-                    
-                    h5('')
+                    htmlOutput("lot_select"),
+                    htmlOutput("warehouse_selector")
                 ),
                 box(width = 2, height = 600,
                     htmlOutput("unit_price"),
@@ -45,11 +43,12 @@ dashboardPage(
                     htmlOutput("prod_info_str"),
                     actionButton("inventory_out",
                                  ui_elem$actual[ui_elem$label=='inv_out']),
-                    h5('')
+                    h4(ui_elem$actual[ui_elem$label=='sys_msg']),
+                    htmlOutput("sys_msg")
                 ),
-                box(width = 7, height = 600,
+                box(width = 8, height = 600,
                     htmlOutput("current_pxk_info"),
-                    tableOutput("current_pxk_tbl"),
+                    DT::dataTableOutput("current_pxk_tbl"),
                     actionButton("del_last_entry",
                                  ui_elem$actual[ui_elem$label=='del_last_entry']),
                     actionButton("complete_form",
