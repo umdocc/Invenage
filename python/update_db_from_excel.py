@@ -125,7 +125,7 @@ tmp['type'] = ''
 tmp['import_license_exp'] = ''
 tmp['updated_date'] = format(datetime.datetime.today(),'%d%m%y')
 tmp['prod_group'] = ''
-
+tmp['active'] = 1
 
 
 append_pkg = tmp.copy()
@@ -144,8 +144,9 @@ append_pkg = append_pkg[['unit','units_per_pack','prod_code','last_updated']]
 # check for db eistence and prepare output
 tmp = inv.check_exists(tmp,product_info,['vendor','ref_smn'])
 tmp = tmp[tmp.exist.isnull()]
-tmp = tmp[['prod_code','name','vendor','ref_smn','type','packaging_str',
-          'import_license_exp','updated_date','prod_group','warehouse_id']]
+tmp = tmp[['prod_code', 'name', 'vendor', 'ref_smn', 'type', 'packaging_str',
+          'import_license_exp', 'updated_date', 'prod_group', 
+          'warehouse_id', 'active']]
 append_prod_info = tmp.copy()
 
 conn = inv.db_open(config_dict)
