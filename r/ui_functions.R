@@ -1,7 +1,4 @@
-# All functions shared by the UIs
-# call all required packages
-# ------------------------------- Base functions -------------------------------
-# the db_open create the appropriate db connection for Invenage
+# functions used for ui elements
 db_open <- function(config_dict){
   db_type <- config_dict$value[config_dict$name=='db_type']
   if (db_type == 'SQLite'){
@@ -129,7 +126,8 @@ convert_to_pack <- function(inputDF,packaging,stringSL,packString){
     print(inputDF[is.na(inputDF$units_per_pack),])
     stop('inputDF contains unrecognised packaging')
   }
-  inputDF[[packString]] <- inputDF[[stringSL]]/inputDF$units_per_pack
+  inputDF[[packString]] <- as.numeric(inputDF[[stringSL]])/as.numeric(
+    inputDF$units_per_pack)
   # clean up
   inputDF$unit <- 'pack'
   inputDF[[stringSL]] <- NULL
@@ -647,4 +645,19 @@ delete_pxk <- function(pxk_num,stt,config_dict){
   }
   conn = db_open(config_dict)
   res <- dbSendQuery(conn,query)
+}
+
+# function to check if an inv_out entry should be allowed before writing to db
+check_inv_out <- function(append_sale_log, config_dict){
+  curent_prodcode <- as.character(append_sale_log$prod_code[1])
+  current_lot <- as.character(append_sale_log$lot[1])
+  tmp <- convert_to_pack(append_sale_log,packaging,'qty','pack_qty')
+  sale_qty <- tmp$pack_qty
+  inventory <- update_inventory(config_dict)
+  inv_remain <- inventory$remaining_qty[inventory$prod_code == curent_prodcode &
+                                          inventory$lot == current_lot][1]
+  if (is.na(inv_remain)){inv_remain <- 0}
+  inv_out_ok <- (inv_remain>=sale_qty)
+  print(tmp)
+  return(inv_out_ok)
 }

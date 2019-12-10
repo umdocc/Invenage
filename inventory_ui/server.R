@@ -81,7 +81,7 @@ shinyServer(function(input, output,session) {
       }
     }
 
-    # append the data from input
+    # build base sale_log for testing first
     append_sale_log <- data.frame(
       stt = current_stt,
       prod_code = unique(product_info[product_info$name==input$prod_name_select,
@@ -89,19 +89,25 @@ shinyServer(function(input, output,session) {
       unit = input$unit_selector,
       unit_price = as.integer(input$unit_price),
       qty = input$qty_selector,
-      lot = input$lot_select,
       pxk_num = current_pxk,
-      note = input$pxk_note,
-      warehouse_id = warehouse_info$warehouse_id[
-        warehouse_info$warehouse == input$warehouse_selector]
+      note = input$pxk_note
     )
-    
-    # writing sale_log to database
-    conn <- db_open(config_dict)
-    dbWriteTable(conn,'sale_log',append_sale_log,append=T)
-    sale_log <- dbReadTable(conn,'sale_log')
-    dbDisconnect(conn)
-    
+    print(append_sale_log)
+    # check and write append_sale_log to database
+    inv_out_ok <- check_inv_out(append_sale_log, config_dict)
+    # print(append_sale_log)
+    if (inv_out_ok){
+      append_sale_log$lot <- input$lot_select
+      append_sale_log$warehouse_id <- warehouse_info$warehouse_id[
+          warehouse_info$warehouse == input$warehouse_selector]
+      conn <- db_open(config_dict)
+      dbWriteTable(conn,'sale_log',append_sale_log,append=T)
+      sale_log <- dbReadTable(conn,'sale_log')
+      dbDisconnect(conn)
+    }else{
+      output$sys_msg <- render_sys_message(
+        'exporting exceeding current inventory')
+    }
     # refresh the UI after sucessfull inventory_out
     output$prod_name_selector <- render_prod_name_list(
       input,product_info,'prod_name_select') # prod_name
