@@ -24,3 +24,5 @@ python/private/build_tender_detail.py
 r/private/build_tender_status.R
 inventory_ui/.RData
 .DS_Store
+python/private/po_tools.py
+.DS_Store
