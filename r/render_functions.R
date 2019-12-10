@@ -170,3 +170,43 @@ render_invout_pxktable <- function(){DT::renderDataTable({
 render_sys_message <- function(sys_msg){renderUI({
   HTML(sys_msg)
 }) }
+
+render_customer_list <- function(iid){renderUI({
+  custChoices <- get_cust_list(config_dict)
+  selectizeInput(inputId = iid,
+                 label = ui_elem$actual[ui_elem$label=='customer_name'],
+                 choices = custChoices)
+}) }
+
+render_payment_type <- function(iid){renderUI({
+  conn <- db_open(config_dict)
+  payment_type <- dbReadTable(conn,'payment_type')
+  payment_type <- merge(payment_type,ui_elem %>% select(label,actual),
+                        by.x='payment_label',by.y='label',all.x=T)
+  dbDisconnect(conn)
+  paymentChoices <- payment_type$actual
+  defaultPay <- payment_type$actual[payment_type$payment_code==0]
+  selectInput(inputId = iid,
+              label = ui_elem$actual[ui_elem$label=='payment_type'],
+              choices = paymentChoices,selected = defaultPay)
+}) }
+
+render_warehouse <- function(input,iid){renderUI({
+  # iid <- warehouse_selector
+  conn <- db_open(config_dict)
+  warehouse_info <- dbReadTable(conn,'warehouse_info')
+  dbDisconnect(conn)
+  warehouseChoices <- warehouse_info$warehouse
+  # get default warehouse based on current product
+  tmp <- update_inventory(config_dict)
+  current_prod_code <- product_info[
+    product_info$name==input$prod_name_select, "prod_code"]
+  default_warehouse_id <- tmp$warehouse_id[
+    tmp$prod_code==current_prod_code & 
+      tmp$lot==input$lot_select]
+  default_warehouse <- warehouse_info$warehouse[
+    warehouse_info$warehouse_id == default_warehouse_id]
+  selectInput(inputId = iid,
+              label = ui_elem$actual[ui_elem$label=='warehouse'],
+              choices = default_warehouse)
+}) }

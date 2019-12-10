@@ -3,72 +3,19 @@ source("global.R",local = F)
 require(dplyr)
 require(DT)
 shinyServer(function(input, output,session) {
-  # # --------------------- custom render functions ----------------------------
-
-  renderCustomer <- function(){renderUI({
-    custChoices <- get_cust_list(config_dict)
-    selectizeInput(inputId = 'customer_name',
-                label = ui_elem$actual[ui_elem$label=='customer_name'],
-                choices = custChoices)
-  }) }
-  renderPaymentType <- function(){renderUI({
-    conn <- db_open(config_dict)
-    payment_type <- dbReadTable(conn,'payment_type')
-    payment_type <- merge(payment_type,ui_elem %>% select(label,actual),
-                          by.x='payment_label',by.y='label',all.x=T)
-    dbDisconnect(conn)
-    paymentChoices <- payment_type$actual
-    defaultPay <- payment_type$actual[payment_type$payment_code==0]
-    selectInput(inputId = 'payment_type',
-                label = ui_elem$actual[ui_elem$label=='payment_type'],
-                choices = paymentChoices,selected = defaultPay)
-  }) }
-  renderWarehouse <- function(){renderUI({
-    conn <- db_open(config_dict)
-    warehouse_info <- dbReadTable(conn,'warehouse_info')
-    dbDisconnect(conn)
-    warehouseChoices <- warehouse_info$warehouse
-    # get default warehouse based on current product
-    tmp <- update_inventory(config_dict)
-    current_prod_code <- product_info[
-      product_info$name==input$prod_name_select, "prod_code"]
-    default_warehouse_id <- tmp$warehouse_id[
-      tmp$prod_code==current_prod_code & 
-        tmp$lot==input$lot_select]
-    default_warehouse <- warehouse_info$warehouse[
-      warehouse_info$warehouse_id == default_warehouse_id]
-    selectInput(inputId = 'warehouse_selector',
-                label = ui_elem$actual[ui_elem$label=='warehouse'],
-                choices = default_warehouse)
-  }) }
-  
-  renderCurrentPXK <- function(){renderTable({
-    current_pxk <- get_current_pxk(config_dict)
-    query <- paste("select sale_log.stt, product_info.name, sale_log.unit,
-                sale_log.unit_price,sale_log.qty, sale_log.lot,
-                sale_log.pxk_num, sale_log.note
-                from sale_log inner join product_info
-                 on sale_log.prod_code = product_info.prod_code
-                 where sale_log.pxk_num =",
-                   current_pxk)
-    conn <- db_open(config_dict)
-    outTable <- dbGetQuery(conn,query)
-    dbDisconnect(conn)
-    outTable
-  }) }
-  
   # ---------------------------- UI Renderer -----------------------------------
   # inv_out-1
-  output$customer_selector <- renderCustomer() # customer
+  output$customer_selector <- render_customer_list('customer_name') # customer
   output$prod_name_select <- render_prod_name_list(
     input,product_info,'prod_name_select') # prod_name
   output$qty_selector <- render_qty(iid='qty_selector') #Qty
   output$unit_selector <- render_unit(input,iid='unit_selector') #Unit
   output$lot_select <- render_lot(input, iid='lot_select') # Lot
-  output$warehouse_selector <- renderWarehouse() # warehouse
+  output$warehouse_selector <- render_warehouse(
+    input, 'warehouse_selector') # warehouse
   # inv_out-2
   output$unit_price <- render_price(input,iid='unit_price')
-  output$payment_selector <- renderPaymentType() # payment
+  output$payment_selector <- render_payment_type('payment_type') # payment
   output$pxk_note <- render_note(iid='pxk_note') #Note
   output$prod_info_str <- render_prod_info(input) #product Info pane
   # inv_out-3
@@ -302,7 +249,7 @@ shinyServer(function(input, output,session) {
     system(paste0('open ','"',dest_path,'"'))
     
     # ------------- completeForm UI refresh ------------------------------------
-    output$customer_selector <- renderCustomer() # customer
+    output$customer_selector <- render_customer_list('customer_name') # customer
     output$current_pxk_tbl <- render_invout_pxktable() # current_pxk_tbl
     output$current_pxk_info <- render_current_pxk_infostr(
       config_dict) #current pxk info
