@@ -80,24 +80,21 @@ shinyServer(function(input, output,session) {
         current_stt <- current_stt+1
       }
     }
-
     # build base sale_log for testing first
     append_sale_log <- data.frame(
       stt = current_stt,
       prod_code = unique(product_info[product_info$name==input$prod_name_select,
                                       "prod_code"]),
       unit = input$unit_selector,
+      lot = input$lot_select,
       unit_price = as.integer(input$unit_price),
       qty = input$qty_selector,
       pxk_num = current_pxk,
       note = input$pxk_note
     )
-    print(append_sale_log)
     # check and write append_sale_log to database
     inv_out_ok <- check_inv_out(append_sale_log, config_dict)
-    # print(append_sale_log)
     if (inv_out_ok){
-      append_sale_log$lot <- input$lot_select
       append_sale_log$warehouse_id <- warehouse_info$warehouse_id[
           warehouse_info$warehouse == input$warehouse_selector]
       conn <- db_open(config_dict)
@@ -106,7 +103,7 @@ shinyServer(function(input, output,session) {
       dbDisconnect(conn)
     }else{
       output$sys_msg <- render_sys_message(
-        'exporting exceeding current inventory')
+        ui_elem$actual[ui_elem$label=='inv_exceed'])
     }
     # refresh the UI after sucessfull inventory_out
     output$prod_name_selector <- render_prod_name_list(
@@ -115,6 +112,8 @@ shinyServer(function(input, output,session) {
     output$lot_select <- render_lot(input, iid='lot_select') # Lot
     output$prod_info_str <- render_prod_info(input) #product Info pane
     output$pxk_note <- render_note(iid='pxk_note') #Note
+    output$current_pxk_info <- render_current_pxk_infostr(
+      config_dict) #current pxk info
     output$current_pxk_tbl <- render_invout_pxktable() # reload the PXK table
     output$man_pxk_list <- render_pxk_list(
       input,config_dict,'man_pxk_list') #reload pxk_list in pxk_man as well
@@ -306,4 +305,22 @@ shinyServer(function(input, output,session) {
     # reload the current_pxk in inv_out
     output$current_pxk_tbl <- render_invout_pxktable()
   })
+  
+  observeEvent(input$del_selected_stt,{
+    current_pxk <- get_current_pxk(config_dict)
+    current_stt_list <- get_pxk_entry_num(current_pxk,config_dict)
+    # print(length(current_stt_list))
+    # if there is record in current pxk, allow delete
+    if (length(current_stt_list)>0){
+      stt_to_proc <- as.character(input$del_stt_select)
+      delete_pxk(current_pxk,stt_to_proc,config_dict)
+    }
+    # reload UI
+    output$prod_name_selector <- render_prod_name_list(
+      input,product_info,'prod_name_select') # prod_name, required for prod_info
+    output$qty_selector <- render_qty(iid='qty_selector') #Qty
+    output$lot_select <- render_lot(input, iid='lot_select') # Lot
+    output$current_pxk_tbl <- render_invout_pxktable()
+    output$prod_info_str <- render_prod_info(input)
+  })  
 })

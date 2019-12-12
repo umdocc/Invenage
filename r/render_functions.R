@@ -1,4 +1,4 @@
-# all functions used to render shiny UI
+# all reactive functions used to render shiny UI
 
 # render a list of pxk
 render_pxk_list <- function(input,config_dict,iid){renderUI({
@@ -101,14 +101,18 @@ build_prod_info <- function(config_dict,input){
     inventory$prod_code == current_select$prod_code &
             inventory$lot == input$lot_select,
     'remaining_qty']
+  if(length(total_available)==0){total_available <- 0}
   current_exp_date <- inventory[
     inventory$prod_code == current_select$prod_code &
       inventory$lot == input$lot_select, 'exp_date']
   packaging_str <- packaging[
     packaging$prod_code == current_select$prod_code &
       packaging$unit == input$unit_selector,]
+  ordering_unit <- get_ordering_unit(packaging)
+  current_order_unit <- ordering_unit$unit[
+    ordering_unit$prod_code==current_select$prod_code]
   packaging_str <- paste0(packaging_str$units_per_pack[1],
-                          packaging_str$unit[1],'/pack')
+                          packaging_str$unit[1],'/',current_order_unit)
   return(paste("REF: ",current_select$ref_smn,'<br/>',
                ui_elem$actual[ui_elem$label=='prod_code'],':',
                current_select$prod_code, '<br/>',
@@ -145,8 +149,12 @@ build_pxk_status_str <- function(pxk_num,config_dict){
     }
   }
   dbDisconnect(conn)
-  return(paste("<font size='+1'>PXK: ",pxk_num,' Status: ',
-               status,'</font><br/>')
+  tmp1 <- ui_elem$actual[ui_elem$label=='pxkNum']
+  tmp2 <- ui_elem$actual[ui_elem$label=='Status']
+  current_status <- check_pxk_num(pxk_num,config_dict)
+  current_status <- ui_elem$actual[ui_elem$label==current_status]
+  return(paste("<font size='+1'>",tmp1,": ",pxk_num,tmp2,':',
+               current_status,'</font><br/>')
   )
 }
 

@@ -49,16 +49,35 @@ dashboardPage(
                 box(width = 8, height = 600,
                     htmlOutput("current_pxk_info"),
                     DT::dataTableOutput("current_pxk_tbl"),
-                    actionButton("del_last_entry",
-                                 ui_elem$actual[ui_elem$label=='del_last_entry']),
-                    actionButton("complete_form",
-                                 ui_elem$actual[ui_elem$label=='complete_form']),
-                    actionButton("reload_pxk",
-                                 ui_elem$actual[ui_elem$label=='reload_pxk'])
+                    h4(), #space
+                    div(
+                      style="display: inline-block;vertical-align:top;", 
+                      h5(ui_elem$actual[ui_elem$label=='del_selected_stt'])
+                    ),
+                    div(style="display: inline-block;vertical-align:top; \
+                        width: 5px;",HTML("<br>")
+                    ),
+                    div(style="display: inline-block;vertical-align:top; \
+                        width: 50px;",
+                        selectInput(
+                          inputId = 'del_stt_select', label = NULL, 
+                          choices = 1:10, selected = 1)
+                    ),
+                    div(style="display: inline-block;vertical-align:top; \
+                        width: 150px;",
+                        actionButton(
+                          "del_selected_stt", 
+                          ui_elem$actual[ui_elem$label=='delete_stt'])
+                    ),
+                    div(style="display: inline-block;vertical-align:top; \
+                        position:absolute;right:10px",
+                        actionButton(
+                          "complete_form",
+                          ui_elem$actual[ui_elem$label=='complete_form'])
+                    )
                 )
               )
-      )
-      , # end of export tab
+      ), # end of export tab
       tabItem(tabName = 'Lookup',
               fluidRow(
                 selectInput(inputId = 'lu_tbl_selector',
@@ -78,19 +97,19 @@ dashboardPage(
                                 choices = report_list$actual),
                     conditionalPanel(
                       condition = paste0(
-                      "input.report_type == '",date_range_tbl_local,"'"),
+                        "input.report_type == '",date_range_tbl_local,"'"),
                       dateInput(inputId = 'from_date',
-                              label = ui_elem$actual[
-                                ui_elem$label=='from_date'], 
-                              value = "2019-11-04", format = date_format_alt)
-                      ),
+                                label = ui_elem$actual[
+                                  ui_elem$label=='from_date'], 
+                                value = "2019-11-04", format = date_format_alt)
+                    ),
                     conditionalPanel(
                       condition = paste0(
                         "input.report_type == '",date_range_tbl_local,"'"),
-                    dateInput(inputId = 'to_date',
-                              label = ui_elem$actual[
-                                ui_elem$label=='to_date'], 
-                              value = "2019-11-10", format = date_format_alt)
+                      dateInput(inputId = 'to_date',
+                                label = ui_elem$actual[
+                                  ui_elem$label=='to_date'], 
+                                value = "2019-11-10", format = date_format_alt)
                     ),
                     actionButton("printReport",
                                  ui_elem$actual[
@@ -117,8 +136,8 @@ dashboardPage(
               fluidRow(
                 box(width = 3, height = 400,
                     h3('invenage development build')
-                    )
                 )
+              )
       ) # end of sys_info tab
     ) # end tabItems
   ) # end dashboardBody

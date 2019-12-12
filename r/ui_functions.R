@@ -1,4 +1,4 @@
-# functions used for ui elements
+# all non-reactive function used in UI
 db_open <- function(config_dict){
   db_type <- config_dict$value[config_dict$name=='db_type']
   if (db_type == 'SQLite'){
@@ -117,7 +117,7 @@ update_inventory <- function(config_dict, pos_item=TRUE){
   return(inventory)
 }
 
-# convertToPack is a critical function
+# convert_to_pack is a critical function
 convert_to_pack <- function(inputDF,packaging,stringSL,packString){
   inputDF <- merge(
     inputDF,packaging %>% select(prod_code,unit,units_per_pack),all.x=T)
@@ -656,8 +656,36 @@ check_inv_out <- function(append_sale_log, config_dict){
   inventory <- update_inventory(config_dict)
   inv_remain <- inventory$remaining_qty[inventory$prod_code == curent_prodcode &
                                           inventory$lot == current_lot][1]
+  # print(inv_remain)
   if (is.na(inv_remain)){inv_remain <- 0}
   inv_out_ok <- (inv_remain>=sale_qty)
-  print(tmp)
+  
+  # print(sale_qty)
   return(inv_out_ok)
+}
+
+# create a list of ordering_unit based on packaging
+get_ordering_unit <- function(packaging){
+  ordering_unit <- packaging[
+    packaging$units_per_pack==1, c('prod_code', 'unit')]
+  ordering_unit <- ordering_unit[ordering_unit$unit!='pack',]
+  ordering_unit <- ordering_unit[!duplicated(ordering_unit$prod_code),]
+  return(ordering_unit)
+}
+
+# check the status of pxk_num
+check_pxk_num <- function(selected_pxk_num,config_dict){
+  conn <- db_open(config_dict)
+  pxk_info <- dbReadTable(conn,"pxk_info")
+  dbDisconnect(conn)
+  pxk_status <- 'completed'
+  complete_code <- pxk_info$completed[pxk_info$pxk_num==selected_pxk_num]
+  if (length(complete_code)==0){
+    pxk_status <- 'new'
+  }else{
+    if (complete_code==0){
+      pxk_status <- 'in_progress'
+    }
+  }
+  return(pxk_status)
 }
