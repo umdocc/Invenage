@@ -66,7 +66,7 @@ dashboardPage(
                     div(style="display: inline-block;vertical-align:top; \
                         width: 150px;",
                         actionButton(
-                          "del_selected_stt", 
+                          "del_inv_out_stt", 
                           ui_elem$actual[ui_elem$label=='delete_stt'])
                     ),
                     div(style="display: inline-block;vertical-align:top; \
@@ -122,7 +122,7 @@ dashboardPage(
                 box(width = 3, height = 600,
                     htmlOutput('man_pxk_list'),
                     htmlOutput('stt_select'),
-                    actionButton("delete_stt",
+                    actionButton("delete_stt_man",
                                  ui_elem$actual[
                                    ui_elem$label=='delete_stt'])
                 ),

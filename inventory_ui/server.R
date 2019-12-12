@@ -3,7 +3,7 @@ source("global.R",local = F)
 require(dplyr)
 require(DT)
 shinyServer(function(input, output,session) {
-  # ---------------------------- UI Renderer -----------------------------------
+  # -------------------------------inv_out UI ----------------------------------
   # inv_out-1
   output$customer_selector <- render_customer_list('customer_name') # customer
   output$prod_name_select <- render_prod_name_list(
@@ -22,14 +22,8 @@ shinyServer(function(input, output,session) {
   output$current_pxk_info <- render_current_pxk_infostr(
     config_dict) #current pxk info
   output$current_pxk_tbl <- render_invout_pxktable()
-  # pxk_man
-  output$man_pxk_list <- render_pxk_list(
-    input,config_dict,'man_pxk_list') #pxk_list
-  output$stt_select <- render_entry_list(
-    input,config_dict, uid='man_pxk_list', iid='stt_select') #select_stt
-  output$sys_msg <- render_sys_message('ready')
-  # Buttons
-  # Inventory Out will write transaction to database
+  
+  # inv_out UI buttons handlers
   observeEvent(input$inventory_out, {
     # Write the event to transaction table to keep track of the transaction
     # connect to database, also re-read pxk_info
@@ -45,7 +39,7 @@ shinyServer(function(input, output,session) {
     
     
     # if this PXK is not in the database yet, create new with completed 0
-
+    
     if (nrow(pxk_info[pxk_info$pxk_num==current_pxk,])==0){
       
       appendPXKInfo <- data.frame(
@@ -96,7 +90,7 @@ shinyServer(function(input, output,session) {
     inv_out_ok <- check_inv_out(append_sale_log, config_dict)
     if (inv_out_ok){
       append_sale_log$warehouse_id <- warehouse_info$warehouse_id[
-          warehouse_info$warehouse == input$warehouse_selector]
+        warehouse_info$warehouse == input$warehouse_selector]
       conn <- db_open(config_dict)
       dbWriteTable(conn,'sale_log',append_sale_log,append=T)
       sale_log <- dbReadTable(conn,'sale_log')
@@ -120,30 +114,29 @@ shinyServer(function(input, output,session) {
     
   })
   
-  observeEvent(input$reload_pxk, {
-    output$current_pxk_tbl <- render_invout_pxktable()
-  })
-  
-  observeEvent(input$del_last_entry,{
+  observeEvent(input$del_inv_out_stt,{
     current_pxk <- get_current_pxk(config_dict)
-    conn <- db_open(config_dict)
-    query <- paste("delete from sale_log where pxk_num =",current_pxk,
-                   "and stt = (select max(stt) from sale_log where pxk_num =",
-                   current_pxk,")")
-    res <- dbSendStatement(conn,query)
-    dbClearResult(res)
-    dbDisconnect(conn)
-    
-    #refresh UI
-    output$prod_info_str <- render_prod_info(input) #product Info pane
-    output$current_pxk_tbl <- render_invout_pxktable() # current PXK table
+    current_stt_list <- get_pxk_entry_num(current_pxk,config_dict)
+    # print(length(current_stt_list))
+    # if there is record in current pxk, allow delete
+    if (length(current_stt_list)>0){
+      stt_to_proc <- as.character(input$del_stt_select)
+      delete_pxk(current_pxk,stt_to_proc,config_dict)
+    }
+    # reload UI
+    output$prod_name_selector <- render_prod_name_list(
+      input,product_info,'prod_name_select') # prod_name, required for prod_info
+    output$qty_selector <- render_qty(iid='qty_selector') #Qty
+    output$lot_select <- render_lot(input, iid='lot_select') # Lot
+    output$current_pxk_tbl <- render_invout_pxktable()
+    output$prod_info_str <- render_prod_info(input)
   })
   
   observeEvent(input$complete_form,{
     # getting data to write to excel
     finalised_pxk_warehouse <- input$warehouse_selector
     finalised_pxk_num <- get_current_pxk(config_dict)
-
+    
     conn <- db_open(config_dict)
     query <- paste0("update pxk_info set completed = 1
                     where pxk_num = '",finalised_pxk_num,"'")
@@ -199,7 +192,7 @@ shinyServer(function(input, output,session) {
       output_info$value[output_info$name=='customerNameRow'])
     customerNameCol <- as.numeric(
       output_info$value[output_info$name=='customerNameCol'])
-
+    
     writeData(wb,sheet=1,printingCustomerName, startRow=customerNameRow, 
               startCol=customerNameCol, colNames = F)
     
@@ -253,7 +246,7 @@ shinyServer(function(input, output,session) {
     # open the file
     system(paste0('open ','"',dest_path,'"'))
     
-    # ------------- completeForm UI refresh ------------------------------------
+    # UI refresh
     output$customer_selector <- render_customer_list('customer_name') # customer
     output$current_pxk_tbl <- render_invout_pxktable() # current_pxk_tbl
     output$current_pxk_info <- render_current_pxk_infostr(
@@ -265,8 +258,12 @@ shinyServer(function(input, output,session) {
     output$prod_info_str <- render_prod_info(input) #product Info pane
     output$pxk_note <- render_note(iid='pxk_note') #Note
   })
+  
+
+  
+
   #   
-  # ------------------------ UI for the Lookup Tab -----------------------------
+  # ------------------------------- lookup UI ----------------------------------
   output$lookup_tbl_output <- DT::renderDataTable({
     table_name <- ui_elem$label[
       ui_elem$actual==input$lu_tbl_selector]
@@ -274,18 +271,25 @@ shinyServer(function(input, output,session) {
     create_lookup_tbl(table_name,config_dict)
   },rownames=F)
   
-  # --------------------- UI for the Reports tab -------------------------------
-
+  # ----------------------------- report UI ------------------------------------
   # create the report and open it
   observeEvent(input$printReport, {
     report_type <- ui_elem$label[ui_elem$actual==input$report_type]
     rp_filename <- create_report(report_type,config_dict,input)
     system(paste0('open ','"',rp_filename,'"'))
   })
-  # ------------------------ ui for pxk_man tab ----------------------------
+
+  # ---------------------------- pxk_man UI ------------------------------------
+  # renderers
+  output$man_pxk_list <- render_pxk_list(
+    input,config_dict,'man_pxk_list') #pxk_list
+  output$stt_select <- render_entry_list(
+    input,config_dict, uid='man_pxk_list', iid='stt_select') #select_stt
+  output$sys_msg <- render_sys_message('ready')
   output$pxk_detail <- render_man_pxktable(input)
   
-  observeEvent(input$delete_stt,{
+  # button handlers
+  observeEvent(input$delete_stt_man,{
     # print(input$pxk_list)
     selected_pxk_num <- as.integer(input$man_pxk_list)
     full_stt_list <- get_pxk_entry_num(selected_pxk_num,config_dict)
@@ -299,28 +303,10 @@ shinyServer(function(input, output,session) {
     )
     delete_pxk(selected_pxk_num,stt_to_proc,config_dict)
     # refresh the UI
-    output$pxk_detail <- render_man_pxktable() # reload the pxk_man table
+    output$pxk_detail <- render_man_pxktable(input) # reload the pxk_man table
     output$stt_select <- render_entry_list(
-      input,config_dict, uid='man_pxk_list', iid='stt_select')
-    # reload the current_pxk in inv_out
-    output$current_pxk_tbl <- render_invout_pxktable()
+    input,config_dict, uid='man_pxk_list', iid='stt_select')
   })
   
-  observeEvent(input$del_selected_stt,{
-    current_pxk <- get_current_pxk(config_dict)
-    current_stt_list <- get_pxk_entry_num(current_pxk,config_dict)
-    # print(length(current_stt_list))
-    # if there is record in current pxk, allow delete
-    if (length(current_stt_list)>0){
-      stt_to_proc <- as.character(input$del_stt_select)
-      delete_pxk(current_pxk,stt_to_proc,config_dict)
-    }
-    # reload UI
-    output$prod_name_selector <- render_prod_name_list(
-      input,product_info,'prod_name_select') # prod_name, required for prod_info
-    output$qty_selector <- render_qty(iid='qty_selector') #Qty
-    output$lot_select <- render_lot(input, iid='lot_select') # Lot
-    output$current_pxk_tbl <- render_invout_pxktable()
-    output$prod_info_str <- render_prod_info(input)
-  })  
+  
 })
