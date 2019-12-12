@@ -65,15 +65,19 @@ render_unit <- function(input,iid){renderUI({
                                    "prod_code"]
   cur_customer_id <- customer_info$customer_id[
     customer_info$customer_name==input$customer_name]
-  unitList <- packaging[packaging$prod_code == cur_prod_code,"unit"]
+  # print(cur_customer_id)
+  # print(cur_prod_code)
+  unitList <- packaging[packaging$prod_code == cur_prod_code, "unit"]
   unitList <- unique(unitList)
   unitList <- unitList[unitList!='pack']
+  
   latest_unit <- get_latest_unit(cur_customer_id, cur_prod_code,
                                  sale_log, pxk_info)
   # if there is nothing, default to first unit
   if (length(latest_unit)==0){ 
     latest_unit <- unitList[1]
   }
+  # print(latest_unit)
   selectInput(
     inputId = iid,
     label = ui_elem$actual[ui_elem$label=='unit'],

@@ -462,6 +462,9 @@ get_latest_unit <- function(customer_id, prod_code, sale_log,pxk_info){
       latest_unit <- tmp$unit[
         tmp$sale_datetime == max(tmp$sale_datetime)]
     }
+    return(latest_unit)
+  }else{
+    return(NULL)
   }
-  return(latest_unit)
+  
 }
