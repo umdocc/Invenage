@@ -24,9 +24,8 @@ shinyServer(function(input, output,session) {
   output$current_pxk_tbl <- render_invout_pxktable()
   
   # inv_out UI buttons handlers
-  observeEvent(input$inventory_out, {
-    # Write the event to transaction table to keep track of the transaction
-    # connect to database, also re-read pxk_info
+  observeEvent(input$inventory_out, { # inv_out button
+    # read info from database
     current_pxk <- get_current_pxk(config_dict)
     conn <- db_open(config_dict)
     sale_log <- dbReadTable(conn,"sale_log")
@@ -36,10 +35,8 @@ shinyServer(function(input, output,session) {
     dbDisconnect(conn)
     payment_type <- merge(payment_type,ui_elem,
                           by.x='payment_label',by.y='label')
-    
-    
+
     # if this PXK is not in the database yet, create new with completed 0
-    
     if (nrow(pxk_info[pxk_info$pxk_num==current_pxk,])==0){
       
       appendPXKInfo <- data.frame(
@@ -61,12 +58,12 @@ shinyServer(function(input, output,session) {
       #otherwise, read the info from the sale_log
     }else{
       conn <- db_open(config_dict)
-      current_stt <- dbGetQuery(conn, "select max(Stt) from sale_log
+      current_stt <- dbGetQuery(conn, "select max(stt) from sale_log
                                where pxk_num = (
                                select pxk_num from pxk_info
                                where completed = 0)")[1,1]
       dbDisconnect(conn)
-      is.na(current_stt)
+      # is.na(current_stt)
       # if there is a result, increase by 1, otherwise set to 1
       if (is.na(current_stt)){
         current_stt <- 1
