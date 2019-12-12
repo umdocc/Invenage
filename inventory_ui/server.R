@@ -95,6 +95,8 @@ shinyServer(function(input, output,session) {
       dbWriteTable(conn,'sale_log',append_sale_log,append=T)
       sale_log <- dbReadTable(conn,'sale_log')
       dbDisconnect(conn)
+      output$sys_msg <- render_sys_message(
+        ui_elem$actual[ui_elem$label=='inv_out_success'])
     }else{
       output$sys_msg <- render_sys_message(
         ui_elem$actual[ui_elem$label=='inv_exceed'])

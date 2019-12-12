@@ -97,10 +97,10 @@ build_prod_info <- function(config_dict,input){
   
   current_select <- product_info[product_info$name==input$prod_name_select,]
 
-  total_available <- inventory[
+  total_available <- round(inventory[
     inventory$prod_code == current_select$prod_code &
             inventory$lot == input$lot_select,
-    'remaining_qty']
+    'remaining_qty'],digits=2)
   if(length(total_available)==0){total_available <- 0}
   current_exp_date <- inventory[
     inventory$prod_code == current_select$prod_code &
@@ -121,7 +121,7 @@ build_prod_info <- function(config_dict,input){
                ui_elem$actual[ui_elem$label=='exp_date'],':',
                current_exp_date, '<br/>',
                ui_elem$actual[ui_elem$label=='total_available'],':',
-               total_available, '<br/>',
+               total_available, current_order_unit, '<br/>',
                ui_elem$actual[ui_elem$label=='packaging_str'],
                ':',packaging_str)
   )

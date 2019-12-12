@@ -541,7 +541,8 @@ get_sales_summary <- function(config_dict,max_backdate=365){
                                        "%Y-%m-%d %H:%M:%S")
   tmp$days_diff <- as.numeric(
     difftime(Sys.time(),tmp$oldest_sale_datetime,units = 'days'))
-  tmp$ave_mth_sale <- 30*(tmp$total_sale_pack/tmp$days_diff)
+  tmp$mths_diff <- ceiling(tmp$days_diff/(365.25/12)) # round to month
+  tmp$ave_mth_sale <- (tmp$total_sale_pack/tmp$mths_diff)
   return(tmp)
 }
 
