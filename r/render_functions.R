@@ -62,7 +62,7 @@ render_qty <- function(iid){renderUI({
 
 render_unit <- function(input,iid){renderUI({
   cur_prod_code<- product_info[product_info$name==input$prod_name_select,
-                                   "prod_code"]
+                               "prod_code"]
   cur_customer_id <- customer_info$customer_id[
     customer_info$customer_name==input$customer_name]
   # print(cur_customer_id)
@@ -115,10 +115,10 @@ build_prod_info <- function(config_dict,input){
   inventory <- update_inventory(config_dict)
   
   current_select <- product_info[product_info$name==input$prod_name_select,]
-
+  
   total_available <- round(inventory[
     inventory$prod_code == current_select$prod_code &
-            inventory$lot == input$lot_select,
+      inventory$lot == input$lot_select,
     'remaining_qty'],digits=2)
   if(length(total_available)==0){total_available <- 0}
   current_exp_date <- inventory[
@@ -132,17 +132,19 @@ build_prod_info <- function(config_dict,input){
     ordering_unit$prod_code==current_select$prod_code]
   packaging_str <- paste0(packaging_str$units_per_pack[1],
                           packaging_str$unit[1],'/',current_order_unit)
-  return(paste("REF: ",current_select$ref_smn,'<br/>',
-               ui_elem$actual[ui_elem$label=='prod_code'],':',
-               current_select$prod_code, '<br/>',
-               ui_elem$actual[ui_elem$label=='vendor'],':',
-               current_select$vendor, '<br/>',
-               ui_elem$actual[ui_elem$label=='exp_date'],':',
-               current_exp_date, '<br/>',
-               ui_elem$actual[ui_elem$label=='total_available'],':',
-               total_available, current_order_unit, '<br/>',
-               ui_elem$actual[ui_elem$label=='packaging_str'],
-               ':',packaging_str)
+  return(paste(
+    "Information:", '<br/>',
+    ui_elem$actual[ui_elem$label=='prod_code'],':',
+    current_select$prod_code, '<br/>',
+    ui_elem$actual[ui_elem$label=='vendor'],':',
+    current_select$vendor,
+    "REF: ",current_select$ref_smn,'<br/>',
+    ui_elem$actual[ui_elem$label=='exp_date'],':',
+    current_exp_date, '<br/>',
+    ui_elem$actual[ui_elem$label=='total_available'],':',
+    total_available, current_order_unit, '<br/>',
+    ui_elem$actual[ui_elem$label=='packaging_str'],
+    ':',packaging_str)
   )
 }
 

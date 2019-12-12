@@ -26,27 +26,31 @@ dashboardPage(
     tabItems(
       tabItem(tabName = "inv_out",
               fluidRow(
-                box(width=2, height = 600,
-                    # htmlOutput('pxk_selector'),
+                box(width=3, height = 580,
                     htmlOutput('customer_selector'),
                     htmlOutput('prod_name_select'),
-                    htmlOutput("qty_selector"),
-                    htmlOutput("unit_selector"),
-                    htmlOutput("lot_select"),
-                    htmlOutput("warehouse_selector")
-                ),
-                box(width = 2, height = 600,
-                    htmlOutput("unit_price"),
-                    htmlOutput("payment_selector"),
-                    htmlOutput("pxk_note"),
-                    h4(ui_elem$actual[ui_elem$label=='product_info']),
+                    div(style="display: inline-block;vertical-align:top; \
+                        width: 100px", htmlOutput("qty_selector")),
+                    div(style="display: inline-block;vertical-align:top; \
+                        width: 100px",
+                        htmlOutput("unit_selector")),
+                    div(style="display: inline-block;vertical-align:top; \
+                        width: 100px",htmlOutput("lot_select")),
+                    div(style="display: inline-block;vertical-align:top; \
+                        width: 100px",
+                        htmlOutput("warehouse_selector")),
+                    div(style="display: inline-block;vertical-align:top; \
+                        width: 100px", htmlOutput("unit_price")),
+                    div(style="display: inline-block;vertical-align:top; \
+                        width: 100px", htmlOutput("payment_selector")),
                     htmlOutput("prod_info_str"),
                     actionButton("inventory_out",
-                                 ui_elem$actual[ui_elem$label=='inv_out']),
-                    h4(ui_elem$actual[ui_elem$label=='sys_msg']),
-                    htmlOutput("sys_msg")
+                                 ui_elem$actual[ui_elem$label=='inv_out'])
+                    # h4(ui_elem$actual[ui_elem$label=='sys_msg']),
+                    # htmlOutput("sys_msg")
                 ),
-                box(width = 8, height = 600,
+
+                box(width = 9, height = 600,
                     htmlOutput("current_pxk_info"),
                     DT::dataTableOutput("current_pxk_tbl"),
                     h4(), #space
@@ -58,7 +62,7 @@ dashboardPage(
                         width: 5px;",HTML("<br>")
                     ),
                     div(style="display: inline-block;vertical-align:top; \
-                        width: 50px;",
+                        width: 100px;",
                         htmlOutput('invout_stt_list')
                     ),
                     div(style="display: inline-block;vertical-align:top; \
@@ -128,7 +132,7 @@ dashboardPage(
                       h5(ui_elem$actual[ui_elem$label=='del_selected_stt'])
                     ),
                     div(style="display: inline-block;vertical-align:top; \
-                        width: 50px;", htmlOutput('stt_select')),
+                        width: 100px;", htmlOutput('stt_select')),
                     div(style="display: inline-block;vertical-align:top; \
                         width: 150px;",
                         actionButton(

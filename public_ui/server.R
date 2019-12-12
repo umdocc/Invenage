@@ -305,8 +305,8 @@ shinyServer(function(input, output,session) {
     delete_pxk(selected_pxk_num,stt_to_proc,config_dict)
     # refresh the UI
     output$pxk_detail <- render_man_pxktable(input) # reload the pxk_man table
-    output$stt_select <- render_pxkman_stt_list(
-    input,config_dict, iid='stt_select')
+    output$stt_select <- render_entry_list(
+    input,config_dict, uid='man_pxk_list', iid='stt_select')
   })
   
   
