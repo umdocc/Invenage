@@ -396,21 +396,27 @@ create_report <- function(report_type,config_dict,input){
     sales_summary <- get_sales_summary(config_dict)
     inventoryReport <- merge(inventoryReport,sales_summary %>% select(
       prod_code,ave_mth_sale), all.x=T)
+    
+    # add ordering unit
+    ordering_unit <- get_ordering_unit(packaging)
+    inventoryReport <- merge(inventoryReport, ordering_unit, all.x=T)
     # select the appropriate column
     if (report_type == 'inventoryOrderReport'){
       inventoryReport <- inventoryReport %>%
-        select(vendor,ref_smn,warehouse,name,total_remaining_qty,ave_mth_sale)
+        select(vendor, ref_smn, warehouse, name, total_remaining_qty, 
+               unit, ave_mth_sale)
       inventoryReport$mth_supply_left <- inventoryReport$total_remaining_qty / 
       inventoryReport$ave_mth_sale
     }else{
       inventoryReport <- inventoryReport %>%
-        select(name,vendor,ref_smn,remaining_qty,
+        select(name,vendor,ref_smn,remaining_qty, unit,
                lot,exp_date,warehouse)
     }
+    
     # formatting the data frame
     for (i in (1:length(names(inventoryReport)))){
       oldname <- names(inventoryReport)[i]
-      print(oldname)
+      # print(oldname)
       if (length(ui_elem$actual[ui_elem$label==oldname])==1){
         names(inventoryReport)[names(inventoryReport)==oldname] <- 
           ui_elem$actual[ui_elem$label==oldname]
@@ -607,24 +613,27 @@ render_selected_pxk <- function(selected_pxk_num,config_dict,localised=T){
   output_pxk <- merge(output_pxk,pxk_info)
   output_pxk <- merge(output_pxk,customer_info)
   output_pxk <- output_pxk %>% 
-    select(stt,name,unit,unit_price,qty,pxk_num,customer_name)
-  # if (localised){
-  #   ui_elem <- get_ui_elem(config_dict)
-  #   output_pxk <- localise_tbl(output_pxk,ui_elem)
-  # }
+    select(stt,name,unit,unit_price,qty,pxk_num,customer_name,note)
+  output_pxk <- output_pxk[order(output_pxk$stt),] # sort by stt
+  if (localised){
+    ui_elem <- get_ui_elem(config_dict)
+    # output_pxk <- localise_tbl(output_pxk,ui_elem)
+    for (i in 1:length(output_pxk)){
+      if (length(ui_elem$actual[ui_elem$label==names(output_pxk)[i]])==1){
+        names(output_pxk)[i] = ui_elem$actual[
+          ui_elem$label==names(output_pxk)[i]]
+      }
+    }
+  }
   return(output_pxk)
 }
 
-# a function to translate table from label to localised name
-localise_tbl <- function(input_tbl,ui_elem){
-  # input_tbl <- render_selected_pxk(17071905,config_dict,localised=F)
-  for (i in 1:length(input_tbl)){
-    if (length(ui_elem$actual[ui_elem$label==names(input_tbl)[i]])==1){
-      names(input_tbl)[i] = ui_elem$actual[ui_elem$label==names(input_tbl)[i]]
-    }
-  }
-  return(input_tbl)
-}
+# # a function to translate table from label to localised name
+# localise_tbl <- function(input_tbl,ui_elem){
+#   # input_tbl <- render_selected_pxk(17071905,config_dict,localised=F)
+# 
+#   return(input_tbl)
+# }
 
 get_pxk_entry_num <- function(selected_pxk_num,config_dict){
   conn <- db_open(config_dict)

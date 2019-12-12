@@ -37,14 +37,21 @@ render_price <- function(input,iid){renderUI({
                  choices=latest_price,options = list(create=T))
 }) }
 
-#render a list of stt, used for pxk_man and inv_out
-render_entry_list <- function(input, config_dict, uid, iid){renderUI({
-  selected_pxk_num <- as.integer(input[[uid]])
+#render a list of stt, used for pxk_man
+render_pxkman_stt_list <- function(input, config_dict, iid){renderUI({
+  selected_pxk_num <- as.integer(input[['man_pxk_list']])
   entry_list <- get_pxk_entry_num(selected_pxk_num,config_dict)
-  selectInput(inputId = iid,
-              label = ui_elem$actual[ui_elem$label=='select_stt'],
+  selectInput(inputId = iid, label = NULL,
               choices=c(entry_list,ui_elem$actual[ui_elem$label=='all']))
 }) }
+
+#render a list of stt for current pxk num only
+render_invout_stt_list <- function(config_dict, iid){renderUI({
+  current_pxk_num <- get_current_pxk(cofig_dict)
+  entry_list <- get_pxk_entry_num(current_pxk_num,config_dict)
+  selectInput(inputId = iid, label = NULL, choices=entry_list)
+}) }
+
 
 # render qty
 render_qty <- function(iid){renderUI({
@@ -162,6 +169,7 @@ build_pxk_status_str <- function(pxk_num,config_dict){
 render_man_pxktable <- function(input){DT::renderDataTable({
   selected_pxk_num <- as.integer(input$man_pxk_list)
   output <- render_selected_pxk(selected_pxk_num,config_dict)
+  # output <- output[order(output$stt),]
   DT::datatable(output, options = list(pageLength = 5),rownames=F)
 })
 }
@@ -171,6 +179,7 @@ render_invout_pxktable <- function(){DT::renderDataTable({
   current_pxk <- get_current_pxk(config_dict)
   # print(current_pxk)
   output <- render_selected_pxk(current_pxk,config_dict)
+  
   DT::datatable(output, options = list(pageLength = 5),rownames=F)
 })
 }

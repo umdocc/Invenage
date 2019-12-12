@@ -59,14 +59,12 @@ dashboardPage(
                     ),
                     div(style="display: inline-block;vertical-align:top; \
                         width: 50px;",
-                        selectInput(
-                          inputId = 'del_stt_select', label = NULL, 
-                          choices = 1:10, selected = 1)
+                        htmlOutput('invout_stt_list')
                     ),
                     div(style="display: inline-block;vertical-align:top; \
                         width: 150px;",
                         actionButton(
-                          "del_inv_out_stt", 
+                          "del_invout_stt", 
                           ui_elem$actual[ui_elem$label=='delete_stt'])
                     ),
                     div(style="display: inline-block;vertical-align:top; \
@@ -120,15 +118,23 @@ dashboardPage(
       tabItem(tabName = 'pxk_man',
               fluidRow(
                 box(width = 3, height = 600,
-                    htmlOutput('man_pxk_list'),
-                    htmlOutput('stt_select'),
-                    actionButton("delete_stt_man",
-                                 ui_elem$actual[
-                                   ui_elem$label=='delete_stt'])
+                    htmlOutput('man_pxk_list')
                 ),
                 box(width = 9, height = 600,
                     h3(ui_elem$actual[ui_elem$label=='pxk_info']),
-                    DT::dataTableOutput('pxk_detail')
+                    DT::dataTableOutput('pxk_detail'),
+                    div(
+                      style="display: inline-block;vertical-align:top;", 
+                      h5(ui_elem$actual[ui_elem$label=='del_selected_stt'])
+                    ),
+                    div(style="display: inline-block;vertical-align:top; \
+                        width: 50px;", htmlOutput('stt_select')),
+                    div(style="display: inline-block;vertical-align:top; \
+                        width: 150px;",
+                        actionButton(
+                          "delete_stt_man",
+                          ui_elem$actual[ui_elem$label=='delete_stt'])
+                    )
                 )
               )
       ), # end of pxk_man tab

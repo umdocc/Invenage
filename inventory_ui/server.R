@@ -22,7 +22,8 @@ shinyServer(function(input, output,session) {
   output$current_pxk_info <- render_current_pxk_infostr(
     config_dict) #current pxk info
   output$current_pxk_tbl <- render_invout_pxktable()
-  
+  output$invout_stt_list <- render_invout_stt_list(
+    config_dict, 'invout_stt_list')
   # inv_out UI buttons handlers
   observeEvent(input$inventory_out, { # inv_out button
     # read info from database
@@ -108,21 +109,25 @@ shinyServer(function(input, output,session) {
     output$current_pxk_info <- render_current_pxk_infostr(
       config_dict) #current pxk info
     output$current_pxk_tbl <- render_invout_pxktable() # reload the PXK table
+    output$invout_stt_list <- render_invout_stt_list( # reload invout_stt_list
+      config_dict, 'invout_stt_list')
     output$man_pxk_list <- render_pxk_list(
       input,config_dict,'man_pxk_list') #reload pxk_list in pxk_man as well
     
+    
   })
   
-  observeEvent(input$del_inv_out_stt,{
+  observeEvent(input$del_invout_stt,{
     current_pxk <- get_current_pxk(config_dict)
     current_stt_list <- get_pxk_entry_num(current_pxk,config_dict)
-    # print(length(current_stt_list))
     # if there is record in current pxk, allow delete
     if (length(current_stt_list)>0){
-      stt_to_proc <- as.character(input$del_stt_select)
+      stt_to_proc <- as.character(input$invout_stt_list)
       delete_pxk(current_pxk,stt_to_proc,config_dict)
     }
     # reload UI
+    output$invout_stt_list <- render_invout_stt_list(
+      config_dict, 'invout_stt_list')
     output$prod_name_selector <- render_prod_name_list(
       input,product_info,'prod_name_select') # prod_name, required for prod_info
     output$qty_selector <- render_qty(iid='qty_selector') #Qty
@@ -257,11 +262,7 @@ shinyServer(function(input, output,session) {
     output$prod_info_str <- render_prod_info(input) #product Info pane
     output$pxk_note <- render_note(iid='pxk_note') #Note
   })
-  
 
-  
-
-  #   
   # ------------------------------- lookup UI ----------------------------------
   output$lookup_tbl_output <- DT::renderDataTable({
     table_name <- ui_elem$label[
@@ -282,8 +283,8 @@ shinyServer(function(input, output,session) {
   # renderers
   output$man_pxk_list <- render_pxk_list(
     input,config_dict,'man_pxk_list') #pxk_list
-  output$stt_select <- render_entry_list(
-    input,config_dict, uid='man_pxk_list', iid='stt_select') #select_stt
+  output$stt_select <- render_pxkman_stt_list(
+    input,config_dict, iid='stt_select') #select_stt
   output$sys_msg <- render_sys_message('ready')
   output$pxk_detail <- render_man_pxktable(input)
   
