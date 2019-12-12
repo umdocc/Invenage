@@ -34,7 +34,7 @@ if os.path.exists(error_file):
 test_df = sale_log.copy()
 test_df = test_df[
         test_df[['prod_code','unit','qty','lot','pxk_num',
-                  'warehouse_id']].duplicated()]
+                  'warehouse_id','note']].duplicated()]
 if (len(test_df)>0):
     inv.write_log(error_file,msg_dict['sale_log_check'])
     inv.write_log(error_file,msg_dict['duplicated_entry'])
