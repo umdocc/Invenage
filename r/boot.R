@@ -34,9 +34,11 @@ if (all(grepl('windows',os_name))){
 # ------------------------ load remaining scripts ------------------------------
 function_paths <- file.path(config_dict$value[config_dict$name=='app_path'], 
                             'r')
+base_func_path <- file.path(function_paths,'base_functions.R')
 ui_func_path <- file.path(function_paths,'ui_functions.R')
 report_func_path <- file.path(function_paths,'report_functions.R')
 render_func_path <- file.path(function_paths,'render_functions.R')
+source(base_func_path)
 source(ui_func_path)
 source(report_func_path)
 source(render_func_path)

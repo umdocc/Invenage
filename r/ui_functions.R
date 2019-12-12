@@ -1,34 +1,6 @@
-# all non-reactive function used in UI
-db_open <- function(config_dict){
-  db_type <- config_dict$value[config_dict$name=='db_type']
-  if (db_type == 'SQLite'){
-    database_path <- config_dict$value[config_dict$name=='db_file']
-    sqlite.driver <- dbDriver("SQLite")
-    conn <- dbConnect(sqlite.driver, dbname = database_path)
-  }
-  if (db_type == 'MariaDB'){
-  conn <- dbConnect(drv = RMariaDB::MariaDB(), 
-    username = config_dict$value[config_dict$name=='sql_usr'],
-    password = config_dict$value[config_dict$name=='sql_pswd'], 
-    host = config_dict$value[config_dict$name=='sql_host'],
-    port = 3306, dbname = 'invenage')
-  }
-  return(conn)
-}
+# ------------------ function to support render_functions ----------------------
 
-get_ui_elem <- function(config_dict){
-  app_lang <- config_dict$value[config_dict$name=='app_lang']
-  conn <- db_open(config_dict)
-  localisation <- dbReadTable(conn,"localisation")
-  dbDisconnect(conn)
-  # use the configured language
-  localisation <- localisation[localisation$app_lang==app_lang,]
-  # extract ui_elem
-  ui_elem <- localisation[localisation$group=='ui_elements',]
-  return(ui_elem)
-}
-
-# get current_pxk is a function that use the database connection object conn
+# return the latest incomplete pxk, if there is none, create a new one
 get_current_pxk <- function(cofig_dict){
   conn <- db_open(config_dict)
   pxk_num_list <- dbGetQuery(conn,'select pxk_num from pxk_info')
@@ -55,86 +27,6 @@ get_current_pxk <- function(cofig_dict){
   return(newPXK)
 }
 
-# function to rebuild the Inventory table from import_log and sale_log
-# if moreThanZero ==T, it will only return items with positive stock
-update_inventory <- function(config_dict, pos_item=TRUE){
-  
-  conn <- db_open(config_dict)
-  import_log <- dbReadTable(conn,"import_log")
-  sale_log <- dbReadTable(conn,"sale_log")
-  pxk_info <- dbReadTable(conn,"pxk_info")
-  product_info <- dbReadTable(conn,'product_info')
-  dbDisconnect(conn)
-  
-  tmp <- import_log %>% select(prod_code,unit,qty,lot,exp_date,warehouse_id)
-  tmp <- convert_to_pack(tmp,packaging,'qty','importQty')
-  tmp <- tmp %>% group_by(prod_code,unit,lot,warehouse_id) %>% 
-    summarise(totalImportQty = sum(importQty)) %>% ungroup()
-  tmp2 <- sale_log %>% select(prod_code,unit,qty,lot,warehouse_id)
-  # for sale_log we need to merge with warehouse_id
-    tmp2 <- convert_to_pack(tmp2,packaging,'qty','saleQty')
-  tmp2 <- tmp2 %>% group_by(prod_code,unit,lot,warehouse_id) %>% 
-    summarise(totalSaleQty = sum(saleQty)) %>% ungroup()
-  totalInventory <- merge(tmp,tmp2,all=T,
-                          by=c('prod_code','unit','lot','warehouse_id'))
-  totalInventory$totalSaleQty[is.na(totalInventory$totalSaleQty)] <- 0
-  totalInventory$totalImportQty[is.na(totalInventory$totalImportQty)] <- 0
-  totalInventory$remaining_qty <- totalInventory$totalImportQty - 
-    totalInventory$totalSaleQty
-  
-  # keep only the available items
-  if (pos_item){
-    threshold <- 0.001
-    totalInventory <- totalInventory[
-      totalInventory$remaining_qty>threshold,] %>% distinct()
-  }
-  # recover the exp_date
-  exp_dateData <- import_log[!duplicated(import_log[c('prod_code','lot')]),] %>% 
-    select(prod_code,lot,exp_date) %>% distinct()
-  
-  # merge, distinct and remove NA
-  totalInventory <- merge(totalInventory,exp_dateData,all.x=T) %>% distinct()
-  inventory <- totalInventory[!is.na(totalInventory$prod_code),]
-  
-  # calculate the intexp_date, which is the exp_date in standard format
-  inventory$exp_date <- gsub('/','-',inventory$exp_date)
-  inventory$exp_date <- gsub(' .*$','',inventory$exp_date)
-  inventory$intexp_date <- parse_date_time(
-    inventory$exp_date,c('%Y-%m','%m-%Y','%d-%m-%Y','%Y-%m-%d'))
-  
-  # recover static information
-  product_info <- product_info %>% select(prod_code,name,ref_smn,vendor)
-  inventory <- merge(inventory,product_info,all.x=T)
-  ave_import_cost <- get_est_import_cost(
-    import_log, algorithm='weighted_average')
-  
-  inventory <- merge(inventory,ave_import_cost,all.x=T)
-  inventory$total_inv_value <-
-    inventory$ave_pack_import_cost*inventory$remaining_qty
-  
-  # remove NAs
-  inventory <- inventory[!is.na(inventory$prod_code),]
-  return(inventory)
-}
-
-# convert_to_pack is a critical function
-convert_to_pack <- function(inputDF,packaging,stringSL,packString){
-  inputDF <- merge(
-    inputDF,packaging %>% select(prod_code,unit,units_per_pack),all.x=T)
-  # check integrity
-  if(nrow(inputDF[is.na(inputDF$units_per_pack),])>0){
-    print(inputDF[is.na(inputDF$units_per_pack),])
-    stop('inputDF contains unrecognised packaging')
-  }
-  inputDF[[packString]] <- as.numeric(inputDF[[stringSL]])/as.numeric(
-    inputDF$units_per_pack)
-  # clean up
-  inputDF$unit <- 'pack'
-  inputDF[[stringSL]] <- NULL
-  # inputDF$units_per_pack <- NULL
-  return(inputDF)
-}
-
 # function to select customer using the database to look at PXK
 get_cust_list <- function(config_dict){
   conn <- db_open(config_dict)
@@ -153,7 +45,7 @@ get_cust_list <- function(config_dict){
   return(cust_choice)
 }
 
-# the getAvailablelot function get a list of available lot, it returns a vector
+# the get_avail_lot function get a list of available lot, it returns a vector
 # if sortType ='fifo', the earliest exp_date will be on top
 get_avail_lot <- function(current_prod_code,config_dict,sort_type='fifo'){
   inventory <- update_inventory(config_dict)
@@ -165,93 +57,6 @@ get_avail_lot <- function(current_prod_code,config_dict,sort_type='fifo'){
   }
   avail_lot <- avail_lot$lot
   return(avail_lot)
-}
-
-
-
-get_current_po_info <- function(config_dict){
-  file_list <- data.frame(
-    full_path = list.files(config_dict$value[config_dict$name=='po_path'],
-                           recursive = T,full.name=T),stringsAsFactors = F)
-  file_list$basename <- basename(file_list$full_path)
-  file_list$dirname <- dirname(file_list$full_path)
-  
-  # keep only relevant files
-  grep_str <- paste0(config_dict$value[config_dict$name=='po_file_include'],
-                     '|','draft|Draft')
-  file_list <- file_list[grepl(grep_str,file_list$full_path),]
-  exclude_str <- gsub(';','|',
-                      config_dict$value[config_dict$name=='po_path_exclude'])
-  file_list <- file_list[!grepl(exclude_str,file_list$full_path),]
-}
-
-# get_import_price is a function to auto get the import price for a po
-# the algorithm sort by minimum order amount
-get_import_price <- function(po_data,import_price){
-  tmp <- merge(import_price, po_data %>% select(prod_code,qty),
-               all.x=T)
-  tmp <- tmp[!is.na(tmp$qty),]
-  tmp$min_order[is.na(tmp$min_order)] <- 1
-  # get only rows where qty is more than min order
-  tmp <- tmp[(tmp$qty/tmp$min_order)>1,] %>% select(prod_code,import_price,
-                                                    min_order,qty)
-  tmp <- tmp %>% group_by(prod_code) %>% mutate(min_price=min(import_price)) %>%
-    ungroup()
-  tmp <- tmp[tmp$min_price==tmp$import_price,]
-  return(tmp)
-}
-
-# this function build the po from draft using Draft PO Name
-build_po_from_draft <- function(draft_name,config_dict){
-  # read tables from database
-  conn <- db_open(config_dict)
-  import_price <- dbReadTable(conn,'import_price')
-  product_info <- dbReadTable(conn,'product_info')
-  dbDisconnect(conn)
-  
-  # since this is for po, we need to use currency_code >1 for generating prices
-  import_price <- import_price[import_price$currency_code>1,]
-  
-  po_list <- get_current_po_info(config_dict)
-  po_list <- po_list[po_list$basename==draft_name,]
-  #read the draft
-  po_data <- read.xlsx(po_list$full_path)
-  
-  # attach prod_code
-  po_data <- merge(po_data,product_info,all.x=T)
-  # attach unit_price
-  po_data <- get_import_price(po_data,import_price)
-  #re-attach all data
-  po_data <- merge(po_data,product_info %>% select(prod_code,name,ref_smn),
-                   by='prod_code',all.x=T)
-  # build other info
-  po_data$no <- 1:nrow(po_data)
-  
-  # prepare data for writing
-  col_list <- unlist( # list of columns to write
-    strsplit(config_dict$value[config_dict$name=='po_draft_cols'],';'))
-  po_data <- po_data[,col_list]
-  
-  # getting total line
-  po_total <- po_data[1,]; po_total$no <- 0; po_total$name <- 'Total'
-  po_total$ref_smn <- ''; po_total$qty <- ''
-  po_total$import_price <- sum(po_data$qty*po_data$import_price)
-  po_data <- rbind(po_data,po_total)
-  
-  po_form <- file.path(config_dict$value[config_dict$name=='form_path'],
-                       'po_form.xlsx')
-  data_start_row <- config_dict$value[config_dict$name=='po_data_start_row']
-  data_start_col <- config_dict$value[config_dict$name=='po_data_start_col']
-  po_base_name <- gsub('Draft|draft',
-                       paste0('PO.',gsub('^.*/','',po_list$dirname)),
-                       po_list$basename)
-  dest_file <- file.path(po_list$dirname,po_base_name)
-  wb <- loadWorkbook(po_form)
-  writeData(wb, sheet=1, po_data, startRow = data_start_row,
-            startCol = data_start_col,colNames = F)
-  
-  saveWorkbook(wb,dest_file,overwrite = T)
-  
 }
 
 # function to build estimated import cost from import_log
@@ -271,24 +76,6 @@ get_est_import_cost <- function(import_log, algorithm='weighted_average'){
     tmp <- tmp %>% select(prod_code,lot,ave_pack_import_cost)
     return(tmp)
   }
-}
-
-# the rename table takes a table and rename the column based on 
-# the localisation table (ui_elem)
-rename_table <- function(tmp_df,ui_elem){
-  oldnames = data.frame(stt = 1:length(tmp_df), label = names(tmp_df))
-  rename_dict <- merge(oldnames,ui_elem,all.x=T)
-  rename_dict <- rename_dict[order(rename_dict$stt),]
-  names(tmp_df) <- rename_dict$actual
-  return(tmp_df)
-}
-
-# roll back x months from current month, not counting current month,
-# return the beginning date of the rolled back month
-roll_back_date <- function(rolling_mth){
-  beginDate <- as.Date(as.character(cut(Sys.Date(), "month")),'%Y-%m-%d')
-  backDate <- as.Date(as.character(cut(beginDate - 28*rolling_mth,'month')))
-  return(backDate)
 }
 
 # create_report function
@@ -567,39 +354,6 @@ clean_duplicates <- function(
   return(data_df)
 }
 
-# create fifo_sale_log create a sale table with ammended import data using
-# a fifo algorithm, it is needed for sale report accuracy
-create_fifo_sale_log <- function(sale_log,import_log,pxk_info){
-  import_log$delivery_date <- strptime(import_log$delivery_date,'%Y-%m-%d')
-  sale_log <- merge(sale_log,pxk_info,all.x=T)
-  sale_log$sale_datetime <- strptime(sale_log$sale_datetime,
-                                     '%Y-%m-%d %H:%M:%S')
-  # pack conversion
-  sale_log <- convert_to_pack(sale_log,packaging,'qty','pack_qty')
-  sale_log$pack_price <- sale_log$unit_price*sale_log$units_per_pack
-  sale_log$pack_cost <- NA
-  import_log <- convert_to_pack(import_log,packaging,'qty','pack_qty')
-  import_log$pack_cost <- import_log$actual_unit_cost*import_log$units_per_pack
-  import_log <- import_log[order(import_log$delivery_date),]
-  sale_log <- sale_log[order(sale_log$sale_datetime),]
-  for (i in 1:nrow(sale_log)){
-    print(i)
-    tmp <- import_log[import_log$prod_code == sale_log$prod_code[i] &
-                       import_log$lot == sale_log$lot[i] ,][1,]
-    if (!is.na(tmp$pack_qty)){
-    if (tmp$pack_qty>=sale_log$pack_qty[i]){
-      sale_log$pack_cost[i] <- tmp$pack_cost[1]
-      new_pack_num <- tmp$pack_qty - sale_log$pack_qty[i]
-      import_log[import_log$prod_code == sale_log$prod_code[i] &
-                   import_log$lot == sale_log$lot[i] ,]$pack_qty[1] <- 
-        new_pack_num
-    }}
-  }
-  return('under dev')
-}
-
-
-
 # return the pxk data from pxk_num
 render_selected_pxk <- function(selected_pxk_num,config_dict,localised=T){
   conn <- db_open(config_dict)
@@ -628,13 +382,6 @@ render_selected_pxk <- function(selected_pxk_num,config_dict,localised=T){
   return(output_pxk)
 }
 
-# # a function to translate table from label to localised name
-# localise_tbl <- function(input_tbl,ui_elem){
-#   # input_tbl <- render_selected_pxk(17071905,config_dict,localised=F)
-# 
-#   return(input_tbl)
-# }
-
 get_pxk_entry_num <- function(selected_pxk_num,config_dict){
   conn <- db_open(config_dict)
   sale_log <- dbReadTable(conn,'sale_log')
@@ -655,6 +402,7 @@ delete_pxk <- function(pxk_num,stt,config_dict){
   }
   conn = db_open(config_dict)
   res <- dbSendQuery(conn,query)
+  dbDisconnect(conn)
 }
 
 # function to check if an inv_out entry should be allowed before writing to db
@@ -698,4 +446,22 @@ check_pxk_num <- function(selected_pxk_num,config_dict){
     }
   }
   return(pxk_status)
+}
+
+get_latest_unit <- function(customer_id, prod_code, sale_log,pxk_info){
+  sale_lookup <- merge(sale_log,pxk_info,on='pxk_num',all.x=T)
+  # filter through sale_lookup to find price
+  tmp <- sale_lookup[sale_lookup$prod_code == prod_code & 
+                       sale_lookup$customer_id == customer_id,]
+  tmp <- tmp[!is.na(tmp$sale_datetime),]
+  # if we can find something, update priority unit
+  if (nrow(tmp)>0){
+    tmp <- tmp %>% select(pxk_num, unit, sale_datetime)
+    if (class(tmp$sale_datetime) == "character"){
+      tmp$sale_datetime <- strptime(tmp$sale_datetime,'%Y-%m-%d %H:%M:%S')
+      latest_unit <- tmp$unit[
+        tmp$sale_datetime == max(tmp$sale_datetime)]
+    }
+  }
+  return(latest_unit)
 }

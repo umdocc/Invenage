@@ -61,15 +61,23 @@ render_qty <- function(iid){renderUI({
 }) }
 
 render_unit <- function(input,iid){renderUI({
-  current_prod_code<- product_info[product_info$name==input$prod_name_select,
+  cur_prod_code<- product_info[product_info$name==input$prod_name_select,
                                    "prod_code"]
-  unitList <- packaging[packaging$prod_code == current_prod_code,"unit"]
+  cur_customer_id <- customer_info$customer_id[
+    customer_info$customer_name==input$customer_name]
+  unitList <- packaging[packaging$prod_code == cur_prod_code,"unit"]
   unitList <- unique(unitList)
   unitList <- unitList[unitList!='pack']
+  latest_unit <- get_latest_unit(cur_customer_id, cur_prod_code,
+                                 sale_log, pxk_info)
+  # if there is nothing, default to first unit
+  if (length(latest_unit)==0){ 
+    latest_unit <- unitList[1]
+  }
   selectInput(
     inputId = iid,
     label = ui_elem$actual[ui_elem$label=='unit'],
-    choices = unitList
+    choices = unitList, selected = latest_unit
   )
 }) }
 
