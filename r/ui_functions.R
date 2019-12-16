@@ -132,13 +132,16 @@ create_lookup_tbl <- function(table_name,config_dict,local_name=TRUE){
     lookup_tbl_output <- merge(sale_log, product_info %>% select(
       prod_code,name,vendor,ref_smn))
     lookup_tbl_output <- merge(lookup_tbl_output,pxk_info %>% select(
-      pxk_num,customer_id))
+      pxk_num,customer_id,sale_datetime))
     lookup_tbl_output$customer_id <- as.numeric(
       lookup_tbl_output$customer_id)
     lookup_tbl_output <- merge(
       lookup_tbl_output,customer_info %>% select(customer_id,customer_name))
+    lookup_tbl_output$sale_date <- gsub(
+      ' .*$', '', lookup_tbl_output$sale_datetime)
     lookup_tbl_output <- lookup_tbl_output %>%
-      select(customer_name, name, ref_smn, qty, unit, lot, note)
+      select(pxk_num, sale_date, customer_name, name, ref_smn, qty, unit, 
+             lot, note)
   }
   if (table_name=='import_log'){
     lookup_tbl_output <- merge(import_log, product_info%>% select(

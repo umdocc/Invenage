@@ -79,34 +79,27 @@ navbarPage(
     ui_elem$actual[ui_elem$label=='reports'],
     fluidRow(
       style = "background-color:#f5f5f5;",
-      box(width = 9, height = 700,
-          # h3(ui_elem$actual[ui_elem$label=='Reports']),
-          div(
-            style="display: inline-block;vertical-align:top;width: 200px;",
-            selectInput(
-              inputId = 'report_type', label = ui_elem$actual[
-                ui_elem$label=='reportType'],
-              choices = report_list$actual)),
-          div(
-            style="display:inline-block;vertical-align:top;width:200px;",
-            conditionalPanel(
-              condition = paste0(
-                "input.report_type == '",date_range_tbl_local,"'"),
-              dateInput(inputId = 'from_date',
-                        label = ui_elem$actual[
-                          ui_elem$label=='from_date'],
-                        value = "2019-11-04", format = date_format_alt)
-            )),
-          div(
-            style="display:inline-block;vertical-align:top;width:200px;",
-            conditionalPanel(
-              condition = paste0(
-                "input.report_type == '",date_range_tbl_local,"'"),
-              dateInput(inputId = 'to_date',
-                        label = ui_elem$actual[
-                          ui_elem$label=='to_date'],
-                        value = "2019-11-10", format = date_format_alt)
-            )),
+      box(width = 2, height = 700,
+          selectInput(
+            inputId = 'report_type', label = ui_elem$actual[
+              ui_elem$label=='reportType'],
+            choices = report_list$actual),
+          conditionalPanel(
+            condition = paste0(
+              "input.report_type == '",date_range_tbl_local,"'"),
+            dateInput(inputId = 'from_date',
+                      label = ui_elem$actual[
+                        ui_elem$label=='from_date'],
+                      value = "2019-11-04", format = date_format_alt)
+          ),
+          conditionalPanel(
+            condition = paste0(
+              "input.report_type == '",date_range_tbl_local,"'"),
+            dateInput(inputId = 'to_date',
+                      label = ui_elem$actual[
+                        ui_elem$label=='to_date'],
+                      value = "2019-11-10", format = date_format_alt)
+          ),
           actionButton(
             "printReport", ui_elem$actual[ui_elem$label=='printReport'])
           ,

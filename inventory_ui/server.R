@@ -3,6 +3,7 @@ source("global.R",local = F)
 require(dplyr)
 require(DT)
 shinyServer(function(input, output,session) {
+  session$onSessionEnded(stopApp) #make shiny like a normal app
   # -------------------------------inv_out UI ----------------------------------
   # sidebar
   output$customer_selector <- render_customer_list('customer_name') # customer
