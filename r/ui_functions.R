@@ -78,21 +78,6 @@ get_est_import_cost <- function(import_log, algorithm='weighted_average'){
   }
 }
 
-
-
-# format the table column name from label to localised output
-format_output_tbl <- function(input_dt,ui_elem){
-  rename_tbl <- data.frame(label=names(input_dt))
-  rename_tbl <- merge(rename_tbl,ui_elem)
-  
-  # rename using old school method is much safer
-  oldnames <- rename_tbl$label
-  newnames <- rename_tbl$actual
-  for(i in 1:length(oldnames)) names(input_dt)[
-    names(input_dt) == oldnames[i]] = newnames[i]
-  return(input_dt)
-}
-
 create_lookup_tbl <- function(table_name,config_dict,local_name=TRUE){
   #re-read the basic tables
   conn <- db_open(config_dict)
@@ -219,8 +204,6 @@ get_sales_summary <- function(config_dict,max_backdate=365){
   tmp$ave_mth_sale <- (tmp$total_sale_pack/tmp$mths_diff)
   return(tmp)
 }
-
-
 
 # a function to replace duplicated line with NA
 clean_duplicates <- function(

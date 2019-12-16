@@ -1,4 +1,3 @@
-
 # ----------------------- general operation functions --------------------------
 
 # db_open create a conn object that database call can use
@@ -121,14 +120,4 @@ convert_to_pack <- function(inputDF,packaging,stringSL,packString){
   inputDF[[stringSL]] <- NULL
   # inputDF$units_per_pack <- NULL
   return(inputDF)
-}
-
-# the rename table takes a table and rename the column based on 
-# the localisation table (ui_elem)
-rename_table <- function(tmp_df,ui_elem){
-  oldnames = data.frame(stt = 1:length(tmp_df), label = names(tmp_df))
-  rename_dict <- merge(oldnames,ui_elem,all.x=T)
-  rename_dict <- rename_dict[order(rename_dict$stt),]
-  names(tmp_df) <- rename_dict$actual
-  return(tmp_df)
 }

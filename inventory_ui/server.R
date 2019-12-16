@@ -274,15 +274,29 @@ shinyServer(function(input, output,session) {
   
   output$report_tbl_ouput <- DT::renderDataTable({
     report_type <- ui_elem$label[ui_elem$actual==input$report_type]
+    print(report_type)
     rp_filename <- get_rp_filename(report_type, config_dict)
     create_report(report_type,rp_filename,config_dict,input)
   },rownames=F)
   
   # create the report and open it
   observeEvent(input$printReport, {
+    # gather all data
     report_type <- ui_elem$label[ui_elem$actual==input$report_type]
-    rp_filename <- get_rp_filename(report_type, config_dict)
-    rp_data <- create_report(report_type,rp_filename,config_dict,input)
+    print(report_type)
+    rp_data <- build_rp_data(report_type,input)
+    if (report_type == 'sale_profit_report'){
+      from_date <- input$from_date # from_date and to_date depends on rp type
+      to_date <- input$to_date
+    }else{
+      from_date <- strftime(Sys.Date())
+      to_date <- from_date
+    }
+    if (report_type == 'inv_value_report'){
+      rp_filename <- write_inv_value_rp()
+    }else{
+      rp_filename <- write_report_data(report_type, rp_data, from_date, to_date)
+    }
     system(paste0('open ','"',rp_filename,'"'))
   })
 

@@ -1,5 +1,6 @@
 # the boot.r file handle all remaining configuration after config_dict
-# it will assume the global variable config_dict
+# it will assume the global variable config_dict and all paths has been
+# translated
 
 # ------------------------ load required packages ------------------------------
 required_package <- c('DT', 'shiny', 'shinydashboard', 'ggplot2', 'scales',
