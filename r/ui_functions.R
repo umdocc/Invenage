@@ -154,14 +154,13 @@ create_lookup_tbl <- function(table_name,config_dict,local_name=TRUE){
 }
 
 # get_latest_price is a function to get the last price sold to a customer
-get_latest_price <- function(customer_name,prod_name,current_unit,
-                             sale_lookup,pxk_info){
-
+get_latest_price <- function(customer_id, prod_code, unit, pxk_info){
+  sale_lookup <- merge(sale_log,pxk_info,on='pxk_num',all.x=T)
   latest_price <- -9999
   # filter through sale_lookup to find price
-  tmp <- sale_lookup[sale_lookup$name == prod_name & 
-                       sale_lookup$customer_name == customer_name &
-                       sale_lookup$unit == current_unit,]
+  tmp <- sale_lookup[sale_lookup$prod_code == prod_code & 
+                       sale_lookup$customer_id == customer_id &
+                       sale_lookup$unit == unit,]
   tmp <- tmp[!is.na(tmp$unit_price),]
   # if we can find something, update latest price
   if (nrow(tmp)>0){

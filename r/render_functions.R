@@ -21,15 +21,14 @@ render_prod_name_list <- function(input,product_info,iid){renderUI({
 #render latest price
 render_price <- function(input,iid){renderUI({
   current_customer <- input$customer_name
-  current_prod <- input$prod_name_select
-  current_unit <- input$unit_selector
-  sale_lookup <- create_lookup_tbl('sale_log',config_dict,local_name = F)
-  conn <- db_open(config_dict)
-  pxk_info <- dbReadTable(conn,'pxk_info')
-  dbDisconnect(conn)
+  customer_id <- customer_info$customer_id[
+    customer_info$customer_name == current_customer]
+  current_prod_name <- input$prod_name_select
+  prod_code <- product_info$prod_code[
+    product_info$name == current_prod_name]
+  unit <- input$unit_selector
   # get latest price
-  latest_price <- get_latest_price(current_customer,current_prod,current_unit,
-                                   sale_lookup,pxk_info)
+  latest_price <- get_latest_price(customer_id, prod_code, unit, pxk_info)
   latest_price <- as.integer(latest_price)
   selectizeInput(inputId = iid,
                  label = ui_elem$actual[
