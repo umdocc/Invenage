@@ -4,7 +4,7 @@ require(dplyr)
 require(DT)
 shinyServer(function(input, output,session) {
   # -------------------------------inv_out UI ----------------------------------
-  # inv_out-1
+  # sidebar
   output$customer_selector <- render_customer_list('customer_name') # customer
   output$prod_name_select <- render_prod_name_list(
     input,product_info,'prod_name_select') # prod_name
@@ -13,12 +13,11 @@ shinyServer(function(input, output,session) {
   output$lot_select <- render_lot(input, iid='lot_select') # Lot
   output$warehouse_selector <- render_warehouse(
     input, 'warehouse_selector') # warehouse
-  # inv_out-2
   output$unit_price <- render_price(input,iid='unit_price')
   output$payment_selector <- render_payment_type('payment_type') # payment
   output$pxk_note <- render_note(iid='pxk_note') #Note
   output$prod_info_str <- render_prod_info(input) #product Info pane
-  # inv_out-3
+  # side
   output$current_pxk_info <- render_current_pxk_infostr(
     config_dict) #current pxk info
   output$current_pxk_tbl <- render_invout_pxktable()
@@ -50,7 +49,6 @@ shinyServer(function(input, output,session) {
           payment_type$actual == input$payment_type],
         completed = 0
       )
-      # print(appendPXKInfo)
       conn <- db_open(config_dict)
       dbWriteTable(conn,'pxk_info',appendPXKInfo,append=T)
       pxk_info <- dbReadTable(conn,"pxk_info")
@@ -65,7 +63,6 @@ shinyServer(function(input, output,session) {
                                select pxk_num from pxk_info
                                where completed = 0)")[1,1]
       dbDisconnect(conn)
-      # is.na(current_stt)
       # if there is a result, increase by 1, otherwise set to 1
       if (is.na(current_stt)){
         current_stt <- 1
@@ -273,10 +270,18 @@ shinyServer(function(input, output,session) {
   },rownames=F)
   
   # ----------------------------- report UI ------------------------------------
+  
+  output$report_tbl_ouput <- DT::renderDataTable({
+    report_type <- ui_elem$label[ui_elem$actual==input$report_type]
+    rp_filename <- get_rp_filename(report_type, config_dict)
+    create_report(report_type,rp_filename,config_dict,input)
+  },rownames=F)
+  
   # create the report and open it
   observeEvent(input$printReport, {
     report_type <- ui_elem$label[ui_elem$actual==input$report_type]
-    rp_filename <- create_report(report_type,config_dict,input)
+    rp_filename <- get_rp_filename(report_type, config_dict)
+    rp_data <- create_report(report_type,rp_filename,config_dict,input)
     system(paste0('open ','"',rp_filename,'"'))
   })
 

@@ -32,10 +32,11 @@ get_ui_elem <- function(config_dict){
   return(ui_elem)
 }
 
-# function to rebuild the inventory from import_log and sale_log
+# function to rebuild the inventory from database
 # if pos_items ==T, it will only return items with positive stock
-# we will use this a lot, so it should connect direct;y to database
-update_inventory <- function(config_dict, pos_item=TRUE){
+# if summarised = T, all lot data will be summarised, leaving only total for
+# a prod_code, this should only be used with pos_items = T
+update_inventory <- function(config_dict, pos_item=TRUE, summarised = FALSE){
   conn <- db_open(config_dict)
   import_log <- dbReadTable(conn,"import_log")
   sale_log <- dbReadTable(conn,"sale_log")
@@ -85,13 +86,22 @@ update_inventory <- function(config_dict, pos_item=TRUE){
   inventory <- merge(inventory,product_info,all.x=T)
   ave_import_cost <- get_est_import_cost(
     import_log, algorithm='weighted_average')
-  
   inventory <- merge(inventory,ave_import_cost,all.x=T)
   inventory$total_inv_value <-
     inventory$ave_pack_import_cost*inventory$remaining_qty
   
-  # remove NAs
-  inventory <- inventory[!is.na(inventory$prod_code),]
+  # cleaning
+  inventory <- inventory[!is.na(inventory$prod_code),] #remove NA
+  # we will no longer need the unit, as everything should be in ordering_unit
+  inventory$unit <- NULL
+  
+  if (summarised){
+    inventory <- inventory %>% 
+      group_by(prod_code, name, vendor, ref_smn) %>% 
+      summarise(total_remain_qty = sum(remaining_qty), 
+                total_inv_value = sum(total_inv_value))
+  }
+  
   return(inventory)
 }
 

@@ -78,143 +78,7 @@ get_est_import_cost <- function(import_log, algorithm='weighted_average'){
   }
 }
 
-# create_report function
-create_report <- function(report_type,config_dict,input){
-  # creating common varialbes
-  # report_name (in local language)
-  report_name <- ui_elem$actual[ui_elem$label==report_type]
-  rp_filename <- file.path( # report file name
-    config_dict$value[config_dict$name=='report_out_path'], paste0(
-      config_dict$value[config_dict$name=='company_name'], '.',
-      report_name,'.',
-      format(Sys.Date(),config_dict$value[config_dict$name=='date_format']),
-      '.xlsx') )
-  # customise data based on report type
-  if (report_type == 'sale_profit_report'){
-    from_date <- input$from_date # from_date and to_date depends on rp type
-    to_date <- input$to_date
-    create_excel_report(
-      config_dict,report_type,from_date,to_date,rp_filename)
-  }
-  
-  if (report_type == 'inv_exp_date_report'){
-    from_date <- strftime(Sys.Date())
-    to_date <- from_date
-    create_excel_report(
-      config_dict, report_type, from_date, to_date, rp_filename)
-  }
-  
-  if (report_type == 'inventoryValueReport'){
-    summary_sheet_name <- ui_elem$actual[ui_elem$label=='summary']
-    missing_price_sheet_name <- ui_elem$actual[ui_elem$label=='missing_price']
-    totalNSXcostName <- ui_elem$actual[ui_elem$label=='total_inv_value']
-    
-    # refresh information
-    inventory <- update_inventory(config_dict)
-    
-    removeCountry <- TRUE # format the vendor
-    if (removeCountry){
-      inventory$vendor <- gsub('-.*$','',inventory$vendor)
-    }
-    val_by_vendor <- inventory %>% group_by(vendor) %>% summarise(
-      total_inv_value = sum(total_inv_value,na.rm=T)) %>% ungroup
-    val_by_vendor <- val_by_vendor[!is.na(val_by_vendor$vendor),]
-    vendor_list <- gsub('-.*$','',val_by_vendor$vendor)
-    
-    # add total cost, and format the ouput
-    tmp <- val_by_vendor[1:2,]
-    tmp[1,] <- ''
-    tmp$vendor[2] <- ui_elem$actual[ui_elem$label=='total_inv_value']
-    tmp$total_inv_value[2] <- sum(val_by_vendor$total_inv_value,na.rm=T)
-    val_by_vendor <- rbind(val_by_vendor,tmp)
-    val_by_vendor$total_inv_value <- format(
-      as.numeric(val_by_vendor$total_inv_value), big.mark=",")
-    
-    # this report use a new excel for now
-    wb <- createWorkbook()
-    addWorksheet(wb, summary_sheet_name)
-    addWorksheet(wb, missing_price_sheet_name)
-    
-    # write missing_price
-    missing_price <- inventory[is.na(inventory$ave_pack_import_cost),] %>%
-      select(prod_code,name,ref_smn)
-    missing_price <- rename_table(missing_price,ui_elem)
-    writeData(wb, sheet=missing_price_sheet_name, missing_price)
-    # write summary sheet
-    val_by_vendor <- rename_table(val_by_vendor,ui_elem)
-    writeData(wb, sheet=summary_sheet_name, val_by_vendor)
-    
-    for (i in 1:length(vendor_list)){
-      addWorksheet(wb, vendor_list[i])
-      tmp_df <- inventory[grepl(vendor_list[i],inventory$vendor),] %>%
-        select(name,ref_smn,lot,exp_date,remaining_qty,ave_pack_import_cost,
-               total_inv_value)
-      tmp_df <- rename_table(tmp_df,ui_elem)
-      writeData(wb, sheet=vendor_list[i], tmp_df)
-    }
-    saveWorkbook(wb,rp_filename,overwrite = T)
-  }
-  if (report_type == 'inventoryAuditReport'|
-      report_type == 'inventoryOrderReport'){
-    # read the form
-    orig_file <- config_dict$value[config_dict$name=='report_form_path']
-    wb <- loadWorkbook(orig_file)
-    
-    # read the inventory
-    inventoryReport <- update_inventory(config_dict)
-    # set all negative number to 0
-    inventoryReport <- inventoryReport[inventoryReport$remaining_qty>0,]
-    
-    # if this is ordering report, group and sum
-    if (report_type == 'inventoryOrderReport'){
-      inventoryReport <- inventoryReport %>% group_by(prod_code) %>% 
-        summarise(total_remaining_qty = sum(remaining_qty)) %>% ungroup
-      # merge with prod_info so that we get zero items as well
-      inventoryReport <- merge(inventoryReport,product_info %>% 
-                                 select(prod_code,type),all.y=T)
-    }
-    #recover human-readble info
-    inventoryReport <- merge(
-      inventoryReport, product_info %>% select(
-        prod_code,name,vendor,ref_smn,warehouse_id))
-    inventoryReport <- merge(
-      inventoryReport,warehouse_info %>% select(warehouse_id,warehouse))
-    # for order report, use sales_summary
-    sales_summary <- get_sales_summary(config_dict)
-    inventoryReport <- merge(inventoryReport,sales_summary %>% select(
-      prod_code,ave_mth_sale), all.x=T)
-    
-    # add ordering unit
-    ordering_unit <- get_ordering_unit(packaging)
-    inventoryReport <- merge(inventoryReport, ordering_unit, all.x=T)
-    # select the appropriate column
-    if (report_type == 'inventoryOrderReport'){
-      inventoryReport <- inventoryReport %>%
-        select(vendor, ref_smn, warehouse, name, total_remaining_qty, 
-               unit, ave_mth_sale)
-      inventoryReport$mth_supply_left <- inventoryReport$total_remaining_qty / 
-      inventoryReport$ave_mth_sale
-    }else{
-      inventoryReport <- inventoryReport %>%
-        select(name,vendor,ref_smn,remaining_qty, unit,
-               lot,exp_date,warehouse)
-    }
-    
-    # formatting the data frame
-    for (i in (1:length(names(inventoryReport)))){
-      oldname <- names(inventoryReport)[i]
-      # print(oldname)
-      if (length(ui_elem$actual[ui_elem$label==oldname])==1){
-        names(inventoryReport)[names(inventoryReport)==oldname] <- 
-          ui_elem$actual[ui_elem$label==oldname]
-      }
-    }
-    # write data to destination file then open file
-    writeData(wb, 1, inventoryReport, startRow=5, startCol=1)
-    saveWorkbook(wb,rp_filename,overwrite = T)
-  }
-  return(rp_filename)
-}
+
 
 # format the table column name from label to localised output
 format_output_tbl <- function(input_dt,ui_elem){
@@ -236,13 +100,21 @@ create_lookup_tbl <- function(table_name,config_dict,local_name=TRUE){
   product_info <- dbReadTable(conn,"product_info")
   import_log <- dbReadTable(conn,"import_log")
   import_price <- dbReadTable(conn,"import_price")
+  currency <- dbReadTable(conn,"currency")
+  packaging <- dbReadTable(conn,"packaging")
   dbDisconnect(conn)
   if (table_name=='inventory'){
     lookup_tbl_output <- update_inventory(config_dict)
+    lookup_tbl_output$remaining_qty <- round(
+      lookup_tbl_output$remaining_qty, digits=2)
+    lookup_tbl_output$unit <- NULL
+    ordering_unit <- get_ordering_unit(packaging)
     lookup_tbl_output <- merge(
-      lookup_tbl_output, product_info %>% select(prod_code,name,ref_smn),
-      all.x = T) %>%
-      select(name,ref_smn,lot,exp_date,remaining_qty)
+      lookup_tbl_output, ordering_unit,all.x=T)
+    lookup_tbl_output <- merge(
+      lookup_tbl_output, product_info %>% 
+        select(prod_code,name,vendor,ref_smn), all.x = T) %>%
+      select(name, vendor, ref_smn, lot, exp_date, remaining_qty, unit)
   }
     # query on simple table
   if (table_name=='product_info'){
@@ -251,7 +123,10 @@ create_lookup_tbl <- function(table_name,config_dict,local_name=TRUE){
   }
   if (table_name=='import_price'){
     lookup_tbl_output <- merge(import_price,product_info %>% 
-                                 select(name,vendor,ref_smn))
+                                 select(prod_code,name,vendor,ref_smn))
+    lookup_tbl_output <- merge(lookup_tbl_output,currency)
+    lookup_tbl_output <- lookup_tbl_output %>% 
+      select(name,vendor,ref_smn,import_price,currency,min_order)
   }
   if (table_name=='sale_log'){
     lookup_tbl_output <- merge(sale_log, product_info %>% select(
@@ -262,14 +137,18 @@ create_lookup_tbl <- function(table_name,config_dict,local_name=TRUE){
       lookup_tbl_output$customer_id)
     lookup_tbl_output <- merge(
       lookup_tbl_output,customer_info %>% select(customer_id,customer_name))
+    lookup_tbl_output <- lookup_tbl_output %>%
+      select(customer_name, name, ref_smn, qty, unit, lot, note)
   }
   if (table_name=='import_log'){
     lookup_tbl_output <- merge(import_log, product_info%>% select(
-      prod_code,name,vendor,ref_smn))
+      prod_code,name)) %>% 
+      select(name,unit,qty,lot,exp_date,po_name,actual_unit_cost)
+    
   }
   # format the table
   if (local_name){
-    lookup_tbl_output <- format_output_tbl(lookup_tbl_output,ui_elem)
+    lookup_tbl_output <- translate_tbl_column(lookup_tbl_output,ui_elem)
   }
   return(lookup_tbl_output)
 }
@@ -380,6 +259,16 @@ render_selected_pxk <- function(selected_pxk_num,config_dict,localised=T){
     }
   }
   return(output_pxk)
+}
+
+translate_tbl_column <- function(input_df,ui_elem){
+  for (i in 1:length(input_df)){
+    if (length(ui_elem$actual[ui_elem$label==names(input_df)[i]])==1){
+      names(input_df)[i] = ui_elem$actual[
+        ui_elem$label==names(input_df)[i]]
+    }
+  }
+  return(input_df)
 }
 
 get_pxk_entry_num <- function(selected_pxk_num,config_dict){
