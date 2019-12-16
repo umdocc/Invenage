@@ -1,13 +1,12 @@
 ## Invenage ui.R ##
 library(shiny)
-# library(shinydashboard)
+library(shinythemes)
 require(DT)
 navbarPage(
-  title = company_name,
+  theme = shinytheme("united"), title = company_name,
   tabPanel(
-    ui_elem$actual[ui_elem$label=='inv_out'],
+    theme = shinytheme("united"), ui_elem$actual[ui_elem$label=='inv_out'],
     fluidRow(
-      style = "background-color:#f5f5f5;",
       box(
         width=3, height = 700,
         p(), #space
