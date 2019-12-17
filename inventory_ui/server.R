@@ -18,6 +18,7 @@ shinyServer(function(input, output,session) {
   output$payment_selector <- render_payment_type('payment_type') # payment
   output$pxk_note <- render_note(iid='pxk_note') #Note
   output$prod_info_str <- render_prod_info(input) #product Info pane
+  output$sys_msg <- render_sys_message('ready')
   # side
   output$current_pxk_info <- render_current_pxk_infostr(
     config_dict) #current pxk info
@@ -301,13 +302,13 @@ shinyServer(function(input, output,session) {
   })
 
   # ---------------------------- pxk_man UI ------------------------------------
-  # renderers
+  # sidebar
   output$man_pxk_list <- render_pxk_list(
     input,config_dict,'man_pxk_list') #pxk_list
+  #main
+  output$pxk_detail <- render_man_pxktable(input)
   output$stt_select <- render_pxkman_stt_list(
     input,config_dict, iid='stt_select') #select_stt
-  output$sys_msg <- render_sys_message('ready')
-  output$pxk_detail <- render_man_pxktable(input)
   
   # button handlers
   observeEvent(input$delete_stt_man,{
@@ -328,6 +329,30 @@ shinyServer(function(input, output,session) {
     output$stt_select <- render_pxkman_stt_list(
     input,config_dict, iid='stt_select')
   })
-  
+  # table edit handler
+  observeEvent(input$pxk_detail_cell_edit,{
+    cell <- input$pxk_detail_cell_edit
+    current_pxk_num <- input$man_pxk_list
+    updated_pxk <- render_selected_pxk(current_pxk_num,config_dict)
+    # reverse the column name
+    updated_pxk <- rev_trans_tbl_column(updated_pxk, ui_elem)
+    # get the edit row stt
+    edited_stt <- updated_pxk$stt[cell$row]
+    
+    # allow editing certain fields only by checking cell$col
+    if (cell$col==7){ #7 is the note field
+      conn = db_open(config_dict)
+      sale_log <- dbReadTable(conn,'sale_log')
+      dbDisconnect(conn)
+      tmp <- sale_log[sale_log$pxk_num==as.integer(current_pxk_num),]
+      tmp$note[tmp$stt==edited_stt] <- cell$value
+      # # rewrite the database
+      conn = db_open(config_dict)
+      dbSendQuery(
+        conn, paste('delete from sale_log where pxk_num =', current_pxk_num))
+      dbWriteTable(conn,'sale_log',tmp,append=T)
+      dbDisconnect(conn)
+    }
+  })
   
 })

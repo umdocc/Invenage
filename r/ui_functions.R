@@ -246,11 +246,23 @@ render_selected_pxk <- function(selected_pxk_num,config_dict,localised=T){
   return(output_pxk)
 }
 
+# translate column
 translate_tbl_column <- function(input_df,ui_elem){
   for (i in 1:length(input_df)){
     if (length(ui_elem$actual[ui_elem$label==names(input_df)[i]])==1){
       names(input_df)[i] = ui_elem$actual[
         ui_elem$label==names(input_df)[i]]
+    }
+  }
+  return(input_df)
+}
+
+# reverse the translated column
+rev_trans_tbl_column <- function(input_df,ui_elem){
+  for (i in 1:length(input_df)){
+    if (length(ui_elem$label[ui_elem$actual==names(input_df)[i]])==1){
+      names(input_df)[i] = ui_elem$label[
+        ui_elem$actual==names(input_df)[i]]
     }
   }
   return(input_df)

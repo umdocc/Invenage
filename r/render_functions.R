@@ -183,7 +183,8 @@ render_man_pxktable <- function(input){DT::renderDataTable({
   selected_pxk_num <- as.integer(input$man_pxk_list)
   output <- render_selected_pxk(selected_pxk_num,config_dict)
   # output <- output[order(output$stt),]
-  DT::datatable(output, options = list(pageLength = 5),rownames=F)
+  DT::datatable(output, options = list(pageLength = 5),rownames=F,
+                editable = 'cell')
 })
 }
 
