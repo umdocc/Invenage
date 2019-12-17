@@ -354,3 +354,113 @@ get_latest_unit <- function(customer_id, prod_code, sale_log,pxk_info){
   }
   
 }
+
+# this function create an excel PXK from a given pxk_num
+create_pxk_file <- function(pxk_num){
+  # create new PXK file
+  orig_path <- config_dict$value[config_dict$name=='pxk_form']
+  dest_path <- file.path(config_dict$value[config_dict$name=='pxk_out_path'],
+                         paste0(company_name,".PXK.",
+                                pxk_num,".xlsx"))
+  wb <- loadWorkbook(orig_path)
+  
+  # get the expDate, if a Lot has 2 expDate, select only the 1st
+  # need to get all items, not just positive ones
+  tmp <- update_inventory(config_dict,pos_item=FALSE)
+  exp_date <- tmp %>% select(prod_code,lot,exp_date) %>% unique()
+  exp_date <- exp_date[!duplicated(exp_date$lot),]
+  
+  # read the data
+  conn <- db_open(config_dict)
+  # current_pxk_info
+  query <- paste("SELECT * from pxk_info where pxk_num =",pxk_num)
+  current_pxk_info <- dbGetQuery(conn,query)
+  payment_type <- dbReadTable(conn,'payment_type')
+  current_pxk_info <- merge(current_pxk_info,payment_type)
+  current_pxk_info <- merge(
+    current_pxk_info,ui_elem, by.x='payment_label', by.y='label')
+  
+  # form_data
+  query <- paste("SELECT sale_log.stt, product_info.name, product_info.ref_smn,
+                   sale_log.unit, sale_log.unit_price,
+                   sale_log.qty,sale_log.lot
+                   FROM   sale_log INNER JOIN product_info
+                   ON     sale_log.prod_code = product_info.prod_code
+                   WHERE  sale_log.pxk_num =",pxk_num)
+  
+  form_data <- dbGetQuery(conn,query)
+  form_data <- merge(form_data,exp_date,all.x=T)
+  
+  # calculate total price
+  form_data$total_price <- form_data$unit_price*form_data$qty
+  
+  # get customer data
+  query <- paste("SELECT DISTINCT customer_info.customer_name
+                    FROM pxk_info INNER JOIN customer_info
+                    ON pxk_info.customer_id = customer_info.customer_id
+                    WHERE pxk_info.PXK_num =", pxk_num)
+  printingCustomerName <- dbGetQuery(conn,query)
+  printingCustomerName <- printingCustomerName$customer_name[1]
+  
+  output_info <- dbGetQuery(
+    conn,'select * from output_info where type = "pxk_output"')
+  dbDisconnect(conn)
+  
+  # writing customer_name
+  customerNameRow <- as.numeric(
+    output_info$value[output_info$name=='customerNameRow'])
+  customerNameCol <- as.numeric(
+    output_info$value[output_info$name=='customerNameCol'])
+  
+  writeData(wb,sheet=1,printingCustomerName, startRow=customerNameRow, 
+            startCol=customerNameCol, colNames = F)
+  
+  # writing pxkNum
+  pxkNumRow <- as.numeric(output_info$value[output_info$name=='pxkNumRow'])
+  pxkNumCol <- as.numeric(output_info$value[output_info$name=='pxkNumCol'])
+  writeData(wb,sheet=1,pxk_num,startRow=pxkNumRow, 
+            startCol=pxkNumCol, colNames = F)
+  
+  # writing current date
+  date_row <- as.numeric(output_info$value[output_info$name=='date_row'])
+  date_col <- as.numeric(output_info$value[output_info$name=='date_col'])
+  writeData(wb, sheet=1, Sys.Date(), startRow=date_row, startCol=date_col, 
+            colNames = F)
+  
+  # writing payment type
+  out_payment_type <- current_pxk_info$actual
+  payment_type_row <- as.numeric(
+    output_info$value[output_info$name == 'payment_type_row'])
+  payment_type_col <- as.numeric(
+    output_info$value[output_info$name == 'payment_type_col'])
+  writeData(wb, sheet=1, out_payment_type, startRow=payment_type_row, 
+            startCol=payment_type_col, colNames = F)    
+  
+  # get pxkDataHeaders
+  pxkDataHeaders <-  data.frame(matrix(unlist(strsplit(
+    output_info$value[output_info$name=='dataHeaders'],';')),nrow=1))
+  
+  # rearrange Data and write
+  form_data <- form_data[order(as.numeric(form_data$stt)),]
+  dataColumns <- unlist(strsplit(
+    output_info$value[output_info$name=='dataToWrite'],';'))
+  
+  form_data <- form_data[,dataColumns]
+  
+  
+  # write both data and headers
+  dataStartRow <- as.numeric(
+    output_info$value[output_info$name=='dataStartRow'])
+  dataStartCol <- as.numeric(
+    output_info$value[output_info$name=='dataStartCol'])
+  #write headers first
+  writeData(wb,sheet=1,pxkDataHeaders, startRow=dataStartRow,
+            startCol=dataStartCol, colNames=F)
+  # data is one row below
+  writeData(wb,sheet=1,form_data,startRow=dataStartRow+1,
+            startCol=dataStartCol, colNames=F)
+  # save the excel sheet
+  saveWorkbook(wb,dest_path,overwrite = T)
+  # return the filename
+  return(dest_path)
+}

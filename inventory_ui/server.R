@@ -138,114 +138,18 @@ shinyServer(function(input, output,session) {
   
   observeEvent(input$complete_form,{
     # getting data to write to excel
-    finalised_pxk_warehouse <- input$warehouse_selector
+    # finalised_pxk_warehouse <- input$warehouse_selector
     finalised_pxk_num <- get_current_pxk(config_dict)
     
+    # update completed field in databse
     conn <- db_open(config_dict)
     query <- paste0("update pxk_info set completed = 1
                     where pxk_num = '",finalised_pxk_num,"'")
-    res <- dbSendStatement(conn,query)
-    dbClearResult(res)
-    dbDisconnect(conn)
-    new_pxk <- get_current_pxk(cofig_dict)
-    
-    
-    # create new PXK file
-    orig_path <- config_dict$value[config_dict$name=='pxk_form']
-    dest_path <- file.path(config_dict$value[config_dict$name=='pxk_out_path'],
-                           paste0(finalised_pxk_warehouse,".PXK.",
-                                  finalised_pxk_num,".xlsx"))
-    # file.copy(orig_path,dest_path)
-    wb <- loadWorkbook(orig_path)
-    
-    # get the expDate, if a Lot has 2 expDate, select only the 1st
-    # need to get all items, not just positive ones
-    tmp <- update_inventory(config_dict,pos_item=FALSE)
-    exp_date <- tmp %>% select(prod_code,lot,exp_date) %>% unique()
-    exp_date <- exp_date[!duplicated(exp_date$lot),]
-    
-    # read the data
-    conn <- db_open(config_dict)
-    query <- paste("SELECT sale_log.stt, product_info.name, product_info.ref_smn,
-                   sale_log.unit, sale_log.unit_price,
-                   sale_log.qty,sale_log.lot
-                   FROM   sale_log INNER JOIN product_info
-                   ON     sale_log.prod_code = product_info.prod_code
-                   WHERE  sale_log.pxk_num =",finalised_pxk_num)
-    
-    form_data <- dbGetQuery(conn,query)
-    form_data <- merge(form_data,exp_date,all.x=T)
-    
-    # calculate total price
-    form_data$total_price <- form_data$unit_price*form_data$qty
-    
-    # get customer data
-    query <- paste("SELECT DISTINCT customer_info.customer_name
-                    FROM pxk_info INNER JOIN customer_info
-                    ON pxk_info.customer_id = customer_info.customer_id
-                    WHERE pxk_info.PXK_num =", finalised_pxk_num)
-    printingCustomerName <- dbGetQuery(conn,query)
-    printingCustomerName <- printingCustomerName$customer_name[1]
-    
-    output_info <- dbGetQuery(
-      conn,'select * from output_info where type = "pxk_output"')
+    dbSendQuery(conn,query)
     dbDisconnect(conn)
     
-    # writing customer_name
-    customerNameRow <- as.numeric(
-      output_info$value[output_info$name=='customerNameRow'])
-    customerNameCol <- as.numeric(
-      output_info$value[output_info$name=='customerNameCol'])
-    
-    writeData(wb,sheet=1,printingCustomerName, startRow=customerNameRow, 
-              startCol=customerNameCol, colNames = F)
-    
-    # writing pxkNum
-    pxkNumRow <- as.numeric(output_info$value[output_info$name=='pxkNumRow'])
-    pxkNumCol <- as.numeric(output_info$value[output_info$name=='pxkNumCol'])
-    writeData(wb,sheet=1,finalised_pxk_num,startRow=pxkNumRow, 
-              startCol=pxkNumCol, colNames = F)
-    
-    # writing current date
-    date_row <- as.numeric(output_info$value[output_info$name=='date_row'])
-    date_col <- as.numeric(output_info$value[output_info$name=='date_col'])
-    writeData(wb, sheet=1, Sys.Date(), startRow=date_row, startCol=date_col, 
-              colNames = F)
-    
-    # writing payment type
-    out_payment_type <- input$payment_type
-    payment_type_row <- as.numeric(
-      output_info$value[output_info$name == 'payment_type_row'])
-    payment_type_col <- as.numeric(
-      output_info$value[output_info$name == 'payment_type_col'])
-    writeData(wb, sheet=1, out_payment_type, startRow=payment_type_row, 
-              startCol=payment_type_col, colNames = F)    
-    
-    # get pxkDataHeaders
-    pxkDataHeaders <-  data.frame(matrix(unlist(strsplit(
-      output_info$value[output_info$name=='dataHeaders'],';')),nrow=1))
-    
-    # rearrange Data and write
-    form_data <- form_data[order(as.numeric(form_data$stt)),]
-    dataColumns <- unlist(strsplit(
-      output_info$value[output_info$name=='dataToWrite'],';'))
-    
-    form_data <- form_data[,dataColumns]
-    
-    
-    # write both data and headers
-    dataStartRow <- as.numeric(
-      output_info$value[output_info$name=='dataStartRow'])
-    dataStartCol <- as.numeric(
-      output_info$value[output_info$name=='dataStartCol'])
-    #write headers first
-    writeData(wb,sheet=1,pxkDataHeaders, startRow=dataStartRow,
-              startCol=dataStartCol, colNames=F)
-    # data is one row below
-    writeData(wb,sheet=1,form_data,startRow=dataStartRow+1,
-              startCol=dataStartCol, colNames=F)
-    # save the excel sheet
-    saveWorkbook(wb,dest_path,overwrite = T)
+    # create the excel for current pxk
+    dest_path <- create_pxk_file(finalised_pxk_num)
     
     # open the file
     system(paste0('open ','"',dest_path,'"'))
@@ -353,6 +257,13 @@ shinyServer(function(input, output,session) {
       dbWriteTable(conn,'sale_log',tmp,append=T)
       dbDisconnect(conn)
     }
+  })
+  
+  observeEvent(input$print_pxk_man,{
+    man_pxk_num <- input$man_pxk_list
+    print(man_pxk_num)
+    dest_path <- create_pxk_file(man_pxk_num) # create the pxk
+    system(paste0('open ','"',dest_path,'"')) #open the file
   })
   
 })

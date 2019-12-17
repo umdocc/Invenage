@@ -117,6 +117,7 @@ navbarPage(
       box(width = 9, height = 600,
           h3(ui_elem$actual[ui_elem$label=='pxk_info']),
           DT::dataTableOutput('pxk_detail'),
+          h4(), #space
           div(
             style="display: inline-block;vertical-align:top;",
             h5(ui_elem$actual[ui_elem$label=='del_selected_stt'])
@@ -128,6 +129,12 @@ navbarPage(
               actionButton(
                 "delete_stt_man",
                 ui_elem$actual[ui_elem$label=='delete_stt'])
+          ),
+          div(style="display: inline-block;vertical-align:top; \
+                        position:absolute;right:15px",
+              actionButton(
+                "print_pxk_man",
+                ui_elem$actual[ui_elem$label=='print_pxk'])
           )
       )
     )
