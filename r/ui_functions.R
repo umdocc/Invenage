@@ -222,16 +222,15 @@ clean_duplicates <- function(
 render_selected_pxk <- function(selected_pxk_num,config_dict,localised=T){
   conn <- db_open(config_dict)
   sale_log <- dbReadTable(conn,'sale_log')
-  product_info <- dbReadTable(conn,'product_info')
   pxk_info <- dbReadTable(conn,'pxk_info')
-  customer_info <- dbReadTable(conn,'customer_info')
   dbDisconnect(conn)
+
   output_pxk <- sale_log[sale_log$pxk_num==selected_pxk_num,]
   output_pxk <- merge(output_pxk,product_info %>% select(prod_code,name))
   output_pxk <- merge(output_pxk,pxk_info)
   output_pxk <- merge(output_pxk,customer_info)
   output_pxk <- output_pxk %>% 
-    select(stt,name,unit,unit_price,qty,pxk_num,customer_name,note)
+    select(stt,name,unit,unit_price,qty,lot,customer_name,note)
   output_pxk <- output_pxk[order(output_pxk$stt),] # sort by stt
   if (localised){
     ui_elem <- get_ui_elem(config_dict)
