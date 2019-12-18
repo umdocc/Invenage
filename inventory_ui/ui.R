@@ -143,7 +143,7 @@ navbarPage(
     'About',
     fluidRow(
       style = "background-color:#f5f5f5;",
-      h3('abcd')
+      textOutput('error_text')
     )
   ) # end About tab
 ) # end navbarPage

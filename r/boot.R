@@ -23,12 +23,12 @@ if (db_type == 'MariaDB'){
 # ------------------------- chrome config for windows --------------------------
 os_name <- config_dict$value[config_dict$name=='os_name']
 if (all(grepl('windows',os_name))){
-  chrome_path <- config_dict$value[config_dict$name=='chrome_path']
-  if (file.exists(chrome_path)){
+  browser_path <- config_dict$value[config_dict$name=='browser_path']
+  if (file.exists(browser_path)){
     # set the chrome option
-    options(browser = chrome_path)
+    options(browser = browser_path)
   }else{
-    stop('Path to Chrome not found or incorrect!!')
+    stop('Path to Browser not found or incorrect!!')
   }
 }
 
@@ -99,3 +99,7 @@ date_range_tbl_local <- ui_elem$actual[ui_elem$label == date_range_tbl]
 date_format_alt <- gsub('%d','dd',date_format)
 date_format_alt <- gsub('%m','mm',date_format_alt)
 date_format_alt <- gsub('%Y','yyyy',date_format_alt)
+
+# error_file
+error_file <- config_dict$value[config_dict$name=='error_log']
+error_text <- readLines(error_file)
