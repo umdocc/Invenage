@@ -236,34 +236,8 @@ shinyServer(function(input, output,session) {
   # table edit handler
   observeEvent(input$pxk_detail_cell_edit,{
     cell <- input$pxk_detail_cell_edit
-    print(cell)
     current_pxk_num <- input$man_pxk_list
-    updated_pxk <- render_selected_pxk(current_pxk_num,config_dict)
-    # reverse the column name
-    updated_pxk <- rev_trans_tbl_column(updated_pxk, ui_elem)
-    # get the edit row stt
-    edited_stt <- updated_pxk$stt[cell$row]
-    
-    # read the pxk from database
-    conn = db_open(config_dict)
-    tmp <- dbGetQuery(
-      conn,paste('select * from sale_log where pxk_num =',current_pxk_num))
-    dbDisconnect(conn)
-    print(tmp)
-    # allow editing certain fields only by checking cell$col
-    if (cell$col==5){ #5 is the lot field
-      tmp$lot[tmp$stt==edited_stt] <- cell$value
-    }
-    if (cell$col==7){ #7 is the note field
-      tmp$note[tmp$stt==edited_stt] <- cell$value
-    }
-    # rewrite the database
-    conn = db_open(config_dict)
-    dbSendQuery(
-      conn, paste('delete from sale_log where pxk_num =', current_pxk_num))
-    dbWriteTable(conn,'sale_log',tmp,append=T)
-    dbDisconnect(conn)
-    
+    edit_db_pxk(cell,current_pxk_num)
   })
   
   observeEvent(input$print_pxk_man,{
@@ -272,5 +246,6 @@ shinyServer(function(input, output,session) {
     dest_path <- create_pxk_file(man_pxk_num) # create the pxk
     system(paste0('open ','"',dest_path,'"')) #open the file
   })
-  
+  # -------------------------- About tab ---------------------------------------
+  output$error_text <- renderText(error_text)
 })

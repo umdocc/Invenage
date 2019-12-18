@@ -354,6 +354,41 @@ get_latest_unit <- function(customer_id, prod_code, sale_log,pxk_info){
   
 }
 
+# function to edit pxk using pxk_num and 'cell' value
+edit_db_pxk <- function(cell,pxk_num){
+  #use render_selected_pxk maintain consistency with ui
+  updated_pxk <- render_selected_pxk(pxk_num,config_dict)
+  # reverse the column name
+  updated_pxk <- rev_trans_tbl_column(updated_pxk, ui_elem)
+  edited_stt <- updated_pxk$stt[cell$row] # get the edit row stt
+
+  # read the pxk from database
+  conn = db_open(config_dict)
+  tmp <- dbGetQuery(
+    conn,paste('select * from sale_log where pxk_num =',pxk_num))
+  dbDisconnect(conn)
+
+  pxk_col_list <- c( # list of pxk fields
+    'stt', 'name', 'unit', 'unit_price', 'qty', 'lot', 'customer_name', 'note')
+  allowed_chr_fields <- c(4,5,6,8) # allow editing certain fields only
+  if (cell$col %in% (allowed_chr_fields-1) ){ # dt cell has offset of 1
+    tmp[tmp$stt==edited_stt,
+        pxk_col_list[cell$col+1]] <- as.character(cell$value)
+  }
+  # allowed_num_fields <- c(4,5) # allow editing certain fields only
+  # if (cell$col %in% (allowed_num_fields-1) ){ # dt cell has offset of 1
+  #   tmp[tmp$stt==edited_stt,
+  #       pxk_col_list[cell$col+1]] <- as.numeric(cell$value)
+  # }
+  # rewrite the database
+  conn = db_open(config_dict)
+  dbSendQuery(
+    conn, paste('delete from sale_log where pxk_num =', pxk_num))
+  dbWriteTable(conn,'sale_log',tmp,append=T)
+  dbDisconnect(conn)
+  
+}
+
 # this function create an excel PXK from a given pxk_num
 create_pxk_file <- function(pxk_num){
   # create new PXK file
