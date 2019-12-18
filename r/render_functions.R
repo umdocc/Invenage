@@ -183,7 +183,7 @@ render_man_pxktable <- function(input){DT::renderDataTable({
   selected_pxk_num <- as.integer(input$man_pxk_list)
   output <- render_selected_pxk(selected_pxk_num,config_dict)
   # output <- output[order(output$stt),]
-  DT::datatable(output, options = list(pageLength = 5),rownames=F,
+  DT::datatable(output, options = list(pageLength = 10),rownames=F,
                 editable = 'cell')
 })
 }
@@ -194,7 +194,7 @@ render_invout_pxktable <- function(){DT::renderDataTable({
   # print(current_pxk)
   output <- render_selected_pxk(current_pxk,config_dict)
   
-  DT::datatable(output, options = list(pageLength = 5),rownames=F)
+  DT::datatable(output, options = list(pageLength = 10),rownames=F)
 })
 }
 
@@ -203,7 +203,7 @@ render_sys_message <- function(sys_msg){renderUI({
 }) }
 
 render_customer_list <- function(iid){renderUI({
-  custChoices <- get_cust_list(config_dict)
+  custChoices <- get_cust_list(config_dict,type)
   selectizeInput(inputId = iid,
                  label = ui_elem$actual[ui_elem$label=='customer_name'],
                  choices = custChoices)

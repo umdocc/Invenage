@@ -28,13 +28,14 @@ get_current_pxk <- function(cofig_dict){
 }
 
 # function to select customer using the database to look at PXK
-get_cust_list <- function(config_dict){
+get_cust_list <- function(config_dict,type){
   conn <- db_open(config_dict)
   pxk_info <- dbReadTable(conn,"pxk_info")
   customer_info <- dbReadTable(conn,"customer_info")
   dbDisconnect(conn)
   current_pxk <- pxk_info[pxk_info$completed==0,'pxk_num']
-  # if current_pxk has completion code then we force customer_name
+  # in type=inv_out, if current_pxk has completion code 
+  # then we force customer_name
   if (length(current_pxk)>0){
     current_cust_id <- pxk_info$customer_id[pxk_info$pxk_num==current_pxk]
     cust_choice <- customer_info$customer_name[
@@ -370,23 +371,29 @@ edit_db_pxk <- function(cell,pxk_num){
 
   pxk_col_list <- c( # list of pxk fields
     'stt', 'name', 'unit', 'unit_price', 'qty', 'lot', 'customer_name', 'note')
-  allowed_chr_fields <- c(4,5,6,8) # allow editing certain fields only
+  allowed_chr_fields <- c(3,4,5,6,8) # allow editing certain fields only
   if (cell$col %in% (allowed_chr_fields-1) ){ # dt cell has offset of 1
     tmp[tmp$stt==edited_stt,
         pxk_col_list[cell$col+1]] <- as.character(cell$value)
   }
-  # allowed_num_fields <- c(4,5) # allow editing certain fields only
-  # if (cell$col %in% (allowed_num_fields-1) ){ # dt cell has offset of 1
-  #   tmp[tmp$stt==edited_stt,
-  #       pxk_col_list[cell$col+1]] <- as.numeric(cell$value)
-  # }
-  # rewrite the database
-  conn = db_open(config_dict)
-  dbSendQuery(
-    conn, paste('delete from sale_log where pxk_num =', pxk_num))
-  dbWriteTable(conn,'sale_log',tmp,append=T)
-  dbDisconnect(conn)
-  
+  # check data
+  tmp$unit <- tolower(tmp$unit) # clean the unit first
+  errorsFree=T
+  if (pxk_col_list[cell$col+1]=='unit'){ #check the unit
+    test <- merge(tmp,packaging)
+    if(length(test$units_per_pack[test$stt==edited_stt])==0){
+      errorsFree = F
+      # do something to alert user here
+    }
+  }
+  if (errorsFree){
+    conn = db_open(config_dict)
+    dbSendQuery(
+      conn, paste('delete from sale_log where pxk_num =', pxk_num))
+    dbWriteTable(conn,'sale_log',tmp,append=T)
+    dbDisconnect(conn)
+  }
+  return(errorsFree)
 }
 
 # this function create an excel PXK from a given pxk_num

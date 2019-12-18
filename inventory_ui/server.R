@@ -237,7 +237,8 @@ shinyServer(function(input, output,session) {
   observeEvent(input$pxk_detail_cell_edit,{
     cell <- input$pxk_detail_cell_edit
     current_pxk_num <- input$man_pxk_list
-    edit_db_pxk(cell,current_pxk_num)
+    errorsFree <- edit_db_pxk(cell,current_pxk_num)
+    output$pxk_detail <- render_man_pxktable(input) #refresh the pxk
   })
   
   observeEvent(input$print_pxk_man,{
