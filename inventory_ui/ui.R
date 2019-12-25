@@ -113,7 +113,7 @@ navbarPage(
       style = "background-color:#f5f5f5;",
       box(width = 3, height = 600,
           htmlOutput('man_pxk_list'),
-          htmlOutput('man_pxk_cust_select'),
+          htmlOutput('man_pxk_cust_select')
       ),
       box(width = 9, height = 600,
           h3(ui_elem$actual[ui_elem$label=='pxk_info']),

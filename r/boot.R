@@ -3,7 +3,7 @@
 # translated
 
 # ------------------------ load required packages ------------------------------
-required_package <- c('DT', 'shiny', 'shinydashboard', 'ggplot2', 'scales',
+required_package <- c('shinythemes','DBI','DT', 'shiny', 'shinydashboard', 'ggplot2', 'scales',
                       'openxlsx', 'dplyr', 'data.table', 'lubridate')
 new.packages <- required_package[
   !(required_package %in% installed.packages()[,"Package"])]

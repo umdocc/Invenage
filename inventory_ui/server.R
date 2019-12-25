@@ -100,6 +100,7 @@ shinyServer(function(input, output,session) {
         ui_elem$actual[ui_elem$label=='inv_exceed'])
     }
     # refresh the UI after sucessfull inventory_out
+    output$customer_selector <- render_customer_list('customer_name')
     output$prod_name_selector <- render_prod_name_list(
       input,product_info,'prod_name_select') # prod_name
     output$qty_selector <- render_qty(iid='qty_selector') #Qty
@@ -209,6 +210,9 @@ shinyServer(function(input, output,session) {
   # sidebar
   output$man_pxk_list <- render_pxk_list(
     input,config_dict,'man_pxk_list') #pxk_list
+  output$man_pxk_cust_select <- render_customer_list(
+    'man_pxk_cust_select',type='man_pxk')
+  
   #main
   output$pxk_detail <- render_man_pxktable(input)
   output$stt_select <- render_pxkman_stt_list(

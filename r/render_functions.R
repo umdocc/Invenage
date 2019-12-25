@@ -202,11 +202,14 @@ render_sys_message <- function(sys_msg){renderUI({
   HTML(sys_msg)
 }) }
 
-render_customer_list <- function(iid){renderUI({
-  custChoices <- get_cust_list(config_dict,type)
+render_customer_list <- function(iid,type='inv_out'){renderUI({
+  cust_choices <- get_cust_list(config_dict,type)
+  # set the label
+  if (type=='inv_out'){
+    clabel <- ui_elem$actual[ui_elem$label=='customer_name']}
   selectizeInput(inputId = iid,
-                 label = ui_elem$actual[ui_elem$label=='customer_name'],
-                 choices = custChoices)
+                 label = clabel,
+                 choices = cust_choices)
 }) }
 
 render_payment_type <- function(iid){renderUI({

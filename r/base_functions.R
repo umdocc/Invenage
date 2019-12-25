@@ -5,8 +5,8 @@ db_open <- function(config_dict){
   db_type <- config_dict$value[config_dict$name=='db_type']
   if (db_type == 'SQLite'){
     database_path <- config_dict$value[config_dict$name=='db_file']
-    sqlite.driver <- dbDriver("SQLite")
-    conn <- dbConnect(sqlite.driver, dbname = database_path)
+    # sqlite.driver <- dbDriver("SQLite")
+    conn <- dbConnect(drv = RSQLite::SQLite(), dbname = database_path)
   }
   if (db_type == 'MariaDB'){
     conn <- dbConnect(drv = RMariaDB::MariaDB(), 
