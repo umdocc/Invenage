@@ -16,6 +16,7 @@ import python_func as inv
 app_lang = config_dict['app_lang'] # get app_lang
 
 # read the database
+db_engine = inv.create_db_engine(config_dict)
 conn = inv.db_open(config_dict)
 localisation = pd.read_sql_query(
         'select * from localisation where app_lang = "'+app_lang+'"',conn)
@@ -189,3 +190,6 @@ if len(append_pkg_info)>0:
         'packaging',conn,index=False,if_exists='append')
 conn.close()
 clear_exceldb_sheet(update_file,pkg_sheet_name)
+
+if (config_dict['db_type'] == 'MariaDB'):
+    db_engine.dispose()

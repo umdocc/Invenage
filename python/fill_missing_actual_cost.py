@@ -10,7 +10,8 @@ import python_func as inv
 
 # ----------------------------- Data Read -------------------------------------
 # database
-conn = inv.db_open(config_dict)
+db_engine = inv.create_db_engine(config_dict)
+conn = inv.db_open(config_dict,db_engine)
 product_info = pd.read_sql_query('select * from product_info',conn)
 import_log = pd.read_sql_query('select * from import_log',conn)
 localisation = pd.read_sql_query('select * from localisation',conn)
@@ -21,8 +22,8 @@ import_log_len = len(import_log)
 
 #other
 error_file = config_dict['error_log']
-msg_dict = inv.create_dict(config_dict,'msg_dict')
-rename_dict = inv.create_dict(config_dict,'rename_dict')
+msg_dict = inv.create_dict(config_dict,db_engine,'msg_dict')
+rename_dict = inv.create_dict(config_dict,db_engine,'rename_dict')
 
 # attemp to fill missing import_log price by checking the po
 missing_price = import_log.copy()
@@ -31,7 +32,7 @@ missing_price = missing_price[missing_price.actual_unit_cost.isnull()]
 # if there is missing price, attemp to fix
 if (len(missing_price)>0):
     # re-read po_data
-    po_data = inv.build_po_data(config_dict)
+    po_data = inv.build_po_data(config_dict,db_engine)
     po_data.actual_unit_cost = pd.to_numeric(
             po_data.actual_unit_cost, errors='coerce')
     po_data = po_data[po_data.actual_unit_cost.notnull()]
@@ -59,6 +60,10 @@ if (len(missing_price)>0):
     merged_log.added_actual_cost[merged_log.actual_unit_cost.isnull() & 
                                  merged_log.added_actual_cost.notnull()]
     
-    conn = inv.db_open(config_dict)
+    conn = inv.db_open(config_dict,db_engine)
     merged_log.to_sql('import_log',conn,index=False,if_exists='replace')
     conn.close()
+
+# dispose the database engine
+if (config_dict['db_type'] == 'MariaDB'):
+    db_engine.dispose()

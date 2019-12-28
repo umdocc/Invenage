@@ -1,5 +1,4 @@
 # check the database integrity and write to log file
-#
 # ---------------------------- Setup ------------------------------------------
 import sys, os, pandas as pd #import
 inv_data_path = os.path.join(os.path.expanduser('~'),'invenage_data') 
@@ -12,7 +11,8 @@ sys.path.append(os.path.join(config_dict['app_path'],'python'))
 import python_func as inv
 
 # read the database
-conn = inv.db_open(config_dict)
+db_engine = inv.create_db_engine(config_dict)
+conn = inv.db_open(config_dict,db_engine)
 product_info = pd.read_sql_query('select * from product_info',conn)
 packaging = pd.read_sql_query('select * from packaging',conn)
 import_log = pd.read_sql_query('select * from import_log',conn)
@@ -23,7 +23,7 @@ conn.close()
 
 # misc
 localisation = localisation[localisation.app_lang==config_dict['app_lang']]
-msg_dict = inv.create_dict(config_dict,'msg_dict')
+msg_dict = inv.create_dict(config_dict,db_engine,'msg_dict')
 
 error_file = config_dict['error_log']
 if os.path.exists(error_file):
@@ -111,4 +111,6 @@ if len(pxk_info[pxk_info.pxk_num.duplicated()])>0:
     pxk_info = pxk_info[~pxk_info.pxk_num.duplicated()]
 
 
-
+# clean up
+if (config_dict['db_type'] == 'MariaDB'):
+    db_engine.dispose()

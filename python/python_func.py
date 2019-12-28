@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #Functions for extension scripts
-import pandas as pd, sqlite3, openpyxl
+import pandas as pd, sqlite3, openpyxl, sqlalchemy
 import platform, subprocess, glob, os
-from sqlalchemy import create_engine
+# from sqlalchemy import create_engine
+# from sqlalchemy.pool import NullPool
 #from sqlalchemy import NullPool
 # create a list of files with locked info, can use exclude    
 def write_log(error_file,message):
@@ -62,8 +63,8 @@ def convert_to_dict(rename_df):
     return(output_dict)
 
 # current dictType = ['NSX','colRename']
-def create_dict(config_dict, dict_name):
-    conn = db_open(config_dict)
+def create_dict(config_dict, db_engine, dict_name):
+    conn = db_open(config_dict, db_engine)
     # rename dictionary
     if ((dict_name=='rename_dict') or (dict_name=='vendor_dict')):
         rename_df = pd.read_sql_query(
@@ -83,9 +84,9 @@ def create_dict(config_dict, dict_name):
     return(output_dict)
     
 # read the po data using a single excel file as input
-def read_po_data(input_file,config_dict):
-    nsx_dict = create_dict(config_dict,'vendor_dict')
-    rename_dict = create_dict(config_dict,'rename_dict')
+def read_po_data(input_file,config_dict,db_engine):
+    nsx_dict = create_dict(config_dict,db_engine,'vendor_dict')
+    rename_dict = create_dict(config_dict,db_engine,'rename_dict')
     currentNSX = ''
     for k in nsx_dict:
         if k in input_file:
@@ -107,12 +108,23 @@ def read_po_data(input_file,config_dict):
                'vendor','actual_unit_cost','po_name','note']]
     return(tmp)
 
-def db_open(config_dict):
+def create_db_engine(config_dict):
     if (config_dict['db_type']=='MariaDB'):
-        conn = create_engine('mysql+mysqlconnector://'+                \
-                             config_dict['sql_usr']+                    \
-                               ":"+config_dict['sql_pswd']+"@"+         \
-                               config_dict['sql_host']+"/invenage")
+        db_engine = sqlalchemy.create_engine(
+            'mysql+mysqlconnector://' + config_dict['sql_usr'] + ":" +      \
+            config_dict['sql_pswd'] + "@" + config_dict['sql_host'] +       \
+            "/"+ config_dict['sql_db_name'], 
+            poolclass=sqlalchemy.pool.NullPool)
+    # in case SQLite, db_engine is a string pointing to SQLite file
+    if (config_dict['db_type']=='SQLite'):
+        db_engine = config_dict['db_file']
+    return(db_engine)
+
+def db_open(config_dict, db_engine):
+#     # in case of MariaDB we use the *global* db_engine object
+#     # so that this function will always return a conn obejct
+    if (config_dict['db_type']=='MariaDB'):
+        conn = db_engine.connect()
     if (config_dict['db_type']=='SQLite'):
         db_file = config_dict['db_file']
         conn = sqlite3.connect(db_file)
@@ -147,24 +159,22 @@ def build_po_list(config_dict):
     po_file_list = po_file_list.reset_index(drop=True)
     return(po_file_list)
 
-
-
-def build_po_data(config_dict, data_cleaning=True):
+def build_po_data(config_dict, db_engine, data_cleaning=True):
     # create the list of po first
     po_file_list = build_po_list(config_dict)
     
     error_file = config_dict['error_log']
-    msg_dict = create_dict(config_dict,'msg_dict')
+    msg_dict = create_dict(config_dict,db_engine,'msg_dict')
     
     # database information
-    conn = db_open(config_dict)
+    conn = db_open(config_dict,db_engine)
     product_info = pd.read_sql_query('select * from product_info',conn)
     packaging = pd.read_sql_query('select * from packaging',conn)    
     conn.close()
 
     for i in range(0,len(po_file_list)):
         inputExcelFile = po_file_list.full_path[i]
-        tmp = read_po_data(inputExcelFile,config_dict)
+        tmp = read_po_data(inputExcelFile,config_dict,db_engine)
         if (i == 0):
             po_data = tmp.copy()
         else:

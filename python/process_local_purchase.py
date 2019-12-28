@@ -10,7 +10,8 @@ import python_func as inv
 
 # ----------------------------- Data Read -------------------------------------
 # database
-conn = inv.db_open(config_dict)
+db_engine = inv.create_db_engine(config_dict)
+conn = inv.db_open(config_dict, db_engine)
 product_info = pd.read_sql_query('select * from product_info',conn)
 import_log = pd.read_sql_query('select * from import_log',conn)
 localisation = pd.read_sql_query('select * from localisation',conn)
@@ -19,8 +20,8 @@ conn.close()
 
 #other
 error_file = config_dict['error_log']
-msg_dict = inv.create_dict(config_dict,'msg_dict')
-rename_dict = inv.create_dict(config_dict,'rename_dict')
+msg_dict = inv.create_dict(config_dict, db_engine, 'msg_dict')
+rename_dict = inv.create_dict(config_dict, db_engine, 'rename_dict')
 
 # -------------------------- processing ---------------------------------------
 local_import_str = config_dict['local_import_str'] # the special PO
@@ -148,3 +149,6 @@ if len(local_import_data)>0:
                            if_exists='append')
     conn.commit()
     conn.close()
+
+if (config_dict['db_type'] == 'MariaDB'):
+    db_engine.dispose()

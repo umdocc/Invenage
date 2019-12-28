@@ -17,7 +17,8 @@ alt_dict_path = os.path.join(
 
 # ------------------------------ Data Read ------------------------------------
 #database
-conn = inv.db_open(config_dict)
+db_engine = inv.create_db_engine(config_dict)
+conn = inv.db_open(config_dict,db_engine)
 import_log = pd.read_sql_query('select * from import_log',conn)
 product_info = pd.read_sql_query('select * from product_info',conn)
 rename_dict = pd.read_sql_query(
@@ -27,7 +28,7 @@ direct_import_price = pd.read_sql_query('select prod_code, import_price,  \
                                         min_order from import_price \
                                         where currency_code > 1',conn)
 conn.close()
-
+rename_dict = inv.convert_to_dict(rename_dict)
 #paths
 po_path = config_dict['po_path']
 po_list = inv.get_files_info(po_path,'xlsx',['Unused','Draft'])
@@ -37,18 +38,18 @@ po_dir = os.path.dirname(po_file)
 
 # logs, dicts
 error_file = config_dict['error_log']
-msg_dict = inv.create_dict(config_dict,'msg_dict')
+msg_dict = inv.create_dict(config_dict,db_engine,'msg_dict')
 
-# alt dict
-tmp = pd.read_excel(alt_dict_path)
-if (len(tmp)>0):
-    rename_dict = tmp.copy()
-if len(rename_dict[rename_dict.duplicated()])>0:
-    raise RuntimeError('rename_dict contains duplicates')
-rename_dict = inv.convert_to_dict(rename_dict)
+# # alt dict
+# tmp = pd.read_excel(alt_dict_path)
+# if (len(tmp)>0):
+#     rename_dict = tmp.copy()
+# if len(rename_dict[rename_dict.duplicated()])>0:
+#     raise RuntimeError('rename_dict contains duplicates')
+
 
 # excel data
-po_data = inv.read_po_data(po_file,config_dict)
+po_data = inv.read_po_data(po_file,config_dict,db_engine)
 exp_data = pd.read_excel(
         os.path.join(po_dir,'expiry dates wk 43 less than 6 months.xlsx'))
 exp_data = exp_data.rename(columns = rename_dict)
@@ -96,5 +97,8 @@ po_data = pd.merge(po_data,tmp,how='left')
 # --------------------------- creating report ---------------------------------
 po_data.shelf_life_date = po_data.shelf_life_date.dt.strftime('%d-%m-%Y')
 output_file_name = os.path.join(po_dir,'po_data_report.xlsx')
-po_data.to_excel(output_file_name,index=False)
+# po_data.to_excel(output_file_name,index=False)
 
+# clean up
+if (config_dict['db_type']=='MariaDB'):
+    db_engine.dispose()

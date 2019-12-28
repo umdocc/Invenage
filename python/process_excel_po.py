@@ -10,16 +10,17 @@ import python_func as inv
 
 # ------------------------------ Data Read ------------------------------------
 #database
-conn = inv.db_open(config_dict)
+db_engine = inv.create_db_engine(config_dict)
+conn = inv.db_open(config_dict,db_engine)
 import_log = pd.read_sql_query('select * from import_log',conn)
 product_info = pd.read_sql_query('select * from product_info',conn)
 conn.close()
 # other
 error_file = config_dict['error_log']
-msg_dict = inv.create_dict(config_dict,'msg_dict')
+msg_dict = inv.create_dict(config_dict, db_engine, 'msg_dict')
 
 # ------------------------ process PO _data -----------------------------------
-po_data = inv.build_po_data(config_dict)
+po_data = inv.build_po_data(config_dict, db_engine)
 
 # split po_data into 2 parts
 # those with Lot gets written into importLog
@@ -77,3 +78,5 @@ coming_list.to_sql('coming_list',conn,index=False,if_exists='replace')
 conn.commit()
 conn.close()
 
+if (config_dict['db_type'] == 'MariaDB'):
+    db_engine.dispose()
