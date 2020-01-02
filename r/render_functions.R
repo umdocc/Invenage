@@ -7,7 +7,7 @@ render_pxk_list <- function(input,config_dict,iid){renderUI({
   dbDisconnect(conn)
   selectizeInput( inputId = iid,
                   label = ui_elem$actual[ui_elem$label=='select_pxk'],
-                  choices = pxk_num_list)
+                  choices = as.character(pxk_num_list$pxk_num))
 }) }
 
 # render a list of active product
@@ -39,7 +39,7 @@ render_price <- function(input,iid){renderUI({
 #render a list of stt, used for pxk_man
 render_pxkman_stt_list <- function(input, config_dict, iid){renderUI({
   selected_pxk_num <- as.integer(input[['man_pxk_list']])
-  entry_list <- get_pxk_entry_num(selected_pxk_num,config_dict)
+  entry_list <- as.character(get_pxk_entry_num(selected_pxk_num,config_dict))
   selectInput(inputId = iid, label = NULL,
               choices=c(entry_list,ui_elem$actual[ui_elem$label=='all']))
 }) }
@@ -47,7 +47,7 @@ render_pxkman_stt_list <- function(input, config_dict, iid){renderUI({
 #render a list of stt for current pxk num only
 render_invout_stt_list <- function(config_dict, iid){renderUI({
   current_pxk_num <- get_current_pxk(cofig_dict)
-  entry_list <- get_pxk_entry_num(current_pxk_num,config_dict)
+  entry_list <- as.character(get_pxk_entry_num(current_pxk_num,config_dict))
   selectInput(inputId = iid, label = NULL, choices=entry_list)
 }) }
 
@@ -64,8 +64,6 @@ render_unit <- function(input,iid){renderUI({
                                "prod_code"]
   cur_customer_id <- customer_info$customer_id[
     customer_info$customer_name==input$customer_name]
-  # print(cur_customer_id)
-  # print(cur_prod_code)
   unitList <- packaging[packaging$prod_code == cur_prod_code, "unit"]
   unitList <- unique(unitList)
   unitList <- unitList[unitList!='pack']
@@ -76,7 +74,7 @@ render_unit <- function(input,iid){renderUI({
   if (length(latest_unit)==0){ 
     latest_unit <- unitList[1]
   }
-  # print(latest_unit)
+
   selectInput(
     inputId = iid,
     label = ui_elem$actual[ui_elem$label=='unit'],
@@ -191,7 +189,6 @@ render_man_pxktable <- function(input){DT::renderDataTable({
 # render table for the invout tab
 render_invout_pxktable <- function(){DT::renderDataTable({
   current_pxk <- get_current_pxk(config_dict)
-  # print(current_pxk)
   output <- render_selected_pxk(current_pxk,config_dict)
   
   DT::datatable(output, options = list(pageLength = 10),rownames=F)
@@ -225,11 +222,11 @@ render_payment_type <- function(iid){renderUI({
               choices = paymentChoices,selected = defaultPay)
 }) }
 
-render_warehouse <- function(input,iid){renderUI({
+render_warehouse <- function(input,iid,warehouse_info){renderUI({
   # iid <- warehouse_selector
-  conn <- db_open(config_dict)
-  warehouse_info <- dbReadTable(conn,'warehouse_info')
-  dbDisconnect(conn)
+  # conn <- db_open(config_dict)
+  # warehouse_info <- dbReadTable(conn,'warehouse_info')
+  # dbDisconnect(conn)
   warehouseChoices <- warehouse_info$warehouse
   # get default warehouse based on current product
   tmp <- update_inventory(config_dict)
@@ -238,8 +235,12 @@ render_warehouse <- function(input,iid){renderUI({
   default_warehouse_id <- tmp$warehouse_id[
     tmp$prod_code==current_prod_code & 
       tmp$lot==input$lot_select]
-  default_warehouse <- warehouse_info$warehouse[
+  if (length(default_warehouse_id)==0){ # set default if we cannot find sth
+    default_warehouse <- warehouseChoices[1]
+  }else{
+    default_warehouse <- warehouse_info$warehouse[
     warehouse_info$warehouse_id == default_warehouse_id]
+  }
   selectInput(inputId = iid,
               label = ui_elem$actual[ui_elem$label=='warehouse'],
               choices = default_warehouse)

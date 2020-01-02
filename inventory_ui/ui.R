@@ -92,13 +92,10 @@ navbarPage(
                         ui_elem$label=='from_date'],
                       value = "2019-11-04", format = date_format_alt)
           ),
-          conditionalPanel(
-            condition = paste0(
-              "input.report_type == '",date_range_tbl_local,"'"),
-            dateInput(inputId = 'to_date',
+          dateInput(inputId = 'to_date',
                       label = ui_elem$actual[
                         ui_elem$label=='to_date'],
-                      value = "2019-11-10", format = date_format_alt)
+                      value = "2019-11-10", format = date_format_alt
           ),
           actionButton(
             "printReport", ui_elem$actual[ui_elem$label=='printReport'])
@@ -112,8 +109,8 @@ navbarPage(
     fluidRow(
       style = "background-color:#f5f5f5;",
       box(width = 3, height = 600,
-          htmlOutput('man_pxk_list'),
-          htmlOutput('man_pxk_cust_select')
+          htmlOutput('man_pxk_list')
+          # htmlOutput('man_pxk_cust_select')
       ),
       box(width = 9, height = 600,
           h3(ui_elem$actual[ui_elem$label=='pxk_info']),

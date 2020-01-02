@@ -111,7 +111,6 @@ create_fifo_sale_log <- function(sale_log,import_log,pxk_info){
   import_log <- import_log[order(import_log$delivery_date),]
   sale_log <- sale_log[order(sale_log$sale_datetime),]
   for (i in 1:nrow(sale_log)){
-    print(i)
     tmp <- import_log[import_log$prod_code == sale_log$prod_code[i] &
                         import_log$lot == sale_log$lot[i] ,][1,]
     if (!is.na(tmp$pack_qty)){

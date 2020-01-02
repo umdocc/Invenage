@@ -13,7 +13,7 @@ shinyServer(function(input, output,session) {
   output$unit_selector <- render_unit(input,iid='unit_selector') #Unit
   output$lot_select <- render_lot(input, iid='lot_select') # Lot
   output$warehouse_selector <- render_warehouse(
-    input, 'warehouse_selector') # warehouse
+    input, 'warehouse_selector',warehouse_info) # warehouse
   output$unit_price <- render_price(input,iid='unit_price')
   output$payment_selector <- render_payment_type('payment_type') # payment
   output$pxk_note <- render_note(iid='pxk_note') #Note
@@ -145,15 +145,11 @@ shinyServer(function(input, output,session) {
     # update completed field in databse
     conn <- db_open(config_dict)
     query <- paste0("update pxk_info set completed = 1
-                    where pxk_num = '",finalised_pxk_num,"'")
-    dbSendQuery(conn,query)
+                    where pxk_num = ",finalised_pxk_num)
+
+    dbExecute(conn,query)
+
     dbDisconnect(conn)
-    
-    # create the excel for current pxk
-    dest_path <- create_pxk_file(finalised_pxk_num)
-    
-    # open the file
-    system(paste0('open ','"',dest_path,'"'))
     
     # UI refresh
     output$customer_selector <- render_customer_list('customer_name') # customer
@@ -166,13 +162,17 @@ shinyServer(function(input, output,session) {
     output$lot_select <- render_lot(input, iid='lot_select') # Lot
     output$prod_info_str <- render_prod_info(input) #product Info pane
     output$pxk_note <- render_note(iid='pxk_note') #Note
+    
+    # create the excel for current pxk
+    dest_path <- create_pxk_file(finalised_pxk_num)
+    # open the file
+    system(paste0('open ','"',dest_path,'"'))
   })
 
   # ------------------------------- lookup UI ----------------------------------
   output$lookup_tbl_output <- DT::renderDataTable({
     table_name <- ui_elem$label[
       ui_elem$actual==input$lu_tbl_selector]
-    # print(table_name)
     create_lookup_tbl(table_name,config_dict)
   },rownames=F)
   
@@ -180,7 +180,6 @@ shinyServer(function(input, output,session) {
   
   output$report_tbl_ouput <- DT::renderDataTable({
     report_type <- ui_elem$label[ui_elem$actual==input$report_type]
-    print(report_type)
     rp_filename <- get_rp_filename(report_type, config_dict)
     create_report(report_type,rp_filename,config_dict,input)
   },rownames=F)
@@ -189,7 +188,6 @@ shinyServer(function(input, output,session) {
   observeEvent(input$printReport, {
     # gather all data
     report_type <- ui_elem$label[ui_elem$actual==input$report_type]
-    print(report_type)
     rp_data <- build_rp_data(report_type,input)
     if (report_type == 'sale_profit_report'){
       from_date <- input$from_date # from_date and to_date depends on rp type
@@ -220,17 +218,18 @@ shinyServer(function(input, output,session) {
   
   # button handlers
   observeEvent(input$delete_stt_man,{
-    # print(input$pxk_list)
     selected_pxk_num <- as.integer(input$man_pxk_list)
-    full_stt_list <- get_pxk_entry_num(selected_pxk_num,config_dict)
+    # print(selected_pxk_num)
+    full_stt_list <- as.character(
+      get_pxk_entry_num(selected_pxk_num,config_dict))
     trans_list <- data.frame(label=c(full_stt_list,'all'),
                              localised=c(full_stt_list,
-                                         ui_elem$actual[ui_elem$label=='all'])
-                             )
+                                 ui_elem$actual[ui_elem$label=='all']))
     stt_to_proc <- as.character(
       trans_list$label[
       as.character(trans_list$localised)==as.character(input$stt_select)]
     )
+    # print(stt_to_proc)
     delete_pxk(selected_pxk_num,stt_to_proc,config_dict)
     # refresh the UI
     output$pxk_detail <- render_man_pxktable(input) # reload the pxk_man table
@@ -247,7 +246,6 @@ shinyServer(function(input, output,session) {
   
   observeEvent(input$print_pxk_man,{
     man_pxk_num <- input$man_pxk_list
-    print(man_pxk_num)
     dest_path <- create_pxk_file(man_pxk_num) # create the pxk
     system(paste0('open ','"',dest_path,'"')) #open the file
   })

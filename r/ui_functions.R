@@ -15,7 +15,6 @@ get_current_pxk <- function(cofig_dict){
     while (!newPXKNum){
       tmp_num <- as.numeric(paste0(strftime(Sys.time(),'%d%m%y'),
                                   sprintf("%02d",i)))
-      # print(tmpNum)
       if (length(pxk_num_list[pxk_num_list$pxk_num==tmp_num,'pxk_num'])==0){
         newPXK <- tmp_num
         newPXKNum <- T
@@ -225,11 +224,14 @@ render_selected_pxk <- function(selected_pxk_num,config_dict,localised=T){
   sale_log <- dbReadTable(conn,'sale_log')
   pxk_info <- dbReadTable(conn,'pxk_info')
   dbDisconnect(conn)
+  # selected_pxk_num <- 2012007
+  output_pxk <- sale_log[sale_log$pxk_num==as.integer(selected_pxk_num),]
 
-  output_pxk <- sale_log[sale_log$pxk_num==selected_pxk_num,]
   output_pxk <- merge(output_pxk,product_info %>% select(prod_code,name))
   output_pxk <- merge(output_pxk,pxk_info)
   output_pxk <- merge(output_pxk,customer_info)
+
+  
   output_pxk <- output_pxk %>% 
     select(stt,name,unit,unit_price,qty,lot,customer_name,note)
   output_pxk <- output_pxk[order(output_pxk$stt),] # sort by stt
@@ -287,7 +289,7 @@ delete_pxk <- function(pxk_num,stt,config_dict){
                     pxk_num,' and stt = ',stt)
   }
   conn = db_open(config_dict)
-  res <- dbSendQuery(conn,query)
+  res <- dbExecute(conn,query)
   dbDisconnect(conn)
 }
 
@@ -300,11 +302,9 @@ check_inv_out <- function(append_sale_log, config_dict){
   inventory <- update_inventory(config_dict)
   inv_remain <- inventory$remaining_qty[inventory$prod_code == curent_prodcode &
                                           inventory$lot == current_lot][1]
-  # print(inv_remain)
+
   if (is.na(inv_remain)){inv_remain <- 0}
   inv_out_ok <- (inv_remain>=sale_qty)
-  
-  # print(sale_qty)
   return(inv_out_ok)
 }
 
@@ -388,7 +388,7 @@ edit_db_pxk <- function(cell,pxk_num){
   }
   if (errorsFree){
     conn = db_open(config_dict)
-    dbSendQuery(
+    dbExecute(
       conn, paste('delete from sale_log where pxk_num =', pxk_num))
     dbWriteTable(conn,'sale_log',tmp,append=T)
     dbDisconnect(conn)

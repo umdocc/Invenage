@@ -87,7 +87,6 @@ report_list <- merge(report_list_label,ui_elem)
 # -------------------------- Start-up Data -------------------------------------
 col_name_label <- localisation$label[localisation$group=='col_rename']
 col_name_actual <- localisation$actual[localisation$group=='col_rename']
-# print(home_path)
 
 # variables that should be read from config_dict
 date_format <- config_dict$value[config_dict$name=='date_format']
