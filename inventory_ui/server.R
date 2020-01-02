@@ -49,7 +49,8 @@ shinyServer(function(input, output,session) {
           customer_info$customer_name==input$customer_name,'customer_id'],
         payment_code = payment_type$payment_code[
           payment_type$actual == input$payment_type],
-        completed = 0
+        completed = 0,
+        admin_id = admin_id
       )
       conn <- db_open(config_dict)
       dbWriteTable(conn,'pxk_info',appendPXKInfo,append=T)
@@ -189,12 +190,16 @@ shinyServer(function(input, output,session) {
     # gather all data
     report_type <- ui_elem$label[ui_elem$actual==input$report_type]
     rp_data <- build_rp_data(report_type,input)
+    to_date <- input$to_date
+    
+    #debug
+    print(report_type);print(rp_data)
+    
+    #from_date and to_date depends on rp type
     if (report_type == 'sale_profit_report'){
-      from_date <- input$from_date # from_date and to_date depends on rp type
-      to_date <- input$to_date
+      from_date <- input$from_date 
     }else{
       from_date <- strftime(Sys.Date())
-      to_date <- from_date
     }
     if (report_type == 'inv_value_report'){
       rp_filename <- write_inv_value_rp()
@@ -209,7 +214,7 @@ shinyServer(function(input, output,session) {
   output$man_pxk_list <- render_pxk_list(
     input,config_dict,'man_pxk_list') #pxk_list
   output$man_pxk_cust_select <- render_customer_list(
-    'man_pxk_cust_select',type='man_pxk')
+    'customer_change',type='customer_change')
   
   #main
   output$pxk_detail <- render_man_pxktable(input)
@@ -219,7 +224,6 @@ shinyServer(function(input, output,session) {
   # button handlers
   observeEvent(input$delete_stt_man,{
     selected_pxk_num <- as.integer(input$man_pxk_list)
-    # print(selected_pxk_num)
     full_stt_list <- as.character(
       get_pxk_entry_num(selected_pxk_num,config_dict))
     trans_list <- data.frame(label=c(full_stt_list,'all'),
@@ -229,12 +233,30 @@ shinyServer(function(input, output,session) {
       trans_list$label[
       as.character(trans_list$localised)==as.character(input$stt_select)]
     )
-    # print(stt_to_proc)
     delete_pxk(selected_pxk_num,stt_to_proc,config_dict)
     # refresh the UI
     output$pxk_detail <- render_man_pxktable(input) # reload the pxk_man table
     output$stt_select <- render_pxkman_stt_list(
     input,config_dict, iid='stt_select')
+  })
+  
+  observeEvent(input$edit_pxk_info,{
+    selected_pxk_num <- as.integer(input$man_pxk_list)
+    new_customer <- input$customer_change
+    new_customer_id <- customer_info$customer_id[
+      customer_info$customer_name == new_customer]
+    query <- paste(
+      'update pxk_info set customer_id =',new_customer_id,"where pxk_num =",
+      selected_pxk_num)
+    # print(query)
+    # writing to database
+    conn <- db_open(config_dict)
+    dbExecute(conn,query)
+    dbDisconnect(conn)
+    # refresh the UI
+    output$pxk_detail <- render_man_pxktable(input) # reload the pxk_man table
+    output$stt_select <- render_pxkman_stt_list(
+      input, config_dict, iid='stt_select')
   })
   # table edit handler
   observeEvent(input$pxk_detail_cell_edit,{

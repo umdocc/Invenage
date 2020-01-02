@@ -2,6 +2,10 @@
 
 # return the latest incomplete pxk, if there is none, create a new one
 get_current_pxk <- function(cofig_dict){
+  admin_id <- config_dict$value[config_dict$name=='admin_id']
+  if (length(admin_id)!=1){
+    stop('Critical Error! admin_id not found')
+  }
   conn <- db_open(config_dict)
   pxk_num_list <- dbGetQuery(conn,'select pxk_num from pxk_info')
   current_pxk <- dbGetQuery(conn,
@@ -13,7 +17,7 @@ get_current_pxk <- function(cofig_dict){
     currentDate <- strftime(Sys.time(),'%d%m%y')
     i <- 1;newPXKNum <- F
     while (!newPXKNum){
-      tmp_num <- as.numeric(paste0(strftime(Sys.time(),'%d%m%y'),
+      tmp_num <- as.numeric(paste0(admin_id, currentDate,
                                   sprintf("%02d",i)))
       if (length(pxk_num_list[pxk_num_list$pxk_num==tmp_num,'pxk_num'])==0){
         newPXK <- tmp_num
@@ -345,9 +349,9 @@ get_latest_unit <- function(customer_id, prod_code, sale_log,pxk_info){
     tmp <- tmp %>% select(pxk_num, unit, sale_datetime)
     if (class(tmp$sale_datetime) == "character"){
       tmp$sale_datetime <- strptime(tmp$sale_datetime,'%Y-%m-%d %H:%M:%S')
-      latest_unit <- tmp$unit[
-        tmp$sale_datetime == max(tmp$sale_datetime)]
     }
+    latest_unit <- tmp$unit[
+      tmp$sale_datetime == max(tmp$sale_datetime)]
     return(latest_unit)
   }else{
     return(NULL)
