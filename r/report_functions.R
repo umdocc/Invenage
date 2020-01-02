@@ -86,7 +86,7 @@ get_sales_report <- function(config_dict, from_date='2019-11-04',
   tmp <- tmp[((tmp$sale_datetime>=from_date) & (tmp$sale_datetime<= to_date)),]
   tmp <- tmp[!is.na(tmp$prod_code),]
   # check data integrity
-  if (nrow(tmp[duplicated(tmp %>% select(pxk_num,prod_code,lot)),])>0){
+  if (nrow(tmp[duplicated(tmp %>% select(pxk_num,prod_code,lot,qty,note)),])>0){
     print(tmp[duplicated(tmp %>% select(pxk_num,prod_code,lot)),])
     stop('Critical error! duplications found in sale_log')
   }
@@ -110,7 +110,7 @@ get_sales_report <- function(config_dict, from_date='2019-11-04',
   tmp <- tmp[order(tmp$customer_name),]
   tmp$sale_date <- strftime(tmp$sale_datetime,'%d-%m-%Y')
   tmp <- tmp %>% select(
-    customer_name, sale_date, pxk_num, name, ref_smn, unit, qty, unit_price,
+    customer_name, name, pxk_num, sale_date, unit, qty, unit_price,
     unit_import_cost, unit_profit, total_profit, profit_margin)
   return(tmp)
 }
@@ -153,16 +153,17 @@ build_rp_data <- function(report_type, input){
   if (report_type == 'inv_value_report'){
     # refresh information
     rp_data <- update_inventory(config_dict)
-
   }
   if (report_type == 'inv_audit_report'){
     # read the inventory
     rp_data <- update_inventory(config_dict)
     # set all negative number to 0
     rp_data <- rp_data[rp_data$remaining_qty>0,]
-    rp_data <- add_inv_report_info(rp_data)
+    # add ordering unit
+    ordering_unit <- get_ordering_unit(packaging)
+    rp_data <- merge(rp_data,ordering_unit,all.x=T)
     rp_data <- rp_data %>% 
-      select(name,vendor,ref_smn,lot,exp_date,remaining_qty,unit)
+      select(vendor,name,ref_smn,lot,exp_date,remaining_qty,unit)
     rp_data <- round_report_col(rp_data,'remaining_qty')
   }
   if (report_type == 'inv_order_report'){
@@ -182,7 +183,7 @@ build_rp_data <- function(report_type, input){
     #add other info
     rp_data <- add_inv_report_info(rp_data)
     rp_data <- rp_data %>%
-      select(vendor, ref_smn, warehouse, name, remaining_qty,
+      select(vendor, name, ref_smn, warehouse, remaining_qty,
              unit, ave_mth_sale)
     rp_data$mth_supply_left <- rp_data$remaining_qty /
       rp_data$ave_mth_sale
@@ -206,7 +207,7 @@ build_rp_data <- function(report_type, input){
     rp_data <- rp_data[order(rp_data$intexp_date),]
     rp_data <- merge(rp_data,ui_elem,all.x=T)
     rp_data$note <- rp_data$actual
-    rp_data <- rp_data %>% select(name,vendor,ref_smn,remaining_qty,
+    rp_data <- rp_data %>% select(vendor,name,ref_smn,remaining_qty,
                                       exp_date,note)
   }
   rp_data <- translate_tbl_column(rp_data,ui_elem)
