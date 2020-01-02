@@ -67,14 +67,16 @@ render_unit <- function(input,iid){renderUI({
   unitList <- packaging[packaging$prod_code == cur_prod_code, "unit"]
   unitList <- unique(unitList)
   unitList <- unitList[unitList!='pack']
-  
   latest_unit <- get_latest_unit(cur_customer_id, cur_prod_code,
                                  sale_log, pxk_info)
   # if there is nothing, default to first unit
   if (length(latest_unit)==0){ 
     latest_unit <- unitList[1]
   }
-
+  # if there is still nothing, it is problem loading unitList, default to 'wait'
+  if (length(latest_unit)==0){
+    latest_unit <- 'wait'
+  }  
   selectInput(
     inputId = iid,
     label = ui_elem$actual[ui_elem$label=='unit'],
@@ -180,7 +182,6 @@ build_pxk_status_str <- function(pxk_num,config_dict){
 render_man_pxktable <- function(input){DT::renderDataTable({
   selected_pxk_num <- as.integer(input$man_pxk_list)
   output <- render_selected_pxk(selected_pxk_num,config_dict)
-  # output <- output[order(output$stt),]
   DT::datatable(output, options = list(pageLength = 10),rownames=F,
                 editable = 'cell')
 })
@@ -201,9 +202,11 @@ render_sys_message <- function(sys_msg){renderUI({
 
 render_customer_list <- function(iid,type='inv_out'){renderUI({
   cust_choices <- get_cust_list(config_dict,type)
-  # set the label
+  # set the label depend on the ui element
   if (type=='inv_out'){
     clabel <- ui_elem$actual[ui_elem$label=='customer_name']}
+  if (type=='customer_change'){
+    clabel <- ui_elem$actual[ui_elem$label=='customer_change']}
   selectizeInput(inputId = iid,
                  label = clabel,
                  choices = cust_choices)

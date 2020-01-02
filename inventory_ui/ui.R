@@ -95,7 +95,7 @@ navbarPage(
           dateInput(inputId = 'to_date',
                       label = ui_elem$actual[
                         ui_elem$label=='to_date'],
-                      value = "2019-11-10", format = date_format_alt
+                      value = Sys.Date(), format = date_format_alt
           ),
           actionButton(
             "printReport", ui_elem$actual[ui_elem$label=='printReport'])
@@ -109,8 +109,12 @@ navbarPage(
     fluidRow(
       style = "background-color:#f5f5f5;",
       box(width = 3, height = 600,
-          htmlOutput('man_pxk_list')
-          # htmlOutput('man_pxk_cust_select')
+          h4(ui_elem$actual[ui_elem$label=='edit_info']),
+          htmlOutput('man_pxk_list'),
+          htmlOutput('man_pxk_cust_select'),
+          actionButton(
+            "edit_pxk_info",
+            ui_elem$actual[ui_elem$label=='edit_info'])
       ),
       box(width = 9, height = 600,
           h3(ui_elem$actual[ui_elem$label=='pxk_info']),
@@ -133,7 +137,8 @@ navbarPage(
               actionButton(
                 "print_pxk_man",
                 ui_elem$actual[ui_elem$label=='print_pxk'])
-          )
+          ),
+          h5(ui_elem$actual[ui_elem$label=='edit_instructions'])
       )
     )
   ), # end pxk_man tab

@@ -102,3 +102,8 @@ date_format_alt <- gsub('%Y','yyyy',date_format_alt)
 # error_file
 error_file <- config_dict$value[config_dict$name=='error_log']
 error_text <- readLines(error_file)
+
+admin_id <- config_dict$value[config_dict$name=='admin_id']
+if (length(admin_id)!=1){
+  stop('admin_id not set or corrupted!')
+}
