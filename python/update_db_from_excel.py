@@ -17,7 +17,7 @@ app_lang = config_dict['app_lang'] # get app_lang
 
 # read the database
 db_engine = inv.create_db_engine(config_dict)
-conn = inv.db_open(config_dict)
+conn = inv.db_open(config_dict,db_engine)
 localisation = pd.read_sql_query(
         'select * from localisation where app_lang = "'+app_lang+'"',conn)
 max_cust_id = pd.read_sql_query(
@@ -30,7 +30,7 @@ conn.close()
 
 # error handling
 error_file = config_dict['error_log']
-msg_dict = inv.create_dict(config_dict,'msg_dict')
+msg_dict = inv.create_dict(config_dict,db_engine,'msg_dict')
 
 # function to clear sheet
 def clear_exceldb_sheet(update_file,sheet_name):
@@ -69,11 +69,11 @@ append_cust_info.customer_tfn = append_cust_info.customer_tfn.str.replace(
         ' ','')
 
 # writing to database
-conn = inv.db_open(config_dict)
+conn = inv.db_open(config_dict, db_engine)
 if len(append_cust_info)>0:
     append_cust_info.to_sql(
             'customer_info',conn,index=False,if_exists='append')
-conn.commit()
+# conn.commit()
 conn.close()
 clear_exceldb_sheet(update_file,customer_sheet_name)
 
@@ -150,12 +150,12 @@ tmp = tmp[['prod_code', 'name', 'vendor', 'ref_smn', 'type', 'packaging_str',
           'warehouse_id', 'active']]
 append_prod_info = tmp.copy()
 
-conn = inv.db_open(config_dict)
+conn = inv.db_open(config_dict, db_engine)
 if len(append_prod_info)>0:
     append_prod_info.to_sql(
             'product_info',conn,index=False,if_exists='append')
     append_pkg.to_sql('packaging',conn,index=False,if_exists='append')
-conn.commit()
+# conn.commit()
 conn.close()
 clear_exceldb_sheet(update_file,prod_sheet_name)
 
@@ -184,7 +184,7 @@ append_pkg_info = append_pkg_info[append_pkg_info.exist.isnull()]
 append_pkg_info = append_pkg_info[['unit','units_per_pack','prod_code',
                                    'last_updated']]
 # writing to database
-conn = inv.db_open(config_dict)
+conn = inv.db_open(config_dict, db_engine)
 if len(append_pkg_info)>0:
     append_pkg_info.to_sql(
         'packaging',conn,index=False,if_exists='append')

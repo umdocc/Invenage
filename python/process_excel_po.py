@@ -65,17 +65,17 @@ append_log = append_log[
 if len(append_log)>0:
     print('appending to database:')
     print(append_log)
-    conn = inv.db_open(config_dict)
+    conn = inv.db_open(config_dict,db_engine)
     append_log.to_sql('import_log',conn,index=False,if_exists='append')
-    conn.commit()
+
     conn.close()
 
 # the remaining of po_data gets written to coming_list
 coming_list = po_data[po_data.lot=='']
 coming_list = coming_list[['name','ref_smn','vendor','qty','po_name']]
-conn = inv.db_open(config_dict)
+conn = inv.db_open(config_dict, db_engine)
 coming_list.to_sql('coming_list',conn,index=False,if_exists='replace')
-conn.commit()
+# conn.commit()
 conn.close()
 
 if (config_dict['db_type'] == 'MariaDB'):
