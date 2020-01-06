@@ -68,10 +68,18 @@ navbarPage(
     ui_elem$actual[ui_elem$label=='lookups'],
     fluidRow(
       style = "background-color:#f5f5f5;",
-      selectInput(
+      div(
+        style="display: inline-block;vertical-align:top;",
+        selectInput(
         inputId = 'lu_tbl_selector', 
         label = ui_elem$actual[ui_elem$label=='choose_table'],
-        choices = lu_tbl_list),
+        choices = lu_tbl_list)),
+      div(
+        style="display: inline-block;vertical-align:top;",
+        HTML("<br>"),
+        actionButton(
+        "print_lu_tbl",
+        ui_elem$actual[ui_elem$label=='printReport'])),
       DT::dataTableOutput('lookup_tbl_output')
     )
   ), # end lookup tab
