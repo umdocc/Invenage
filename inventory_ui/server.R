@@ -28,6 +28,7 @@ shinyServer(function(input, output,session) {
   
   # inv_out UI buttons handlers
   observeEvent(input$inventory_out, { # inv_out button
+    output$sys_msg <- render_sys_message('please wait....')
     # read info from database
     current_pxk <- get_current_pxk(config_dict)
     conn <- db_open(config_dict)
@@ -58,19 +59,24 @@ shinyServer(function(input, output,session) {
       dbDisconnect(conn)
       # set current_stt also
       current_stt <- 1
-      #otherwise, read the info from the sale_log
-    }else{
+    }else{ #otherwise, read the info from the sale_log
       conn <- db_open(config_dict)
-      current_stt <- dbGetQuery(conn, "select max(stt) from sale_log
+      stt_list <- dbGetQuery(conn, "select stt from sale_log
                                where pxk_num = (
                                select pxk_num from pxk_info
-                               where completed = 0)")[1,1]
+                               where completed = 0)")
       dbDisconnect(conn)
-      # if there is a result, increase by 1, otherwise set to 1
-      if (is.na(current_stt)){
-        current_stt <- 1
+      
+      # if there is a result, determine the stt from list, otherwise set to 1
+      if (nrow(stt_list)>0){
+        for (i in 1:15){ # loop 20 times
+          if (!any(i==stt_list$stt)){
+            current_stt <- i
+            break
+          }
+        }
       }else{
-        current_stt <- current_stt+1
+        current_stt <- 1
       }
     }
     # build base sale_log for testing first
@@ -87,6 +93,9 @@ shinyServer(function(input, output,session) {
     )
     # check and write append_sale_log to database
     inv_out_ok <- check_inv_out(append_sale_log, config_dict)
+    if (current_stt>10){ #limit the max stt to 10
+      inv_out_ok <- F
+    }
     if (inv_out_ok){
       append_sale_log$warehouse_id <- warehouse_info$warehouse_id[
         warehouse_info$warehouse == input$warehouse_selector]
@@ -97,8 +106,12 @@ shinyServer(function(input, output,session) {
       output$sys_msg <- render_sys_message(
         ui_elem$actual[ui_elem$label=='inv_out_success'])
     }else{
+      # default reason
       output$sys_msg <- render_sys_message(
         ui_elem$actual[ui_elem$label=='inv_exceed'])
+      if (current_stt>10){ # more than 10 lines
+        output$sys_msg <- render_sys_message('exceeding 10 lines')
+      }
     }
     # refresh the UI after sucessfull inventory_out
     output$customer_selector <- render_customer_list('customer_name')
@@ -115,7 +128,7 @@ shinyServer(function(input, output,session) {
       config_dict, 'invout_stt_list')
     output$man_pxk_list <- render_pxk_list(
       input,config_dict,'man_pxk_list') #reload pxk_list in pxk_man as well
-    
+    # output$sys_msg <- render_sys_message('ready') # reload sys message
     
   })
   
@@ -176,7 +189,14 @@ shinyServer(function(input, output,session) {
       ui_elem$actual==input$lu_tbl_selector]
     create_lookup_tbl(table_name,config_dict)
   },rownames=F)
-  
+  observeEvent(input$print_lu_tbl,{
+    table_name <- ui_elem$label[
+      ui_elem$actual==input$lu_tbl_selector]
+    lu_tbl_out <- create_lookup_tbl(table_name,config_dict)
+    dest_path <- file.path(app_path,'lu_tbl.xlsx')
+    write.xlsx(lu_tbl_out, dest_path,row.names=F)
+    system(paste0('open ','"',dest_path,'"'))
+  })
   # ----------------------------- report UI ------------------------------------
   
   output$report_tbl_ouput <- DT::renderDataTable({
