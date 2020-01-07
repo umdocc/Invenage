@@ -159,9 +159,9 @@ get_latest_price <- function(customer_id, prod_code, unit, pxk_info){
     tmp <- merge(tmp,pxk_info %>% select(pxk_num,sale_datetime))
     if (class(tmp$sale_datetime) == "character"){
       tmp$sale_datetime <- strptime(tmp$sale_datetime,'%Y-%m-%d %H:%M:%S')
-      latest_price <- tmp$unit_price[
-        tmp$sale_datetime == max(tmp$sale_datetime)]
     }
+    latest_price <- tmp$unit_price[
+      tmp$sale_datetime == max(tmp$sale_datetime)]
   }
   return(latest_price)
 }
