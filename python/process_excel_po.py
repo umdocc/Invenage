@@ -27,6 +27,10 @@ po_data = inv.build_po_data(config_dict, db_engine)
 append_log = po_data.copy()
 append_log = append_log[(append_log.lot!='') & append_log.lot.notnull()]
 
+# remove some invalid character for lot and exp_date
+append_log.lot = append_log.lot.str.replace("'","")
+append_log.exp_date = append_log.exp_date.str.replace("'","")
+
 # check to see if entries in append_log exist in import_log
 append_log = inv.check_exists(append_log,import_log,
                        ['prod_code','lot','po_name','qty'])
@@ -34,7 +38,6 @@ append_log = inv.check_exists(append_log,import_log,
 # only keep entries not exist in import_log
 append_log = append_log[append_log.exist.isnull()]
 
-#at this stage we leave actual import cost blank
 append_log.actual_unit_cost = pd.to_numeric(append_log.actual_unit_cost,
                                             errors='coerce')
 append_log['actual_currency_code'] = 1

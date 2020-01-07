@@ -59,7 +59,6 @@ append_cust_info = append_cust_info.rename(columns=acntl_dict)
 append_cust_info = append_cust_info[append_cust_info.customer_name.notnull()]
 append_cust_info = append_cust_info[append_cust_info.customer_name!='']
 
-
 # add customer id
 append_cust_info['customer_id'] = max_cust_id.value[0]+1
 append_cust_info.loc[
