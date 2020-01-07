@@ -30,3 +30,6 @@ python/private/po_tools.py
 PXK/MDS-Nano.PXK.3051901.xlsx
 r/.Rapp.history
 .DS_Store
+installation/install_win.bat.txt
+installation/python-3.7.5-amd64.exe
+installation/R-3.6.2-win.exe
