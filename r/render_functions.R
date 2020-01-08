@@ -10,6 +10,26 @@ render_pxk_list <- function(input,config_dict,iid){renderUI({
                   choices = as.character(pxk_num_list$pxk_num))
 }) }
 
+render_pxk_info <- function(pxk_num,config_dict,iid){renderUI({
+  # read info for pxk_num
+  conn <- db_open(config_dict)
+  current_pxk_info <- dbGetQuery(
+    conn, paste('select * from pxk_info where pxk_num =',pxk_num))
+  dbDisconnect(conn)
+  
+  # recover information
+  current_pxk_info <- merge(current_pxk_info,customer_info)
+  current_pxk_info <- merge(current_pxk_info,payment_type)
+  current_pxk_info <- merge(
+    current_pxk_info, ui_elem, by.x = 'payment_label', by.y = 'label') %>%
+    rename(payment_type = actual)
+  current_pxk_info <- current_pxk_info %>% 
+    select(pxk_num,customer_name, payment_type)
+  # translate the output
+  current_pxk_info <- translate_tbl_column(current_pxk_info,ui_elem)
+  
+}) }
+
 # render a list of active product
 render_prod_name_list <- function(input,product_info,iid){renderUI({
   active_prod <- product_info$name[product_info$active==1]
@@ -218,9 +238,9 @@ render_customer_list <- function(iid,type='inv_out',input){renderUI({
     # print(man_selected_pxk_info)
     default_customer <- man_selected_pxk_info$customer_name[1]
   }
-  selectizeInput(inputId = iid,
-                 label = clabel,
-                 choices = cust_choices, selected = default_customer)
+  selectizeInput(
+    inputId = iid, label = clabel, choices = cust_choices, 
+    selected = default_customer)
 }) }
 
 render_payment_type <- function(iid){renderUI({
