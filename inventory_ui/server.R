@@ -6,7 +6,8 @@ shinyServer(function(input, output,session) {
   session$onSessionEnded(stopApp) #make shiny like a normal app
   # -------------------------------inv_out UI ----------------------------------
   # sidebar
-  output$customer_selector <- render_customer_list('customer_name') # customer
+  output$customer_selector <- render_customer_list(
+    'customer_name', type='inv_out', input) # customer
   output$prod_name_select <- render_prod_name_list(
     input,product_info,'prod_name_select') # prod_name
   output$qty_selector <- render_qty(iid='qty_selector') #Qty
@@ -114,7 +115,8 @@ shinyServer(function(input, output,session) {
       }
     }
     # refresh the UI after sucessfull inventory_out
-    output$customer_selector <- render_customer_list('customer_name')
+    output$customer_selector <- render_customer_list(
+      'customer_name', type='inv_out', input)
     output$prod_name_selector <- render_prod_name_list(
       input,product_info,'prod_name_select') # prod_name
     output$qty_selector <- render_qty(iid='qty_selector') #Qty
@@ -166,7 +168,8 @@ shinyServer(function(input, output,session) {
     dbDisconnect(conn)
     
     # UI refresh
-    output$customer_selector <- render_customer_list('customer_name') # customer
+    output$customer_selector <- render_customer_list(
+      'customer_name', type='inv_out', input) # customer
     output$current_pxk_tbl <- render_invout_pxktable() # current_pxk_tbl
     output$current_pxk_info <- render_current_pxk_infostr(
       config_dict) #current pxk info
@@ -234,7 +237,7 @@ shinyServer(function(input, output,session) {
   output$man_pxk_list <- render_pxk_list(
     input,config_dict,'man_pxk_list') #pxk_list
   output$man_pxk_cust_select <- render_customer_list(
-    'customer_change',type='customer_change')
+    'customer_change',type='customer_change', input)
   
   #main
   output$pxk_detail <- render_man_pxktable(input)

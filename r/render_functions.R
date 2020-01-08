@@ -200,16 +200,27 @@ render_sys_message <- function(sys_msg){renderUI({
   HTML(sys_msg)
 }) }
 
-render_customer_list <- function(iid,type='inv_out'){renderUI({
+render_customer_list <- function(iid,type='inv_out',input){renderUI({
   cust_choices <- get_cust_list(config_dict,type)
-  # set the label depend on the ui element
+  # set the label and default customer
   if (type=='inv_out'){
-    clabel <- ui_elem$actual[ui_elem$label=='customer_name']}
+    clabel <- ui_elem$actual[ui_elem$label=='customer_name']
+    default_customer <- cust_choices[1]
+  }
   if (type=='customer_change'){
-    clabel <- ui_elem$actual[ui_elem$label=='customer_change']}
+    clabel <- ui_elem$actual[ui_elem$label=='customer_change']
+    man_selected_pxk <- input$man_pxk_list
+    conn <- db_open(config_dict)
+    man_selected_pxk_info <- dbGetQuery(
+      conn, paste('select * from pxk_info where pxk_num =', man_selected_pxk))
+    dbDisconnect(conn)
+    man_selected_pxk_info <- merge(man_selected_pxk_info, customer_info)
+    # print(man_selected_pxk_info)
+    default_customer <- man_selected_pxk_info$customer_name[1]
+  }
   selectizeInput(inputId = iid,
                  label = clabel,
-                 choices = cust_choices)
+                 choices = cust_choices, selected = default_customer)
 }) }
 
 render_payment_type <- function(iid){renderUI({
