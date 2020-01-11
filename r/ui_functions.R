@@ -506,6 +506,7 @@ create_pxk_file <- function(pxk_num){
             startCol=dataStartCol, colNames=F)
   # save the excel sheet
   saveWorkbook(wb,dest_path,overwrite = T)
+  dbDisconnect(conn)
   # return the filename
   return(dest_path)
 }
