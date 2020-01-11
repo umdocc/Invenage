@@ -10,13 +10,26 @@ render_pxk_list <- function(input,config_dict,iid){renderUI({
                   choices = as.character(pxk_num_list$pxk_num))
 }) }
 
-render_pxk_info <- function(pxk_num,config_dict,iid){renderUI({
+render_man_pxk_info <- function(input){renderUI({
+  pxk_num <- input$man_pxk_list
+  man_pxk_info <- get_pxk_info(pxk_num)
+  pxk_info_str <- '<font size=+1>'
+  for (i in 1:length(man_pxk_info)){
+    pxk_info_str <- paste0(
+      pxk_info_str, names(man_pxk_info)[i],':', em(man_pxk_info[1,i]),
+      '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp')
+  }
+  pxk_info_str <- paste(pxk_info_str,'<font><br/>')
+  HTML(pxk_info_str)
+}) }
+
+get_pxk_info <- function(pxk_num){
   # read info for pxk_num
   conn <- db_open(config_dict)
-  current_pxk_info <- dbGetQuery(
-    conn, paste('select * from pxk_info where pxk_num =',pxk_num))
+  query <- paste('select * from pxk_info where pxk_num =',pxk_num)
+  current_pxk_info <- dbGetQuery(conn, query)
   dbDisconnect(conn)
-  
+
   # recover information
   current_pxk_info <- merge(current_pxk_info,customer_info)
   current_pxk_info <- merge(current_pxk_info,payment_type)
@@ -25,10 +38,12 @@ render_pxk_info <- function(pxk_num,config_dict,iid){renderUI({
     rename(payment_type = actual)
   current_pxk_info <- current_pxk_info %>% 
     select(pxk_num,customer_name, payment_type)
+  #format output
+  current_pxk_info$pxk_num <- as.character(current_pxk_info$pxk_num)
   # translate the output
   current_pxk_info <- translate_tbl_column(current_pxk_info,ui_elem)
-  
-}) }
+  return(current_pxk_info)
+}
 
 # render a list of active product
 render_prod_name_list <- function(input,product_info,iid){renderUI({

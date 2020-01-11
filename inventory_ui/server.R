@@ -240,6 +240,7 @@ shinyServer(function(input, output,session) {
     'customer_change',type='customer_change', input)
   
   #main
+  output$man_pxk_info <- render_man_pxk_info(input)
   output$pxk_detail <- render_man_pxktable(input)
   output$stt_select <- render_pxkman_stt_list(
     input,config_dict, iid='stt_select') #select_stt

@@ -126,6 +126,7 @@ navbarPage(
       ),
       box(width = 9, height = 600,
           h3(ui_elem$actual[ui_elem$label=='pxk_info']),
+          htmlOutput('man_pxk_info'),
           DT::dataTableOutput('pxk_detail'),
           h4(), #space
           div(
