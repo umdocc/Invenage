@@ -10,8 +10,7 @@ render_pxk_list <- function(input,config_dict,iid){renderUI({
                   choices = as.character(pxk_num_list$pxk_num))
 }) }
 
-render_man_pxk_info <- function(input){renderUI({
-  pxk_num <- input$man_pxk_list
+get_pxk_info_str <- function(pxk_num){
   man_pxk_info <- get_pxk_info(pxk_num)
   pxk_info_str <- '<font size=+1>'
   for (i in 1:length(man_pxk_info)){
@@ -20,22 +19,32 @@ render_man_pxk_info <- function(input){renderUI({
       '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp')
   }
   pxk_info_str <- paste(pxk_info_str,'<font><br/>')
+  return(pxk_info_str)
+}
+
+render_man_pxk_info <- function(input){renderUI({
+  pxk_num <- input$man_pxk_list
+  pxk_info_str <- get_pxk_info_str(pxk_num)
   HTML(pxk_info_str)
 }) }
 
 get_pxk_info <- function(pxk_num){
   # read info for pxk_num
+  # print(pxk_num)
   conn <- db_open(config_dict)
   query <- paste('select * from pxk_info where pxk_num =',pxk_num)
   current_pxk_info <- dbGetQuery(conn, query)
   dbDisconnect(conn)
-
+  if (nrow(current_pxk_info)==0){
+    current_pxk_info[1,1] <- 1
+    current_pxk_info$pxk_num[1] <- pxk_num
+  }
   # recover information
-  current_pxk_info <- merge(current_pxk_info,customer_info)
-  current_pxk_info <- merge(current_pxk_info,payment_type)
+  current_pxk_info <- merge(current_pxk_info,customer_info,all.x=T)
+  current_pxk_info <- merge(current_pxk_info,payment_type,all.x=T)
   current_pxk_info <- merge(
-    current_pxk_info, ui_elem, by.x = 'payment_label', by.y = 'label') %>%
-    rename(payment_type = actual)
+    current_pxk_info, ui_elem, by.x = 'payment_label', by.y = 'label', 
+    all.x=T) %>% rename(payment_type = actual)
   
   # translate completed column
   current_pxk_info$label <- ifelse(
@@ -191,8 +200,8 @@ build_prod_info <- function(config_dict,input){
 }
 
 render_current_pxk_infostr <- function(config_dict){renderUI({
-  current_pxk <- get_current_pxk(config_dict)
-  current_pxk_str <- build_pxk_status_str(current_pxk,config_dict)
+  pxk_num <- get_current_pxk(config_dict) # get the current pxk_num
+  current_pxk_str <- get_pxk_info_str(pxk_num)
   HTML(current_pxk_str)
 }) }
 

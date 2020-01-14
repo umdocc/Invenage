@@ -8,7 +8,7 @@ navbarPage(
     theme = shinytheme("united"), ui_elem$actual[ui_elem$label=='inv_out'],
     fluidRow(
       box(
-        width=3, height = 700,
+        width=3, height = 800,
         p(), #space
         htmlOutput('customer_selector'),
         htmlOutput('prod_name_select'),
@@ -33,10 +33,11 @@ navbarPage(
         htmlOutput("sys_msg")
       ),
       box(
-        width = 9, height = 700,
+        width = 9, height = 800,
         # style = "background-color:#c2e6ff;",
         p(),
         htmlOutput("current_pxk_info"),
+        p(),
         DT::dataTableOutput("current_pxk_tbl"),
         h4(), #space
         div(
@@ -87,7 +88,7 @@ navbarPage(
     ui_elem$actual[ui_elem$label=='reports'],
     fluidRow(
       style = "background-color:#f5f5f5;",
-      box(width = 2, height = 700,
+      box(width = 2, height = 800,
           selectInput(
             inputId = 'report_type', label = ui_elem$actual[
               ui_elem$label=='reportType'],
@@ -116,7 +117,7 @@ navbarPage(
     ui_elem$actual[ui_elem$label=='pxk_man'],
     fluidRow(
       style = "background-color:#f5f5f5;",
-      box(width = 3, height = 600,
+      box(width = 3, height = 800,
           h4(ui_elem$actual[ui_elem$label=='edit_info']),
           htmlOutput('man_pxk_list'),
           htmlOutput('man_pxk_cust_select'),
@@ -124,9 +125,10 @@ navbarPage(
             "edit_pxk_info",
             ui_elem$actual[ui_elem$label=='edit_info'])
       ),
-      box(width = 9, height = 600,
+      box(width = 9, height = 800,
           h3(ui_elem$actual[ui_elem$label=='pxk_info']),
           htmlOutput('man_pxk_info'),
+          p(),
           DT::dataTableOutput('pxk_detail'),
           h4(), #space
           div(
