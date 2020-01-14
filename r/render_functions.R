@@ -36,9 +36,17 @@ get_pxk_info <- function(pxk_num){
   current_pxk_info <- merge(
     current_pxk_info, ui_elem, by.x = 'payment_label', by.y = 'label') %>%
     rename(payment_type = actual)
+  
+  # translate completed column
+  current_pxk_info$label <- ifelse(
+    is.na(current_pxk_info$completed), 'new', ifelse(
+           current_pxk_info$completed==1, 'completed', 'in_progress'))
+  current_pxk_info <- merge(
+    current_pxk_info, ui_elem %>% select(label,actual))
+  current_pxk_info <- current_pxk_info %>% rename(status = actual)
+  # select relevant column and format output
   current_pxk_info <- current_pxk_info %>% 
-    select(pxk_num,customer_name, payment_type)
-  #format output
+    select(pxk_num,customer_name, payment_type, status)
   current_pxk_info$pxk_num <- as.character(current_pxk_info$pxk_num)
   # translate the output
   current_pxk_info <- translate_tbl_column(current_pxk_info,ui_elem)
