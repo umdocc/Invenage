@@ -147,7 +147,7 @@ if len(local_import_data)>0:
     conn = inv.db_open(config_dict,db_engine)
     local_import_data.to_sql('import_log',conn,index=False,
                            if_exists='append')
-    conn.commit()
+    # conn.commit()
     conn.close()
 # clean up
 if (config_dict['db_type'] == 'MariaDB'):
