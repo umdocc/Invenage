@@ -151,9 +151,13 @@ append_prod_info = tmp.copy()
 
 conn = inv.db_open(config_dict, db_engine)
 if len(append_prod_info)>0:
+    print('adding product to database')
+    print(append_prod_info)
+    print('adding packaging to database')
     append_prod_info.to_sql(
             'product_info',conn,index=False,if_exists='append')
     append_pkg.to_sql('packaging',conn,index=False,if_exists='append')
+    print(append_pkg)
 # conn.commit()
 conn.close()
 clear_exceldb_sheet(update_file,prod_sheet_name)
@@ -185,6 +189,8 @@ append_pkg_info = append_pkg_info[['unit','units_per_pack','prod_code',
 # writing to database
 conn = inv.db_open(config_dict, db_engine)
 if len(append_pkg_info)>0:
+    print('adding packaging to database')
+    print(append_pkg_info)
     append_pkg_info.to_sql(
         'packaging',conn,index=False,if_exists='append')
 conn.close()
