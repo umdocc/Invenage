@@ -121,6 +121,7 @@ navbarPage(
           h4(ui_elem$actual[ui_elem$label=='edit_info']),
           htmlOutput('man_pxk_list'),
           htmlOutput('man_pxk_cust_select'),
+          htmlOutput("manpxk_pay_change"),
           actionButton(
             "edit_pxk_info",
             ui_elem$actual[ui_elem$label=='edit_info'])

@@ -16,7 +16,8 @@ shinyServer(function(input, output,session) {
   output$warehouse_selector <- render_warehouse(
     input, 'warehouse_selector',warehouse_info) # warehouse
   output$unit_price <- render_price(input,iid='unit_price')
-  output$payment_selector <- render_payment_type('payment_type') # payment
+  output$payment_selector <- render_payment_type(input,
+    iid = 'payment_type',ui_type = 'inv_out') # payment
   output$pxk_note <- render_note(iid='pxk_note') #Note
   output$prod_info_str <- render_prod_info(input) #product Info pane
   output$sys_msg <- render_sys_message('ready')
@@ -238,6 +239,8 @@ shinyServer(function(input, output,session) {
     input,config_dict,'man_pxk_list') #pxk_list
   output$man_pxk_cust_select <- render_customer_list(
     'customer_change',type='customer_change', input)
+  output$manpxk_pay_change <- render_payment_type(input, # payment change
+    iid = 'manpxk_pay_change',ui_type = 'man_pxk') 
   
   #main
   output$man_pxk_info <- render_man_pxk_info(input)
@@ -266,18 +269,25 @@ shinyServer(function(input, output,session) {
   
   observeEvent(input$edit_pxk_info,{
     selected_pxk_num <- as.integer(input$man_pxk_list)
+    # translate changed data
     new_customer <- input$customer_change
     new_customer_id <- customer_info$customer_id[
       customer_info$customer_name == new_customer]
-    query <- paste(
-      'update pxk_info set customer_id =',new_customer_id,"where pxk_num =",
-      selected_pxk_num)
-    # print(query)
+    new_payment <- input$manpxk_pay_change
+    tmp <- merge(payment_type,ui_elem,by.x = 'payment_label', by.y = 'label')
+    new_payment_code <- tmp$payment_code[
+      tmp$actual == new_payment]
+    
     # writing to database
     conn <- db_open(config_dict)
+    query <- paste(
+      'update pxk_info set customer_id =', new_customer_id,', payment_code =',
+      new_payment_code, "where pxk_num =", selected_pxk_num)
     dbExecute(conn,query)
     dbDisconnect(conn)
+    
     # refresh the UI
+    output$man_pxk_info <- render_man_pxk_info(input) # pxk_info row
     output$pxk_detail <- render_man_pxktable(input) # reload the pxk_man table
     output$stt_select <- render_pxkman_stt_list(
       input, config_dict, iid='stt_select')

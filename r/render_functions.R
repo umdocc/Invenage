@@ -28,7 +28,7 @@ render_man_pxk_info <- function(input){renderUI({
   HTML(pxk_info_str)
 }) }
 
-get_pxk_info <- function(pxk_num){
+get_pxk_info <- function(pxk_num,translate=TRUE){
   # read info for pxk_num
   # print(pxk_num)
   conn <- db_open(config_dict)
@@ -58,7 +58,9 @@ get_pxk_info <- function(pxk_num){
     select(pxk_num,customer_name, payment_type, status)
   current_pxk_info$pxk_num <- as.character(current_pxk_info$pxk_num)
   # translate the output
-  current_pxk_info <- translate_tbl_column(current_pxk_info,ui_elem)
+  if (translate){
+  	current_pxk_info <- translate_tbl_column(current_pxk_info,ui_elem)
+  }
   return(current_pxk_info)
 }
 
@@ -275,16 +277,26 @@ render_customer_list <- function(iid,type='inv_out',input){renderUI({
     selected = default_customer)
 }) }
 
-render_payment_type <- function(iid){renderUI({
+render_payment_type <- function(input,iid,ui_type){renderUI({
   conn <- db_open(config_dict)
   payment_type <- dbReadTable(conn,'payment_type')
   payment_type <- merge(payment_type,ui_elem %>% select(label,actual),
                         by.x='payment_label',by.y='label',all.x=T)
   dbDisconnect(conn)
   paymentChoices <- payment_type$actual
-  defaultPay <- payment_type$actual[payment_type$payment_code==0]
+  if (ui_type=='inv_out'){
+    defaultPay <- payment_type$actual[payment_type$payment_code==0]
+    ui_label <- ui_elem$actual[ui_elem$label=='payment_type']
+  }
+  if (ui_type=='man_pxk'){
+    pxk_num <- input$man_pxk_list
+    pxk_info <- get_pxk_info(pxk_num, translate = F)
+    # print(pxk_info)
+    defaultPay <- pxk_info$payment_type[1]
+    ui_label <- ui_elem$actual[ui_elem$label=='change_payment_type']
+  }
   selectInput(inputId = iid,
-              label = ui_elem$actual[ui_elem$label=='payment_type'],
+              label = ui_label,
               choices = paymentChoices,selected = defaultPay)
 }) }
 
