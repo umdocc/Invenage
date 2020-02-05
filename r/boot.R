@@ -54,6 +54,8 @@ app_lang <- config_dict$value[config_dict$name=='app_lang']
 conn <- db_open(config_dict)
 report_info <- dbReadTable(conn,"output_info")
 product_info <- dbReadTable(conn,"product_info")
+product_info$search_str <- paste(
+  product_info$name,product_info$ref_smn, sep='-')
 localisation <- dbReadTable(conn,"localisation")
 import_log <- dbReadTable(conn,"import_log")
 customer_info <- dbReadTable(conn,"customer_info")
@@ -63,7 +65,10 @@ pxk_info <- dbReadTable(conn,"pxk_info")
 warehouse_info <- dbReadTable(conn,"warehouse_info")
 payment_type <- dbReadTable(conn,"payment_type")
 dbDisconnect(conn)
+
+# customise
 report_info <- report_info[report_info$type=='report_output',]
+
 
 # --------------------- UI Configurations --------------------------------------
 # use the configured language

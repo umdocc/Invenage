@@ -4,7 +4,7 @@ require(dplyr)
 require(DT)
 shinyServer(function(input, output,session) {
   session$onSessionEnded(stopApp) #make shiny like a normal app
-  # -------------------------------inv_out UI ----------------------------------
+  # ------------------------------- inv_out UI ----------------------------------
   # sidebar
   output$customer_selector <- render_customer_list(
     'customer_name', type='inv_out', input) # customer
@@ -187,6 +187,10 @@ shinyServer(function(input, output,session) {
     system(paste0('open ','"',dest_path,'"'))
   })
 
+  
+  # ------------------------------- inv_in UI ----------------------------------
+  output$in_prodname_select <- render_prod_name_list(
+    input,product_info,'in_prodname_select') # prod_name
   # ------------------------------- lookup UI ----------------------------------
   output$lookup_tbl_output <- DT::renderDataTable({
     table_name <- ui_elem$label[

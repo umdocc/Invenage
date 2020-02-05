@@ -66,7 +66,7 @@ get_pxk_info <- function(pxk_num,translate=TRUE){
 
 # render a list of active product
 render_prod_name_list <- function(input,product_info,iid){renderUI({
-  active_prod <- product_info$name[product_info$active==1]
+  active_prod <- product_info$search_str[product_info$active==1]
   selectizeInput(inputId = iid,
                  label = ui_elem$actual[ui_elem$label=='prod_name'],
                  choices=active_prod)
@@ -79,7 +79,7 @@ render_price <- function(input,iid){renderUI({
     customer_info$customer_name == current_customer]
   current_prod_name <- input$prod_name_select
   prod_code <- product_info$prod_code[
-    product_info$name == current_prod_name]
+    product_info$search_str == current_prod_name]
   unit <- input$unit_selector
   # get latest price
   latest_price <- get_latest_price(customer_id, prod_code, unit, pxk_info)
@@ -114,7 +114,7 @@ render_qty <- function(iid){renderUI({
 }) }
 
 render_unit <- function(input,iid){renderUI({
-  cur_prod_code<- product_info[product_info$name==input$prod_name_select,
+  cur_prod_code<- product_info[product_info$search_str==input$prod_name_select,
                                "prod_code"]
   cur_customer_id <- customer_info$customer_id[
     customer_info$customer_name==input$customer_name]
@@ -139,8 +139,8 @@ render_unit <- function(input,iid){renderUI({
 }) }
 
 render_lot <- function(input,iid){renderUI({
-  current_prod_code <- product_info[product_info$name==input$prod_name_select,
-                                    "prod_code"]
+  current_prod_code <- product_info[
+    product_info$search_str==input$prod_name_select, "prod_code"]
   avaiLot <- get_avail_lot(current_prod_code,config_dict)
   selectizeInput(
     inputId = iid, label = "Lot",
@@ -301,15 +301,11 @@ render_payment_type <- function(input,iid,ui_type){renderUI({
 }) }
 
 render_warehouse <- function(input,iid,warehouse_info){renderUI({
-  # iid <- warehouse_selector
-  # conn <- db_open(config_dict)
-  # warehouse_info <- dbReadTable(conn,'warehouse_info')
-  # dbDisconnect(conn)
   warehouseChoices <- warehouse_info$warehouse
   # get default warehouse based on current product
   tmp <- update_inventory(config_dict)
   current_prod_code <- product_info[
-    product_info$name==input$prod_name_select, "prod_code"]
+    product_info$search_str==input$prod_name_select, "prod_code"]
   default_warehouse_id <- tmp$warehouse_id[
     tmp$prod_code==current_prod_code & 
       tmp$lot==input$lot_select]

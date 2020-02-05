@@ -66,6 +66,20 @@ navbarPage(
     )# end inv_out fluidRow
   ), #end inv_out tab
   tabPanel(
+    theme = shinytheme("united"), ui_elem$actual[ui_elem$label=='inv_in'],
+    fluidRow(
+      box(
+        width=3, height = 800,
+        p(), # space
+        htmlOutput('in_prodname_select')
+      ),
+      box(
+        width=9, height = 800,
+        p() #space
+      )
+    )
+  ), # end of import tab
+  tabPanel(
     ui_elem$actual[ui_elem$label=='lookups'],
     fluidRow(
       style = "background-color:#f5f5f5;",
