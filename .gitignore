@@ -34,3 +34,5 @@ installation/install_win.bat.txt
 installation/python-3.7.5-amd64.exe
 installation/R-3.6.2-win.exe
 .DS_Store
+private/po_tools.py
+private/build_master_db.py
