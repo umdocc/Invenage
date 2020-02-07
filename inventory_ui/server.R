@@ -84,7 +84,8 @@ shinyServer(function(input, output,session) {
     # build base sale_log for testing first
     append_sale_log <- data.frame(
       stt = current_stt,
-      prod_code = unique(product_info[product_info$name==input$prod_name_select,
+      prod_code = unique(
+        product_info[product_info$search_str==input$prod_name_select,
                                       "prod_code"]),
       unit = input$unit_selector,
       lot = input$lot_select,
