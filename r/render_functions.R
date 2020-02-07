@@ -162,13 +162,10 @@ render_prod_info <- function(input){renderUI({
 
 # function to rebuild the productInfo HTML string
 build_prod_info <- function(config_dict,input){
-  conn <- db_open(config_dict)
-  product_info <- dbReadTable(conn,"product_info")
-  dbDisconnect(conn)
   inventory <- update_inventory(config_dict)
-  
-  current_select <- product_info[product_info$name==input$prod_name_select,]
-  
+  current_select <- product_info[
+    product_info$search_str==input$prod_name_select,]
+
   total_available <- round(inventory[
     inventory$prod_code == current_select$prod_code &
       inventory$lot == input$lot_select,
