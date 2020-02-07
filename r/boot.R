@@ -55,7 +55,7 @@ conn <- db_open(config_dict)
 report_info <- dbReadTable(conn,"output_info")
 product_info <- dbReadTable(conn,"product_info")
 product_info$search_str <- paste(
-  product_info$name,product_info$ref_smn, sep='-')
+  product_info$ref_smn, product_info$name, sep='-')
 localisation <- dbReadTable(conn,"localisation")
 import_log <- dbReadTable(conn,"import_log")
 customer_info <- dbReadTable(conn,"customer_info")
@@ -64,6 +64,7 @@ sale_log <- dbReadTable(conn,"sale_log")
 pxk_info <- dbReadTable(conn,"pxk_info")
 warehouse_info <- dbReadTable(conn,"warehouse_info")
 payment_type <- dbReadTable(conn,"payment_type")
+importlic_data <- dbReadTable(conn,"importlic_data")
 dbDisconnect(conn)
 
 # customise

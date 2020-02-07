@@ -182,14 +182,16 @@ build_rp_data <- function(report_type, input){
       prod_code,ave_mth_sale), all.x=T)
     #add other info
     rp_data <- add_inv_report_info(rp_data)
-    rp_data <- rp_data %>%
-      select(vendor, name, ref_smn, warehouse, remaining_qty,
-             unit, ave_mth_sale)
+    # add importlic_exp data
+    rp_data <- merge(rp_data,importlic_data,all.x=T)
     rp_data$mth_supply_left <- rp_data$remaining_qty /
       rp_data$ave_mth_sale
     rp_data <- round_report_col(
       rp_data, col_list = c('ave_mth_sale', 'mth_supply_left', 'remaining_qty'),
       decimal = 2)
+    rp_data <- rp_data %>%
+      select(vendor, name, ref_smn, warehouse, remaining_qty,
+             unit, ave_mth_sale,mth_supply_left,importlic_exp)
   }
   # get the report data
   if (report_type == 'sale_profit_report'){

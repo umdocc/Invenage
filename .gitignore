@@ -36,3 +36,6 @@ installation/R-3.6.2-win.exe
 .DS_Store
 private/po_tools.py
 private/build_master_db.py
+private/Data/gpnk_spin_311221.xlsx
+*.xlsx
+private/update_import_license.R

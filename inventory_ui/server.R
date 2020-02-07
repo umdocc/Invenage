@@ -220,8 +220,8 @@ shinyServer(function(input, output,session) {
     rp_data <- build_rp_data(report_type,input)
     to_date <- input$to_date
     
-    #debug
-    print(report_type);print(rp_data)
+    # #debug
+    # print(report_type);print(rp_data)
     
     #from_date and to_date depends on rp type
     if (report_type == 'sale_profit_report'){
