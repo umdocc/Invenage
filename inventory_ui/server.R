@@ -192,6 +192,40 @@ shinyServer(function(input, output,session) {
   # ------------------------------- inv_in UI ----------------------------------
   output$in_prodname_select <- render_prod_name_list(
     input,product_info,'in_prodname_select') # prod_name
+  output$in_unit <- render_unit(input,'in_unit',type='inv_in')
+  # main table
+  output$latest_import_tbl <- render_import_tbl()
+  # ----------- buttons
+  # create and append import_log
+  observeEvent(input$inv_in,{
+    # extract information
+    in_prod_code <- product_info$prod_code[
+      product_info$search_str==input$in_prodname_select]
+    current_date <- Sys.Date()
+    in_warehouse <- product_info$warehouse_id[
+      product_info$prod_code==in_prod_code]
+    # create append import_log
+    append_import_log <- data.frame(
+      prod_code = in_prod_code,
+      unit = input$in_unit,
+      qty = input$in_qty,
+      po_name = paste0('import.',current_date),
+      lot = input$in_lot,
+      exp_date = input$in_expdate,
+      actual_unit_cost = input$in_unit_cost,
+      actual_currency_code=1,
+      delivery_date = current_date,
+      warehouse_id = in_warehouse
+    )
+    
+    # writing to database
+    conn <- db_open(config_dict)
+    dbWriteTable(conn, 'import_log', append_import_log, append = T)
+    dbDisconnect(conn)
+    
+    # refresh the UI
+    output$latest_import_tbl <- render_import_tbl()
+  })
   # ------------------------------- lookup UI ----------------------------------
   output$lookup_tbl_output <- DT::renderDataTable({
     table_name <- ui_elem$label[

@@ -12,8 +12,8 @@ navbarPage(
         p(), #space
         htmlOutput('customer_selector'),
         htmlOutput('prod_name_select'),
-        div(style="display: inline-block;vertical-align:top; \
-                        width: 110px", htmlOutput("qty_selector")),
+        div(style="display: inline-block;vertical-align:top;width: 110px", 
+            htmlOutput("qty_selector")),
         div(style="display: inline-block;vertical-align:top; \
                         width: 110px",
             htmlOutput("unit_selector")),
@@ -71,11 +71,39 @@ navbarPage(
       box(
         width=3, height = 800,
         p(), # space
-        htmlOutput('in_prodname_select')
+        htmlOutput('in_prodname_select'),
+        div(style="display: inline-block;vertical-align:top;width: 110px",
+            selectizeInput(
+              inputId = 'in_qty', label = ui_elem$actual[ui_elem$label=='qty'],
+              choices = 1:1000, options = list(create = TRUE))),
+        div(style="display: inline-block;vertical-align:top;width: 110px",
+            htmlOutput('in_unit')),
+        div(style="display: inline-block;vertical-align:top; \
+                        width: 5px;",HTML("<br>")),
+        div(style="display: inline-block;vertical-align:top; \
+                        width: 110px",
+            textInput('in_lot',label=ui_elem$actual[ui_elem$label=='lot'])),
+        div(style="display: inline-block;vertical-align:top; \
+                        width: 110px",
+            textInput('in_expdate',
+                      label=ui_elem$actual[ui_elem$label=='exp_date'])),
+        div(style="display: inline-block;vertical-align:top; \
+                        width: 5px;",HTML("<br>")
+        ),
+        selectizeInput(
+          inputId = 'in_unit_cost', label = ui_elem$actual[
+            ui_elem$label=='unit_import_cost'],
+          choices = 0, options = list(create = TRUE)),
+        actionButton("inv_in",
+                     ui_elem$actual[ui_elem$label=='inv_in']),
+        p()
       ),
       box(
         width=9, height = 800,
+        h3(ui_elem$actual[ui_elem$label=='recent_import']),
+        DT::dataTableOutput("latest_import_tbl"),
         p() #space
+
       )
     )
   ), # end of import tab

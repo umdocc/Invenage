@@ -113,20 +113,30 @@ render_qty <- function(iid){renderUI({
                  choices=c(1:100),options = list(create=T))
 }) }
 
-render_unit <- function(input,iid){renderUI({
-  cur_prod_code<- product_info[product_info$search_str==input$prod_name_select,
-                               "prod_code"]
+render_unit <- function(input,iid,type='inv_out'){renderUI({
+  if (type=='inv_out'){
+    cur_prod_code<- product_info[
+      product_info$search_str==input$prod_name_select, "prod_code"]}
+  if (type=='inv_in'){
+    cur_prod_code<- product_info[
+      product_info$search_str==input$in_prodname_select, "prod_code"]}
+  
   cur_customer_id <- customer_info$customer_id[
     customer_info$customer_name==input$customer_name]
   unitList <- packaging[packaging$prod_code == cur_prod_code, "unit"]
   unitList <- unique(unitList)
   unitList <- unitList[unitList!='pack']
-  latest_unit <- get_latest_unit(cur_customer_id, cur_prod_code,
+  if (type=='inv_out'){
+    latest_unit <- get_latest_unit(cur_customer_id, cur_prod_code,
                                  sale_log, pxk_info)
-  # if there is nothing, default to first unit
-  if (length(latest_unit)==0){ 
+    # if there is nothing, default to first unit
+    if (length(latest_unit)==0){ 
+      latest_unit <- unitList[1]
+    }
+  }else{ # for other type, default to first unit
     latest_unit <- unitList[1]
-  }
+    }
+
   # if there is still nothing, it is problem loading unitList, default to 'wait'
   if (length(latest_unit)==0){
     latest_unit <- 'wait'
@@ -155,21 +165,24 @@ render_note <- function(iid){renderUI({
             value = '')
 }) }
 
-render_prod_info <- function(input){renderUI({
-  product_info_str <- build_prod_info(config_dict,input)
+# render product info default to inv_out but things can change
+render_prod_info <- function(input,type='inv_out'){renderUI({
+  product_info_str <- build_prod_info(config_dict,input,type)
   HTML(product_info_str)
 }) }
 
 # function to rebuild the productInfo HTML string
-build_prod_info <- function(config_dict,input){
+build_prod_info <- function(config_dict,input,type){
   inventory <- update_inventory(config_dict)
-  current_select <- product_info[
+  if (type=='inv_out'){
+    current_select <- product_info[
     product_info$search_str==input$prod_name_select,]
-
+  }
   total_available <- round(inventory[
     inventory$prod_code == current_select$prod_code &
       inventory$lot == input$lot_select,
     'remaining_qty'],digits=2)
+
   if(length(total_available)==0){total_available <- 0}
   current_exp_date <- inventory[
     inventory$prod_code == current_select$prod_code &
@@ -235,6 +248,20 @@ render_man_pxktable <- function(input){DT::renderDataTable({
   output <- render_selected_pxk(selected_pxk_num,config_dict)
   DT::datatable(output, options = list(pageLength = 10),rownames=F,
                 editable = 'cell')
+})
+}
+
+# render table for the inv_in tab
+render_import_tbl <- function(){DT::renderDataTable({
+  conn <- db_open(config_dict)
+  import_log <- dbReadTable(conn,'import_log')
+  dbDisconnect(conn)
+  import_log <-merge(
+    import_log, product_info %>% select(prod_code,name), all.x=T) %>% 
+    select(id, name, po_name, qty, unit, lot, exp_date, actual_unit_cost)
+  import_log <- import_log[order(import_log$id, decreasing = T),]
+  output <- translate_tbl_column(import_log,ui_elem)
+  DT::datatable(output, options = list(pageLength = 10),rownames=F)
 })
 }
 
