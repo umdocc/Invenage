@@ -490,8 +490,27 @@ create_pxk_file <- function(pxk_num){
   dataColumns <- unlist(strsplit(
     output_info$value[output_info$name=='dataToWrite'],';'))
   
-  form_data <- form_data[,dataColumns]
+  ## convert other info for display purpose
+  form_data$dSL <- paste(form_data$qty, form_data$unit)
+  out_digits <- as.numeric(output_info$value[output_info$name=='out_digits'])
+  form_data$dunit_price <- paste(
+    formatC(form_data$unit_price,format='f',big.mark=",",digits = out_digits),
+    form_data$unit, sep='/')
+  form_data$note <- ''
+
+  # automatically note if unit is not ordering unit
+  ordering_unit <- get_ordering_unit(packaging)
+  names(ordering_unit) <- c('prod_code','ordering_unit')
+  form_data <- convert_to_pack(form_data,packaging,'qty','pack_qty')
+  if(!all(form_data$units_per_pack==1)){
+    # create converted display amount
+    form_data <- merge(form_data,ordering_unit)
+    form_data$note <- paste(form_data$pack_qty,form_data$ordering_unit)
+
+  }
   
+  # filter columns for writing
+  form_data <- form_data[,dataColumns]
   
   # write both data and headers
   dataStartRow <- as.numeric(
