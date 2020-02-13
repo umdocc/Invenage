@@ -238,7 +238,7 @@ shinyServer(function(input, output,session) {
     lu_tbl_out <- create_lookup_tbl(table_name,config_dict)
     dest_path <- file.path(app_path,'lu_tbl.xlsx')
     write.xlsx(lu_tbl_out, dest_path,row.names=F)
-    system(paste0('open ','"',dest_path,'"'))
+    system2('open',dest_path)
   })
   # ----------------------------- report UI ------------------------------------
   
