@@ -185,7 +185,7 @@ shinyServer(function(input, output,session) {
     # create the excel for current pxk
     dest_path <- create_pxk_file(finalised_pxk_num)
     # open the file
-    system(paste0('open ','"',dest_path,'"'))
+    system2('open',dest_path,timeout = 2)
   })
 
   
@@ -238,7 +238,7 @@ shinyServer(function(input, output,session) {
     lu_tbl_out <- create_lookup_tbl(table_name,config_dict)
     dest_path <- file.path(app_path,'lu_tbl.xlsx')
     write.xlsx(lu_tbl_out, dest_path,row.names=F)
-    system2('open',dest_path)
+    system2('open',dest_path,timeout = 2)
   })
   # ----------------------------- report UI ------------------------------------
   
@@ -342,7 +342,7 @@ shinyServer(function(input, output,session) {
   observeEvent(input$print_pxk_man,{
     man_pxk_num <- input$man_pxk_list
     dest_path <- create_pxk_file(man_pxk_num) # create the pxk
-    system(paste0('open ','"',dest_path,'"')) #open the file
+    system2('open',dest_path,timeout = 2) #open the file
   })
   # -------------------------- About tab ---------------------------------------
   output$error_text <- renderText(error_text)
