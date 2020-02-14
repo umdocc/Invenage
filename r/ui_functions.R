@@ -428,7 +428,7 @@ create_pxk_file <- function(pxk_num){
   # form_data
   query <- paste("SELECT sale_log.stt, product_info.name, product_info.ref_smn,
                    sale_log.unit, sale_log.unit_price,
-                   sale_log.qty,sale_log.lot
+                   sale_log.qty,sale_log.lot, sale_log.note
                    FROM   sale_log INNER JOIN product_info
                    ON     sale_log.prod_code = product_info.prod_code
                    WHERE  sale_log.pxk_num =",pxk_num)
@@ -491,12 +491,16 @@ create_pxk_file <- function(pxk_num){
     output_info$value[output_info$name=='dataToWrite'],';'))
   
   ## convert other info for display purpose
-  form_data$dSL <- paste(form_data$qty, form_data$unit)
+  form_data$dqty <- formatC(
+    form_data$qty,format='f',big.mark=",",digits = 2)
+  # clean up big unit
+  form_data$dqty <- gsub('\\.00','',form_data$dqty)
+  form_data$dSL <- paste(form_data$dqty, form_data$unit)
   out_digits <- as.numeric(output_info$value[output_info$name=='out_digits'])
   form_data$dunit_price <- paste(
     formatC(form_data$unit_price,format='f',big.mark=",",digits = out_digits),
     form_data$unit, sep='/')
-  form_data$note <- ''
+  form_data$a_note <- ''
 
   # automatically note if unit is not ordering unit
   ordering_unit <- get_ordering_unit(packaging)
@@ -505,8 +509,9 @@ create_pxk_file <- function(pxk_num){
   if(!all(form_data$units_per_pack==1)){
     # create converted display amount
     form_data <- merge(form_data,ordering_unit)
-    form_data$note <- paste(form_data$pack_qty,form_data$ordering_unit)
-
+    form_data$a_note <- paste(form_data$pack_qty,form_data$ordering_unit)
+    form_data$a_note[form_data$units_per_pack==1] <- ''
+    form_data$note <- paste(form_data$a_note,form_data$note)
   }
   
   # filter columns for writing
