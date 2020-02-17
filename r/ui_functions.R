@@ -428,7 +428,7 @@ create_pxk_file <- function(pxk_num){
   # form_data
   query <- paste("SELECT sale_log.stt, product_info.name, product_info.ref_smn,
                    sale_log.unit, sale_log.unit_price,
-                   sale_log.qty,sale_log.lot, sale_log.note
+                   sale_log.qty,sale_log.lot, sale_log.note, sale_log.prod_code
                    FROM   sale_log INNER JOIN product_info
                    ON     sale_log.prod_code = product_info.prod_code
                    WHERE  sale_log.pxk_num =",pxk_num)
