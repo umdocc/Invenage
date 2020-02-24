@@ -149,7 +149,7 @@ write_report_data <- function(
   return(rp_filename)
 }
 
-build_rp_data <- function(report_type, input){
+build_rp_data <- function(report_type, input, translate=TRUE, prodcode.rm=TRUE){
   if (report_type == 'inv_value_report'){
     # refresh information
     rp_data <- update_inventory(config_dict)
@@ -163,7 +163,7 @@ build_rp_data <- function(report_type, input){
     ordering_unit <- get_ordering_unit(packaging)
     rp_data <- merge(rp_data,ordering_unit,all.x=T)
     rp_data <- rp_data %>% 
-      select(vendor,name,ref_smn,lot,exp_date,remaining_qty,unit)
+      select(vendor,name,ref_smn,lot,exp_date,remaining_qty,unit,prod_code)
     rp_data <- round_report_col(rp_data,'remaining_qty')
   }
   if (report_type == 'inv_order_report'){
@@ -191,7 +191,9 @@ build_rp_data <- function(report_type, input){
       decimal = 2)
     rp_data <- rp_data %>%
       select(vendor, name, ref_smn, warehouse, remaining_qty,
-             unit, ave_mth_sale,mth_supply_left,importlic_exp)
+             unit, ave_mth_sale,mth_supply_left,importlic_exp,prod_code)
+    tender_track <- create_tender_track(sale_log)
+    rp_data <- merge(rp_data, tender_track, all.x = T)
   }
   # get the report data
   if (report_type == 'sale_profit_report'){
@@ -210,9 +212,16 @@ build_rp_data <- function(report_type, input){
     rp_data <- merge(rp_data,ui_elem,all.x=T)
     rp_data$note <- rp_data$actual
     rp_data <- rp_data %>% select(vendor,name,ref_smn,remaining_qty,
-                                      exp_date,note)
+                                      exp_date,note,prod_code)
   }
-  rp_data <- translate_tbl_column(rp_data,ui_elem)
+  # options listed in functions
+  if (translate){ # default TRUE : translate the column name
+    rp_data <- translate_tbl_column(rp_data,ui_elem)
+  }
+  if (prodcode.rm){ # default TRUE : remove prod_code column
+    rp_data$prod_code <- NULL
+  }
+  
   return(rp_data)
 }
 
@@ -236,4 +245,88 @@ round_report_col <- function(rp_data,col_list,decimal = 2){
     rp_data[[i]] <- round(rp_data[[i]], digits= decimal)
   }
   return(rp_data)
+}
+
+# create a tender tracking table
+# build tender_track, use config_dict to directly read from database
+create_tender_track <- function(sale_log){
+  
+  # build basic details from sale_log
+  tmp <- convert_to_pack(sale_log,packaging,'qty','pack_qty')
+  tmp2 <- convert_to_pack(
+    tender_detail,packaging,'tender_qty','tender_pack_qty')
+  #remove null tender_id
+  tmp <- tmp[!is.na(tmp$tender_id),]
+  tmp <- tmp %>% group_by(prod_code,tender_id) %>% 
+    summarise(total_sale = sum(pack_qty))
+  # since there is no table for tender_id = 0, 
+  # inner merge will result in valid tender only
+  tmp <- merge(tmp2,tmp,all.x=T)
+  
+  # if total_sale/tender_pack_qty is na we use 0
+  tmp$total_sale[is.na(tmp$total_sale)] <- 0
+  tmp$tender_pack_qty[is.na(tmp$tender_pack_qty)] <- 0
+  tmp$tender_pack_remain <- tmp$tender_pack_qty-tmp$total_sale
+  # recover customer_id for tender_track
+  tmp <- merge(tmp,tender_info %>% select(tender_id, customer_id))
+  tmp <- tmp %>% 
+    select(prod_code, tender_id, customer_id,tender_id, customer_id, 
+           total_sale, tender_pack_remain, tender_pack_qty)
+  
+  # we now create a new dataset for pending tender
+  pending_tender <- sale_log[sale_log$tender_id==0,]
+  pending_tender <- pending_tender[!is.na(pending_tender$tender_id),]
+  pending_tender <- merge(
+    pending_tender,pxk_info %>% select(pxk_num,customer_id))
+  pending_tender <- convert_to_pack(
+    pending_tender, packaging, 'qty', 'pending_pack_qty')  
+  pending_tender_sum <- pending_tender %>% group_by(prod_code,customer_id) %>% 
+    summarise(total_pending_pack = sum(pending_pack_qty)) %>% ungroup
+  # merge with pending_tender
+  tmp <- merge(tmp, pending_tender_sum %>% 
+                 select(prod_code, customer_id, total_pending_pack),all.x=T)
+  return(tmp)
+}
+
+# this funcion expect a table with prod_code, qty, vendor_id columns, it then
+# add the import price
+get_import_price <- function(po_data, stringQty = 'qty'){
+  req_col <- c('prod_code','vendor_id',stringQty)
+  for (i in req_col){
+    if (!(i %in% names(po_data))){ stop(paste('error', i, 'not found'))}
+  }
+  
+  # save the name of qty column, then rename it to qty
+  oldname <- stringQty
+  names(po_data)[names(po_data)==stringQty] <- 'qty'
+  
+  # load all import price
+  po_data <- merge(
+    po_data, import_price %>% 
+      select(prod_code, import_price, vendor_id, currency_code, min_order),
+    all.x=T)
+  # if an item has min_order = NA, set it to 1
+  po_data$min_order[is.na(po_data$min_order)] <- 1
+  #calculate qty/min_order ratio, then choose one with min of this ratio
+  po_data$order_ratio <- po_data$qty/po_data$min_order
+  po_data <- po_data %>%group_by(prod_code) %>% 
+    mutate(min_ratio = min(order_ratio)) %>% ungroup
+  po_data <- po_data[po_data$order_ratio==po_data$min_ratio,]
+  
+  # check for prod_code duplications before returning results
+  if (nrow(po_data[duplicated(po_data %>% select(prod_code,qty)),])>0){
+    stop('po_data contains duplicated line')
+  }else{
+    # restore the name
+    names(po_data)[names(po_data)=='qty'] <- stringQty
+    # remove all useless columns
+    removed_col <- c('min_order','currency_code', 'vendor_id', 'vendor', 
+                     'order_ratio','min_ratio','last_updated', 'lot','exp_date',
+                     'actual_unit_cost','note')
+    for (i in removed_col){ po_data[,i] <- NULL }
+    if ('stt' %in% names(po_data)){
+      po_data <- po_data[order(po_data$stt),]
+    }
+    return(po_data)
+  }
 }

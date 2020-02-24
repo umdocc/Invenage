@@ -65,6 +65,9 @@ pxk_info <- dbReadTable(conn,"pxk_info")
 warehouse_info <- dbReadTable(conn,"warehouse_info")
 payment_type <- dbReadTable(conn,"payment_type")
 importlic_data <- dbReadTable(conn,"importlic_data")
+tender_detail <- dbReadTable(conn,"tender_detail")
+tender_info <- dbReadTable(conn,"tender_info")
+import_price <- dbReadTable(conn,"import_price")
 dbDisconnect(conn)
 
 # customise
