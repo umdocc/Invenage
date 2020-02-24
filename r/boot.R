@@ -68,6 +68,7 @@ importlic_data <- dbReadTable(conn,"importlic_data")
 tender_detail <- dbReadTable(conn,"tender_detail")
 tender_info <- dbReadTable(conn,"tender_info")
 import_price <- dbReadTable(conn,"import_price")
+vendor_info <- dbReadTable(conn,"vendor_info")
 dbDisconnect(conn)
 
 # customise

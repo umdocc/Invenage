@@ -344,6 +344,24 @@ shinyServer(function(input, output,session) {
     dest_path <- create_pxk_file(man_pxk_num) # create the pxk
     system2('open',dest_path,timeout = 2) #open the file
   })
-  # -------------------------- About tab ---------------------------------------
-  output$error_text <- renderText(error_text)
+  # -------------------------- update_db tab -----------------------------------
+  output$add_prod_code <- render_prod_code_list('add_prod_code', allow_add = T)
+  output$add_name <- render_name_list(input, 'add_name', allow_add = T)
+  output$add_ref_smn <- render_ref_list(input, 'add_ref', allow_add = T)
+  output$add_ordering_unit <- render_add_order_unit(
+    input, 'add_ordering_unit', allow_add = T)
+  output$add_orig_vendor <- render_add_vendor(
+    input, 'add_orig_vendor', allow_add = T)
+  output$add_warehouse <- render_add_warehouse(
+    input,'add_warehouse', allow_add = T)
+  
+  # add_prod button
+  observeEvent(input$add_product,{
+    append_prod <- data.frame(prod_code = input$add_prod_code,
+                              name = input$add_name,
+                              ref_smn = input$add_ref,
+                              ordering_unit = input$add_ordering_unit,
+                              vendor = input$add_orig_vendor)
+    print(append_prod)
+  })
 })

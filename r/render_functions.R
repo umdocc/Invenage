@@ -343,3 +343,76 @@ render_warehouse <- function(input,iid,warehouse_info){renderUI({
               label = ui_elem$actual[ui_elem$label=='warehouse'],
               choices = default_warehouse)
 }) }
+
+# this render the current prod_code list, allow adding prod_code
+render_prod_code_list <- function(iid, allow_add = T){renderUI({
+  prodcode_list <- product_info$prod_code
+  selectizeInput(
+    inputId = iid, label = ui_elem$actual[ui_elem$label=='prod_code'],
+    choices = unique(prodcode_list), options = list(create = allow_add)
+  )
+}) }
+
+render_name_list <- function(input, iid, allow_add = T){renderUI({
+  current_prod_code <- input$add_prod_code
+  current_name <- product_info$name[product_info$prod_code==current_prod_code]
+  if (length(current_name)==0){
+    current_name <- ''
+  }
+  selectizeInput(
+    inputId = iid, label = ui_elem$actual[ui_elem$label=='name'],
+    choices = current_name, options = list(create = allow_add)
+  )
+}) }
+
+render_ref_list <- function(input, iid, allow_add = T){renderUI({
+  current_prod_code <- input$add_prod_code
+  current_ref <- product_info$ref_smn[product_info$prod_code==current_prod_code]
+  if (length(current_ref)==0){
+    current_ref <- ''
+  }
+  selectizeInput(
+    inputId = iid, label = ui_elem$actual[ui_elem$label=='ref_smn'],
+    choices = current_ref, options = list(create = allow_add)
+  )
+}) }
+
+render_add_order_unit <- function(input, iid, allow_add = T){renderUI({
+  current_prod_code <- input$add_prod_code
+  current_unit <- packaging$unit[
+    packaging$prod_code==current_prod_code & packaging$units_per_pack==1]
+  if (length(current_unit)==0){
+    current_unit <- ''
+  }
+  selectizeInput(
+    inputId = iid, label = ui_elem$actual[ui_elem$label=='ordering_unit'],
+    choices = current_unit, options = list(create = allow_add)
+  )
+}) }
+
+render_add_vendor <- function(input, iid, allow_add = T){renderUI({
+  current_vendor <- product_info$vendor[
+    product_info$prod_code == input$add_prod_code]
+  if (length(current_vendor)==0){
+   current_vendor <- vendor_info$vendor
+  }
+  selectizeInput(
+    inputId = iid, label = ui_elem$actual[ui_elem$label=='orig_vendor'],
+    choices = current_vendor, options = list(create = allow_add)
+  )
+}) }
+
+render_add_warehouse <- function(input, iid, allow_add = T){renderUI({
+  current_warehouse_id <- product_info$warehouse_id[
+    product_info$prod_code == input$add_prod_code]
+  if (length(current_warehouse_id)==0){
+    warehouse_choice <- warehouse_info$warehouse
+  }else{
+    warehouse_choice <- warehouse_info$warehouse[
+      warehouse_info$warehouse_id==current_warehouse_id]
+  }
+  selectizeInput(
+    inputId = iid, label = ui_elem$actual[ui_elem$label=='warehouse'],
+    choices = warehouse_choice, options = list(create = allow_add)
+  )
+}) }

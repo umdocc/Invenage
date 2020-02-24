@@ -197,10 +197,24 @@ navbarPage(
     )
   ), # end pxk_man tab
   tabPanel(
-    'About',
+    ui_elem$actual[ui_elem$label=='update_db'],
     fluidRow(
-      style = "background-color:#f5f5f5;",
-      textOutput('error_text')
+      
+      box(width = 3, height = 800, style = "background-color:#f5f5f5;",
+        htmlOutput('add_prod_code'),
+        htmlOutput('add_name'),
+        htmlOutput('add_ref_smn'),
+        htmlOutput('add_ordering_unit'),
+        htmlOutput('add_orig_vendor'),
+        htmlOutput('add_warehouse'),
+        actionButton(
+          "add_product", ui_elem$actual[ui_elem$label=='add_product'])
+      ),
+      box(width = 3, height = 800, style = "background-color:#f5f5f5;",
+        p('ABCD'),
+        actionButton(
+          "add_pkg", ui_elem$actual[ui_elem$label=='add_pkg'])
+      )
     )
   ) # end About tab
 ) # end navbarPage
