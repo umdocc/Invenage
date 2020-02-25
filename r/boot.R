@@ -13,12 +13,8 @@ lapply(required_package, require, character.only = TRUE)
 
 # ------------------------ database configuration ------------------------------
 db_type <- config_dict$value[config_dict$name=='db_type']
-if (db_type == 'SQLite'){
-  require(RSQLite)
-}
-if (db_type == 'MariaDB'){
-  require(RMariaDB)
-}
+if (db_type == 'SQLite'){require(RSQLite)}
+if (db_type == 'MariaDB'){require(RMariaDB)}
 
 # ------------------------- chrome config for windows --------------------------
 os_name <- config_dict$value[config_dict$name=='os_name']
@@ -33,18 +29,12 @@ if (all(grepl('windows',os_name))){
 }
 
 # ------------------------ load remaining scripts ------------------------------
-function_paths <- file.path(config_dict$value[config_dict$name=='app_path'], 
-                            'r')
-base_func_path <- file.path(function_paths,'base_functions.R')
-ui_func_path <- file.path(function_paths,'ui_functions.R')
-report_func_path <- file.path(function_paths,'report_functions.R')
-render_func_path <- file.path(function_paths,'render_functions.R')
-source(base_func_path)
-source(ui_func_path)
-source(report_func_path)
-source(render_func_path)
-
-
+func_list <- c('base','ui_helper','ui_buttons','report','ui_render')
+for (script_to_load in func_list){
+  script_path <- file.path(config_dict$value[config_dict$name=='app_path'], 'r',
+                         paste0(script_to_load,'.R'))
+  source(script_path)
+}
 company_name <- config_dict$value[config_dict$name=='company_name']
 copyright_str <- paste(
   'Copyright (C) 2017-2019, Data built for:', company_name)
@@ -69,6 +59,7 @@ tender_detail <- dbReadTable(conn,"tender_detail")
 tender_info <- dbReadTable(conn,"tender_info")
 import_price <- dbReadTable(conn,"import_price")
 vendor_info <- dbReadTable(conn,"vendor_info")
+product_type <- dbReadTable(conn,"product_type")
 dbDisconnect(conn)
 
 # customise
@@ -78,9 +69,11 @@ report_info <- report_info[report_info$type=='report_output',]
 # --------------------- UI Configurations --------------------------------------
 # use the configured language
 localisation <- localisation[localisation$app_lang==app_lang,]
-# extract sub-tables from localisation
+# create ui_lem
 ui_elem <- localisation[localisation$group=='ui_elements',]
-# build the ui_elem_dict
+
+# create all tables that rely on ui_elem
+product_type <- merge(product_type,ui_elem)
 
 # list of tables in lookups
 lu_tbl_list <- unlist(strsplit(
