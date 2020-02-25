@@ -18,6 +18,23 @@ db_open <- function(config_dict){
   return(conn)
 }
 
+# reload table from database
+reload_tbl <- function(config_dict,tbl_name){
+  conn <- db_open(config_dict)
+  output_tbl <- dbReadTable(conn,tbl_name)
+  dbDisconnect(conn)
+  
+  # special change for each table
+  if (tbl_name=='product_info'){
+    output_tbl$search_str <- paste(
+      output_tbl$ref_smn, output_tbl$name, sep='-')
+  }
+  if (tbl_name=='product_type'){
+    output_tbl <- merge(output_tbl,ui_elem)
+  }
+  return(output_tbl)
+}
+
 # get the ui_elem df
 get_ui_elem <- function(config_dict){
   app_lang <- config_dict$value[config_dict$name=='app_lang']

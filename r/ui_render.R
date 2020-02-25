@@ -161,7 +161,7 @@ render_lot <- function(input,iid){renderUI({
 
 render_note <- function(iid){renderUI({
   textInput(inputId = iid,
-            label = ui_elem$actual[ui_elem$label=='Note'],
+            label = ui_elem$actual[ui_elem$label=='note'],
             value = '')
 }) }
 
@@ -257,9 +257,10 @@ render_import_tbl <- function(){DT::renderDataTable({
   import_log <- dbReadTable(conn,'import_log')
   dbDisconnect(conn)
   import_log <-merge(
-    import_log, product_info %>% select(prod_code,name), all.x=T) %>% 
-    select(id, name, po_name, qty, unit, lot, exp_date, actual_unit_cost)
+    import_log, product_info %>% select(prod_code,name), all.x=T) 
   import_log <- import_log[order(import_log$id, decreasing = T),]
+  import_log <- import_log %>% 
+    select(name, po_name, qty, unit, lot, exp_date, actual_unit_cost, note)
   output <- translate_tbl_column(import_log,ui_elem)
   DT::datatable(output, options = list(pageLength = 10),rownames=F)
 })
@@ -415,4 +416,10 @@ render_add_warehouse <- function(input, iid, allow_add = T){renderUI({
     inputId = iid, label = ui_elem$actual[ui_elem$label=='warehouse'],
     choices = warehouse_choice, options = list(create = allow_add)
   )
+}) }
+
+render_add_prod_type <- function(input, iid){renderUI({
+  selectInput(
+    inputId = iid, label = ui_elem$actual[ui_elem$label=='prod_type'],
+    choices = product_type$actual )
 }) }
