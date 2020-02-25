@@ -1,6 +1,5 @@
 ## Invenage ui.R ##
-library(shiny)
-library(shinythemes)
+library(shiny); library(shinythemes); library(shinyalert)
 require(DT)
 navbarPage(
   theme = shinytheme("united"), title = company_name,
@@ -94,6 +93,7 @@ navbarPage(
           inputId = 'in_unit_cost', label = ui_elem$actual[
             ui_elem$label=='unit_import_cost'],
           choices = 0, options = list(create = TRUE)),
+        htmlOutput('in_note'),
         actionButton("inv_in",
                      ui_elem$actual[ui_elem$label=='inv_in']),
         p()
@@ -197,9 +197,10 @@ navbarPage(
     )
   ), # end pxk_man tab
   tabPanel(
+    
     ui_elem$actual[ui_elem$label=='update_db'],
     fluidRow(
-      
+      useShinyalert(),  # Set up shinyalert
       box(width = 3, height = 800, style = "background-color:#f5f5f5;",
         htmlOutput('add_prod_code'),
         htmlOutput('add_name'),
@@ -207,6 +208,7 @@ navbarPage(
         htmlOutput('add_ordering_unit'),
         htmlOutput('add_orig_vendor'),
         htmlOutput('add_warehouse'),
+        htmlOutput('add_prod_type'),
         actionButton(
           "add_product", ui_elem$actual[ui_elem$label=='add_product'])
       ),

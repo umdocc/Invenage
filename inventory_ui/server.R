@@ -3,7 +3,7 @@ source("global.R",local = F)
 require(dplyr)
 require(DT)
 shinyServer(function(input, output,session) {
-  session$onSessionEnded(stopApp) #make shiny like a normal app
+  session$onSessionEnded(stopApp()) # quit on session end 
   # ------------------------------- inv_out UI ----------------------------------
   # sidebar
   output$customer_selector <- render_customer_list(
@@ -193,6 +193,7 @@ shinyServer(function(input, output,session) {
   output$in_prodname_select <- render_prod_name_list(
     input,product_info,'in_prodname_select') # prod_name
   output$in_unit <- render_unit(input,'in_unit',type='inv_in')
+  output$in_note <- render_note('in_note')
   # main table
   output$latest_import_tbl <- render_import_tbl()
   # ----------- buttons
@@ -215,7 +216,8 @@ shinyServer(function(input, output,session) {
       actual_unit_cost = input$in_unit_cost,
       actual_currency_code=1,
       delivery_date = current_date,
-      warehouse_id = in_warehouse
+      warehouse_id = in_warehouse,
+      note = input$in_note
     )
     
     # writing to database
@@ -354,14 +356,20 @@ shinyServer(function(input, output,session) {
     input, 'add_orig_vendor', allow_add = T)
   output$add_warehouse <- render_add_warehouse(
     input,'add_warehouse', allow_add = T)
+  output$add_prod_type <- render_add_prod_type(input, 'add_prod_type')
   
   # add_prod button
   observeEvent(input$add_product,{
-    append_prod <- data.frame(prod_code = input$add_prod_code,
-                              name = input$add_name,
-                              ref_smn = input$add_ref,
-                              ordering_unit = input$add_ordering_unit,
-                              vendor = input$add_orig_vendor)
-    print(append_prod)
-  })
+    add_prod_to_db(input,output) # add to database
+    # reload internal table
+    product_info <- reload_tbl(config_dict, 'product_info')
+    vendor_info <- reload_tbl(config_dict, 'vendor_info')
+    packaging <- reload_tbl(config_dict, 'packaging')
+    # reload UI
+    output$prod_name_select <- render_prod_name_list(
+      input, product_info, 'prod_name_select') # prod_name
+    output$in_prodname_select <- render_prod_name_list(
+      input,product_info,'in_prodname_select') # prod_name
+    })
+  
 })
