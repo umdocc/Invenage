@@ -509,13 +509,13 @@ create_pxk_file <- function(pxk_num){
   if(!all(form_data$units_per_pack==1)){
     # create converted display amount
     form_data <- merge(form_data,ordering_unit, all.x=T)
-    form_data <- form_data[order(as.numeric(form_data$stt)),]
     form_data$a_note <- paste(form_data$pack_qty,form_data$ordering_unit)
     form_data$a_note[form_data$units_per_pack==1] <- ''
     form_data$note <- paste(form_data$a_note,form_data$note)
   }
   
-  # filter columns for writing
+  # arrange & select columns for writing
+  form_data <- form_data[order(as.numeric(form_data$stt)),]
   form_data <- form_data[,dataColumns]
   
   # write both data and headers
