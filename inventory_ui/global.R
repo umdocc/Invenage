@@ -3,6 +3,7 @@ rm(list=ls()) # boot clean-up
 options(warn=-1) # supress warnings
 
 # --------------------- Configure Basic Information ----------------------------
+print(getwd()) # if this option is ok we no longer need to config path
 # read the configuration data file
 home_path <- path.expand('~')
 home_path <- gsub('\\\\','/',home_path) #windows fix
