@@ -60,6 +60,7 @@ tender_info <- dbReadTable(conn,"tender_info")
 import_price <- dbReadTable(conn,"import_price")
 vendor_info <- dbReadTable(conn,"vendor_info")
 product_type <- dbReadTable(conn,"product_type")
+guess_table <- dbReadTable(conn,"guess_table")
 dbDisconnect(conn)
 
 # customise

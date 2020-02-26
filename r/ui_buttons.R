@@ -51,3 +51,66 @@ add_prod_to_db <- function(input,output){
     shinyalert(title = big_msg, text = small_msg, type = "success")
   }
 }
+
+add_pkg_to_db <- function(input,output){
+  # check the input for correct format
+  error_free <- T
+  cur_prod_code <- product_info$prod_code[
+    product_info$search_str==input$add_pkg_prod_name]
+  added_unit <- tolower(input$add_pkg_unit) # prevent capital letters
+
+  # if pakaging exists, show error
+  test_df <- reload_tbl(config_dict, 'packaging')
+  test_df <- test_df[
+    test_df$unit==added_unit & test_df$prod_code==cur_prod_code,]
+  if(nrow(test_df)>0){
+    error_free <- F
+    big_msg <- ui_elem$actual[ui_elem$label=='error']
+    small_msg <- ui_elem$actual[ui_elem$label=='pkg_exist']
+    shinyalert(title = big_msg, text = small_msg, type = "error")
+  }
+  
+  # if units_per_pack is not a number, do nothing
+  if (is.na(as.numeric(input$add_unitspp))){error_free <- F}
+  # if unit is blank, do nothing
+  if (added_unit==''){error_free <- F}
+  
+  
+  if(error_free){
+    append_pkg <- data.frame(
+      unit = added_unit, units_per_pack = input$add_unitspp,
+      prod_code = cur_prod_code, last_updated = format(Sys.Date()))
+    conn <- db_open(config_dict)
+    dbWriteTable(conn,'packaging',append_pkg,append=T)
+    dbDisconnect(conn)
+    big_msg <- ui_elem$actual[ui_elem$label=='done']
+    small_msg <- ui_elem$actual[ui_elem$label=='add_pkg_success']
+    shinyalert(title = big_msg, text = small_msg, type = "success")
+  }
+}
+
+add_customer_to_db <- function(input,output){
+  error_free <- T
+  added_name <- input$add_customer_name
+  test_df <- reload_tbl(config_dict, 'customer_info')
+  if(nrow(test_df[test_df$customer_name==added_name,])>0){
+    error_free <- F
+    big_msg <- ui_elem$actual[ui_elem$label=='error']
+    small_msg <- ui_elem$actual[ui_elem$label=='customer_exist']
+    shinyalert(title = big_msg, text = small_msg, type = "error")
+  }
+  if(error_free){
+    append_customer <- data.frame(
+      customer_name = input$add_customer_name,
+      customer_email = input$add_customer_email,
+      customer_address = input$add_customer_address,
+      customer_phone = input$add_customer_phone,
+      customer_tfn = input$add_customer_tfn)
+    conn <- db_open(config_dict)
+    dbWriteTable(conn,'customer_info',append_customer,append=T)
+    dbDisconnect(conn)
+    big_msg <- ui_elem$actual[ui_elem$label=='done']
+    small_msg <- ui_elem$actual[ui_elem$label=='add_customer_success']
+    shinyalert(title = big_msg, text = small_msg, type = "success")
+  }
+  }

@@ -3,7 +3,9 @@ source("global.R",local = F)
 require(dplyr)
 require(DT)
 shinyServer(function(input, output,session) {
-  session$onSessionEnded(stopApp()) # quit on session end 
+  session$onSessionEnded( function(){
+    stopApp()
+  }) # quit on session end 
   # ------------------------------- inv_out UI ----------------------------------
   # sidebar
   output$customer_selector <- render_customer_list(
@@ -347,6 +349,7 @@ shinyServer(function(input, output,session) {
     system2('open',dest_path,timeout = 2) #open the file
   })
   # -------------------------- update_db tab -----------------------------------
+  # add prod box
   output$add_prod_code <- render_prod_code_list('add_prod_code', allow_add = T)
   output$add_name <- render_name_list(input, 'add_name', allow_add = T)
   output$add_ref_smn <- render_ref_list(input, 'add_ref', allow_add = T)
@@ -358,6 +361,14 @@ shinyServer(function(input, output,session) {
     input,'add_warehouse', allow_add = T)
   output$add_prod_type <- render_add_prod_type(input, 'add_prod_type')
   
+  # add packaging box
+  output$add_pkg_prod_name <- render_prod_name_list(
+    input,product_info,'add_pkg_prod_name')
+  output$add_pkg_str <- render_add_pkg_str(input)
+  
+  # add customer box
+  output$add_customer_name <- render_customer_list(
+    iid = 'add_customer_name',type = 'add_customer',input)
   # add_prod button
   observeEvent(input$add_product,{
     add_prod_to_db(input,output) # add to database
@@ -370,6 +381,23 @@ shinyServer(function(input, output,session) {
       input, product_info, 'prod_name_select') # prod_name
     output$in_prodname_select <- render_prod_name_list(
       input,product_info,'in_prodname_select') # prod_name
+    output$in_unit <- render_unit(input,'in_unit',type='inv_in') # in_unit
+    output$unit_selector <- render_unit(input,iid='unit_selector') #out_unit
     })
+  # add_pkg button
+  observeEvent(input$add_pkg,{
+    # reload internal table for comparision
+    packaging <- reload_tbl(config_dict, 'packaging')
+    add_pkg_to_db(input,output) # add to database
+    # reload internal table
+    packaging <- reload_tbl(config_dict, 'packaging')
+    # reload UI
+    output$in_unit <- render_unit(input,'in_unit',type='inv_in') # in_unit
+    output$unit_selector <- render_unit(input,iid='unit_selector') #out_unit
+  })
   
+  # add_customer button
+  observeEvent(input$add_customer,{
+    add_customer_to_db(input)
+  })
 })

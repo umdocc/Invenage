@@ -202,6 +202,8 @@ navbarPage(
     fluidRow(
       useShinyalert(),  # Set up shinyalert
       box(width = 3, height = 800, style = "background-color:#f5f5f5;",
+        div(style="display: inline-block;padding-top:2px;;width: 200px",
+          h3(ui_elem$actual[ui_elem$label=='add_product'])),
         htmlOutput('add_prod_code'),
         htmlOutput('add_name'),
         htmlOutput('add_ref_smn'),
@@ -209,13 +211,39 @@ navbarPage(
         htmlOutput('add_orig_vendor'),
         htmlOutput('add_warehouse'),
         htmlOutput('add_prod_type'),
-        actionButton(
-          "add_product", ui_elem$actual[ui_elem$label=='add_product'])
+        div(style="display: inline-block;padding-bottom:2px;;width: 200px",
+            actionButton(
+              "add_product", ui_elem$actual[ui_elem$label=='add_product']))
       ),
       box(width = 3, height = 800, style = "background-color:#f5f5f5;",
-        p('ABCD'),
+        div(style="display: inline-block;padding-top:2px;;width: 200px",
+            h3(ui_elem$actual[ui_elem$label=='add_pkg'])),
+        htmlOutput('add_pkg_prod_name'),
+        div(style="display: inline-block;vertical-align:top;width: 80px",
+            textInput('add_unitspp',label=ui_elem$actual[ui_elem$label=='qty'])
+        ),
+        div(style="display: inline-block;vertical-align:top;width: 80px",
+          textInput('add_pkg_unit',label=ui_elem$actual[ui_elem$label=='unit'])
+        ),
+        h4(ui_elem$actual[ui_elem$label=='explanation']),
+        htmlOutput("add_pkg_str"),
         actionButton(
           "add_pkg", ui_elem$actual[ui_elem$label=='add_pkg'])
+      ),
+      box(width = 3, height = 800, style = "background-color:#f5f5f5;",
+          div(style="display: inline-block;padding-top:2px;;width: 200px",
+              h3(ui_elem$actual[ui_elem$label=='add_customer'])),
+          htmlOutput('add_customer_name'),
+          textInput('add_customer_address',
+            label=ui_elem$actual[ui_elem$label=='customer_address']),
+          textInput('add_customer_email',
+            label=ui_elem$actual[ui_elem$label=='customer_email']),
+          textInput('add_customer_phone',
+            label=ui_elem$actual[ui_elem$label=='customer_phone']),
+          textInput('add_customer_tfn',
+                    label=ui_elem$actual[ui_elem$label=='customer_tfn']),
+          actionButton(
+            "add_customer", ui_elem$actual[ui_elem$label=='add_customer'])
       )
     )
   ) # end About tab

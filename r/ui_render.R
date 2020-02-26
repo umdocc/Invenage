@@ -282,9 +282,15 @@ render_sys_message <- function(sys_msg){renderUI({
 render_customer_list <- function(iid,type='inv_out',input){renderUI({
   cust_choices <- get_cust_list(config_dict,type)
   # set the label and default customer
+  if (type=='add_customer'){
+    clabel <- ui_elem$actual[ui_elem$label=='customer_name']
+    default_customer <- cust_choices[1]
+    allow_add <- T
+  }
   if (type=='inv_out'){
     clabel <- ui_elem$actual[ui_elem$label=='customer_name']
     default_customer <- cust_choices[1]
+    allow_add <- F
   }
   if (type=='customer_change'){
     clabel <- ui_elem$actual[ui_elem$label=='customer_change']
@@ -296,10 +302,11 @@ render_customer_list <- function(iid,type='inv_out',input){renderUI({
     man_selected_pxk_info <- merge(man_selected_pxk_info, customer_info)
     # print(man_selected_pxk_info)
     default_customer <- man_selected_pxk_info$customer_name[1]
+    allow_add <- F
   }
   selectizeInput(
     inputId = iid, label = clabel, choices = cust_choices, 
-    selected = default_customer)
+    selected = default_customer, options = list(create = allow_add))
 }) }
 
 render_payment_type <- function(input,iid,ui_type){renderUI({
@@ -422,4 +429,16 @@ render_add_prod_type <- function(input, iid){renderUI({
   selectInput(
     inputId = iid, label = ui_elem$actual[ui_elem$label=='prod_type'],
     choices = product_type$actual )
+}) }
+
+render_add_pkg_str <- function(input){renderUI({
+  ordering_unit <- get_ordering_unit(packaging)
+  cur_prod_code <- product_info$prod_code[
+    product_info$search_str == input$add_pkg_prod_name]
+  cur_order_unit <- ordering_unit$unit[ordering_unit$prod_code==cur_prod_code]
+  output <- paste0(
+    ui_elem$actual[ui_elem$label=='add_pkg'],'  ',input$add_unitspp,
+    input$add_pkg_unit,'/',cur_order_unit,' ',
+    ui_elem$actual[ui_elem$label=='for_prod'],' ', input$add_pkg_prod_name)
+  HTML(output)
 }) }

@@ -9,11 +9,12 @@ db_open <- function(config_dict){
     conn <- dbConnect(drv = RSQLite::SQLite(), dbname = database_path)
   }
   if (db_type == 'MariaDB'){
-    conn <- dbConnect(drv = RMariaDB::MariaDB(), 
-                      username = config_dict$value[config_dict$name=='sql_usr'],
-                      password = config_dict$value[config_dict$name=='sql_pswd'], 
-                      host = config_dict$value[config_dict$name=='sql_host'],
-                      port = 3306, dbname = 'invenage')
+    conn <- dbConnect(
+      drv = RMariaDB::MariaDB(), 
+      username = config_dict$value[config_dict$name=='sql_usr'],
+      password = config_dict$value[config_dict$name=='sql_pswd'], 
+      host = config_dict$value[config_dict$name=='sql_host'],
+      port = 3306, dbname = 'invenage')
   }
   return(conn)
 }
@@ -135,6 +136,5 @@ convert_to_pack <- function(inputDF,packaging,stringSL,packString){
   # clean up
   inputDF$unit <- 'pack'
   inputDF[[stringSL]] <- NULL
-  # inputDF$units_per_pack <- NULL
   return(inputDF)
 }
