@@ -201,23 +201,49 @@ navbarPage(
     ui_elem$actual[ui_elem$label=='update_db'],
     fluidRow(
       useShinyalert(),  # Set up shinyalert
-      box(width = 3, height = 800, style = "background-color:#f5f5f5;",
+      # add_product box
+      box(width = 3, height = 400, style = "background-color:#f5f5f5;",
         div(style="display: inline-block;padding-top:2px;;width: 200px",
-          h3(ui_elem$actual[ui_elem$label=='add_product'])),
-        htmlOutput('add_prod_code'),
+          h4(ui_elem$actual[ui_elem$label=='add_product'])),
         htmlOutput('add_name'),
-        htmlOutput('add_ref_smn'),
-        htmlOutput('add_ordering_unit'),
-        htmlOutput('add_orig_vendor'),
-        htmlOutput('add_warehouse'),
-        htmlOutput('add_prod_type'),
+        div(style="display: inline-block;vertical-align:top;width: 150px",
+            htmlOutput('add_ref_smn')),
+        div(style="display: inline-block;vertical-align:top;width: 150px",
+            htmlOutput('add_ordering_unit')),
+        div(style="display: inline-block;vertical-align:top;width: 150px",
+            htmlOutput('add_orig_vendor')),
+        div(style="display: inline-block;vertical-align:top;width: 150px",
+            htmlOutput('add_prod_type')),
+        div(style="display: inline-block;vertical-align:top;width: 180px",
+            htmlOutput('add_prod_code')),
+        div(style="display: inline-block;vertical-align:top;width: 120px",
+            htmlOutput('add_warehouse')),
         div(style="display: inline-block;padding-bottom:2px;;width: 200px",
             actionButton(
               "add_product", ui_elem$actual[ui_elem$label=='add_product']))
       ),
-      box(width = 3, height = 800, style = "background-color:#f5f5f5;",
+      box(width = 3, height = 400, style = "background-color:#f5f5f5;",
+          div(style="display: inline-block;padding-top:2px;;width: 200px",
+              h4(ui_elem$actual[ui_elem$label=='add_customer'])),
+          htmlOutput('add_customer_name'),
+          textInput('add_customer_address',
+                    label=ui_elem$actual[ui_elem$label=='customer_address']),
+          textInput('add_customer_email',
+                    label=ui_elem$actual[ui_elem$label=='customer_email']),
+          div(style="display: inline-block;vertical-align:top;width: 150px",
+              textInput('add_customer_phone',
+                    label=ui_elem$actual[ui_elem$label=='customer_phone'])),
+          div(style="display: inline-block;vertical-align:top;width: 150px",
+              textInput('add_customer_tfn',
+                    label=ui_elem$actual[ui_elem$label=='customer_tfn'])),
+          actionButton(
+            "add_customer", ui_elem$actual[ui_elem$label=='add_customer'])
+      ),
+      box(width = 3, height = 400, style = "background-color:#f5f5f5;"),
+      box(width = 3, height = 400, style = "background-color:#f5f5f5;"),
+      box(width = 3, height = 400, style = "background-color:#f5f5f5;",
         div(style="display: inline-block;padding-top:2px;;width: 200px",
-            h3(ui_elem$actual[ui_elem$label=='add_pkg'])),
+            h4(ui_elem$actual[ui_elem$label=='add_pkg'])),
         htmlOutput('add_pkg_prod_name'),
         div(style="display: inline-block;vertical-align:top;width: 80px",
             textInput('add_unitspp',label=ui_elem$actual[ui_elem$label=='qty'])
@@ -230,21 +256,8 @@ navbarPage(
         actionButton(
           "add_pkg", ui_elem$actual[ui_elem$label=='add_pkg'])
       ),
-      box(width = 3, height = 800, style = "background-color:#f5f5f5;",
-          div(style="display: inline-block;padding-top:2px;;width: 200px",
-              h3(ui_elem$actual[ui_elem$label=='add_customer'])),
-          htmlOutput('add_customer_name'),
-          textInput('add_customer_address',
-            label=ui_elem$actual[ui_elem$label=='customer_address']),
-          textInput('add_customer_email',
-            label=ui_elem$actual[ui_elem$label=='customer_email']),
-          textInput('add_customer_phone',
-            label=ui_elem$actual[ui_elem$label=='customer_phone']),
-          textInput('add_customer_tfn',
-                    label=ui_elem$actual[ui_elem$label=='customer_tfn']),
-          actionButton(
-            "add_customer", ui_elem$actual[ui_elem$label=='add_customer'])
-      )
+      
+      
     )
   ) # end About tab
 ) # end navbarPage
