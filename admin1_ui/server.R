@@ -202,6 +202,8 @@ shinyServer(function(input, output,session) {
   # create and append import_log
   observeEvent(input$inv_in,{
     # extract information
+    # reload the table
+    product_info <- reload_tbl(config_dict, 'product_info')
     in_prod_code <- product_info$prod_code[
       product_info$search_str==input$in_prodname_select]
     current_date <- Sys.Date()
@@ -369,6 +371,7 @@ shinyServer(function(input, output,session) {
   # add customer box
   output$add_customer_name <- render_customer_list(
     iid = 'add_customer_name',type = 'add_customer',input)
+  
   # add_prod button
   observeEvent(input$add_product,{
     add_prod_to_db(input,output) # add to database
@@ -377,12 +380,15 @@ shinyServer(function(input, output,session) {
     vendor_info <- reload_tbl(config_dict, 'vendor_info')
     packaging <- reload_tbl(config_dict, 'packaging')
     # reload UI
-    output$prod_name_select <- render_prod_name_list(
+    output[['prod_name_select']] <- render_prod_name_list(
       input, product_info, 'prod_name_select') # prod_name
     output$in_prodname_select <- render_prod_name_list(
       input,product_info,'in_prodname_select') # prod_name
     output$in_unit <- render_unit(input,'in_unit',type='inv_in') # in_unit
     output$unit_selector <- render_unit(input,iid='unit_selector') #out_unit
+    output$add_pkg_prod_name <- render_prod_name_list(
+      input,product_info,'add_pkg_prod_name') # refresh add_pkg_prod_list
+    output$add_pkg_str <- render_add_pkg_str(input)
     })
   # add_pkg button
   observeEvent(input$add_pkg,{

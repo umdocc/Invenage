@@ -86,14 +86,14 @@ navbarPage(
                         width: 110px",
             textInput('in_expdate',
                       label=ui_elem$actual[ui_elem$label=='exp_date'])),
-        div(style="display: inline-block;vertical-align:top; \
-                        width: 5px;",HTML("<br>")
-        ),
-        selectizeInput(
-          inputId = 'in_unit_cost', label = ui_elem$actual[
-            ui_elem$label=='unit_import_cost'],
-          choices = 0, options = list(create = TRUE)),
-        htmlOutput('in_note'),
+        div(style="display: inline-block;vertical-align:top;width: 5px;",
+            HTML("<br>")),
+        div(style="display: inline-block;vertical-align:top;width: 140px", 
+            selectizeInput(inputId = 'in_unit_cost', 
+              label = ui_elem$actual[ui_elem$label=='unit_import_cost'],
+              choices = 0, options = list(create = TRUE))),
+        div(style="display: inline-block;vertical-align:top;width: 140px",
+            htmlOutput('in_note')),
         actionButton("inv_in",
                      ui_elem$actual[ui_elem$label=='inv_in']),
         p()
@@ -205,42 +205,22 @@ navbarPage(
       box(width = 3, height = 400, style = "background-color:#f5f5f5;",
         div(style="display: inline-block;padding-top:2px;;width: 200px",
           h4(ui_elem$actual[ui_elem$label=='add_product'])),
+        htmlOutput('add_prod_code'),
         htmlOutput('add_name'),
-        div(style="display: inline-block;vertical-align:top;width: 150px",
+        div(style="display: inline-block;vertical-align:top;width: 130px",
             htmlOutput('add_ref_smn')),
-        div(style="display: inline-block;vertical-align:top;width: 150px",
+        div(style="display: inline-block;vertical-align:top;width: 130px",
             htmlOutput('add_ordering_unit')),
-        div(style="display: inline-block;vertical-align:top;width: 150px",
+        div(style="display: inline-block;vertical-align:top;width: 130px",
             htmlOutput('add_orig_vendor')),
-        div(style="display: inline-block;vertical-align:top;width: 150px",
+        div(style="display: inline-block;vertical-align:top;width: 130px",
             htmlOutput('add_prod_type')),
-        div(style="display: inline-block;vertical-align:top;width: 180px",
-            htmlOutput('add_prod_code')),
-        div(style="display: inline-block;vertical-align:top;width: 120px",
+        div(style="display: inline-block;vertical-align:top;width: 130px",
             htmlOutput('add_warehouse')),
         div(style="display: inline-block;padding-bottom:2px;;width: 200px",
             actionButton(
               "add_product", ui_elem$actual[ui_elem$label=='add_product']))
       ),
-      box(width = 3, height = 400, style = "background-color:#f5f5f5;",
-          div(style="display: inline-block;padding-top:2px;;width: 200px",
-              h4(ui_elem$actual[ui_elem$label=='add_customer'])),
-          htmlOutput('add_customer_name'),
-          textInput('add_customer_address',
-                    label=ui_elem$actual[ui_elem$label=='customer_address']),
-          textInput('add_customer_email',
-                    label=ui_elem$actual[ui_elem$label=='customer_email']),
-          div(style="display: inline-block;vertical-align:top;width: 150px",
-              textInput('add_customer_phone',
-                    label=ui_elem$actual[ui_elem$label=='customer_phone'])),
-          div(style="display: inline-block;vertical-align:top;width: 150px",
-              textInput('add_customer_tfn',
-                    label=ui_elem$actual[ui_elem$label=='customer_tfn'])),
-          actionButton(
-            "add_customer", ui_elem$actual[ui_elem$label=='add_customer'])
-      ),
-      box(width = 3, height = 400, style = "background-color:#f5f5f5;"),
-      box(width = 3, height = 400, style = "background-color:#f5f5f5;"),
       box(width = 3, height = 400, style = "background-color:#f5f5f5;",
         div(style="display: inline-block;padding-top:2px;;width: 200px",
             h4(ui_elem$actual[ui_elem$label=='add_pkg'])),
@@ -256,8 +236,23 @@ navbarPage(
         actionButton(
           "add_pkg", ui_elem$actual[ui_elem$label=='add_pkg'])
       ),
-      
-      
+      box(width = 3, height = 400, style = "background-color:#f5f5f5;",
+          div(style="display: inline-block;padding-top:2px;;width: 200px",
+              h4(ui_elem$actual[ui_elem$label=='add_customer'])),
+          htmlOutput('add_customer_name'),
+          textInput('add_customer_address',
+                    label=ui_elem$actual[ui_elem$label=='customer_address']),
+          textInput('add_customer_email',
+                    label=ui_elem$actual[ui_elem$label=='customer_email']),
+          div(style="display: inline-block;vertical-align:top;width: 150px",
+              textInput('add_customer_phone',
+                        label=ui_elem$actual[ui_elem$label=='customer_phone'])),
+          div(style="display: inline-block;vertical-align:top;width: 150px",
+              textInput('add_customer_tfn',
+                        label=ui_elem$actual[ui_elem$label=='customer_tfn'])),
+          actionButton(
+            "add_customer", ui_elem$actual[ui_elem$label=='add_customer'])
+      )
     )
   ) # end About tab
 ) # end navbarPage

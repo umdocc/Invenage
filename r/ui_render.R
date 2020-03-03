@@ -114,6 +114,8 @@ render_qty <- function(iid){renderUI({
 }) }
 
 render_unit <- function(input,iid,type='inv_out'){renderUI({
+  packaging <- reload_tbl(config_dict, 'packaging')
+  product_info <- reload_tbl(config_dict, 'product_info')
   if (type=='inv_out'){
     cur_prod_code<- product_info[
       product_info$search_str==input$prod_name_select, "prod_code"]}
@@ -253,9 +255,9 @@ render_man_pxktable <- function(input){DT::renderDataTable({
 
 # render table for the inv_in tab
 render_import_tbl <- function(){DT::renderDataTable({
-  conn <- db_open(config_dict)
-  import_log <- dbReadTable(conn,'import_log')
-  dbDisconnect(conn)
+  
+  import_log <- reload_tbl(config_dict,'import_log')
+  product_info <- reload_tbl(config_dict,'product_info')
   import_log <-merge(
     import_log, product_info %>% select(prod_code,name), all.x=T) 
   import_log <- import_log[order(import_log$id, decreasing = T),]
@@ -432,6 +434,8 @@ render_add_prod_type <- function(input, iid){renderUI({
 }) }
 
 render_add_pkg_str <- function(input){renderUI({
+  packaging <- reload_tbl(config_dict, 'packaging')
+  product_info <- reload_tbl(config_dict, 'product_info')
   ordering_unit <- get_ordering_unit(packaging)
   cur_prod_code <- product_info$prod_code[
     product_info$search_str == input$add_pkg_prod_name]

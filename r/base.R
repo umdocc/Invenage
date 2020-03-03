@@ -1,5 +1,77 @@
 # ----------------------- general operation functions --------------------------
 
+# function to scan the configured directory for po and update the db
+update_po_info <- function(config_dict){
+  po_path <- config_dict$value[config_dict$name=='po_path']
+  po_search_str <- config_dict$value[config_dict$name=='po_file_include']
+  
+  # R regex fix, for scanning PO
+  po_search_str <- gsub('\\.','\\\\.',po_search_str)
+  po_list <- get_file_info(po_path)
+  po_list <- po_list[grepl(po_search_str,po_list$file_name),]
+  
+  # check data from server
+  po_info <- reload_tbl(config_dict,'po_info')
+  po_list <- check_exist(po_list, po_info, check_col = 'file_name')
+  
+  # if there is sth new write to database
+  append_po <- po_list[!po_list$exist,] %>% select(file_name,relative_path)
+  if (nrow(append_po)>0){
+    append_po$completed <- 0
+    append_po$finalised <- 0
+    append_po$note <- NA 
+    # writing to database
+    db_write(config_dict,'po_info',append_po)
+  }
+}
+
+col_name_to_label <- function(config_dict,out_data){
+  rename_dict <- reload_tbl(config_dict,'guess_table')
+  rename_dict <- rename_dict[rename_dict$guess_type == 'rename_dict',]
+  for (input_name in names(out_data)){
+    if(input_name %in% rename_dict$input_str){
+      new_name <- rename_dict$output_str[rename_dict$input_str==input_name]
+      # print(input_name);print(new_name)
+      names(out_data)[names(out_data)==input_name] <- new_name
+    }
+  }
+  return(out_data)
+}
+
+get_vendor_from_filename <- function(config_dict,full_file_path){
+  vendor <- NA
+  vendor_dict <- reload_tbl(config_dict,'guess_table')
+  vendor_dict <- vendor_dict[vendor_dict$guess_type == 'vendor_dict',]
+  for (vendor_name in vendor_dict$input_str){
+    if (grepl(vendor_name,full_file_path)){
+      vendor <- vendor_dict$output_str[vendor_dict$input_str==vendor_name]
+    }
+  }
+  return(vendor)
+}
+
+# the read_excel_po function scan a search string on a specified column then
+# auto adjust, clean data etc
+read_excel_po <- function(
+  full_file_path,search_str = 'Description', search_col = 2){
+  tmp <- read.xlsx(full_file_path, skipEmptyRows = F)
+  start_pt <- which(tmp[,search_col]==search_str)
+  out_data <- read.xlsx(full_file_path, startRow = start_pt)
+  out_data <- col_name_to_label(config_dict,out_data)
+  out_data <- out_data[!is.na(out_data$ref_smn),]
+  out_data$vendor <- get_vendor_from_filename(config_dict, full_file_path)
+  out_data <- out_data %>% 
+    select(stt,name,qty,ref_smn,lot,exp_date,actual_unit_cost,note,vendor)
+  return(out_data)
+}
+
+# simple db_write auto append
+db_write <- function(config_dict,table_name,x){
+  conn <- db_open(config_dict)
+  dbWriteTable(conn,table_name,append_po,append=T)
+  dbDisconnect(conn)
+}
+
 # db_open create a conn object that database call can use
 db_open <- function(config_dict){
   db_type <- config_dict$value[config_dict$name=='db_type']
@@ -34,6 +106,31 @@ reload_tbl <- function(config_dict,tbl_name){
     output_tbl <- merge(output_tbl,ui_elem)
   }
   return(output_tbl)
+}
+
+check_exist <- function(current_df, existing_df, check_col = 'file_name'){
+  existing_df$exist <- T
+  existing_df <- existing_df[,c(check_col,'exist')]
+  output_df <- merge(current_df, existing_df, all.x=T)
+  output_df$exist[is.na(output_df$exist)] <- F
+  return(output_df)
+}
+
+# function to be added to base.R
+get_file_info <- function(file_path){
+  file_info <- list.files(file_path,recursive=T)
+  # get list of locked files
+  locked_file <- data.frame(
+    file_name = gsub('~\\$','',basename(file_info[grepl('~\\$',file_info)])), 
+    locked = T)
+  
+  # compile the po_info data frame
+  file_info <- file_info[!grepl('~\\$',file_info)]
+  file_info <- data.frame(
+    file_name = basename(file_info), relative_path = dirname(file_info))
+  
+  file_info <- merge(file_info,locked_file,all.x=T)
+  return(file_info)
 }
 
 # get the ui_elem df

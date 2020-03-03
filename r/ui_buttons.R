@@ -55,12 +55,14 @@ add_prod_to_db <- function(input,output){
 add_pkg_to_db <- function(input,output){
   # check the input for correct format
   error_free <- T
+  product_info <- reload_tbl(config_dict,'product_info')
+  packaging <- reload_tbl(config_dict, 'packaging')
   cur_prod_code <- product_info$prod_code[
     product_info$search_str==input$add_pkg_prod_name]
   added_unit <- tolower(input$add_pkg_unit) # prevent capital letters
 
   # if pakaging exists, show error
-  test_df <- reload_tbl(config_dict, 'packaging')
+  test_df <- packaging
   test_df <- test_df[
     test_df$unit==added_unit & test_df$prod_code==cur_prod_code,]
   if(nrow(test_df)>0){
