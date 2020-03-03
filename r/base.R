@@ -60,8 +60,9 @@ read_excel_po <- function(
   out_data <- col_name_to_label(config_dict,out_data)
   out_data <- out_data[!is.na(out_data$ref_smn),]
   out_data$vendor <- get_vendor_from_filename(config_dict, full_file_path)
+  out_data$po_name <- gsub('\\.xlsx','',basename(full_file_path))
   out_data <- out_data %>% 
-    select(stt,name,qty,ref_smn,lot,exp_date,actual_unit_cost,note,vendor)
+    select(stt,name,qty,ref_smn,lot,exp_date,actual_unit_cost,note,vendor,po_name)
   return(out_data)
 }
 
@@ -120,16 +121,22 @@ check_exist <- function(current_df, existing_df, check_col = 'file_name'){
 get_file_info <- function(file_path){
   file_info <- list.files(file_path,recursive=T)
   # get list of locked files
-  locked_file <- data.frame(
-    file_name = gsub('~\\$','',basename(file_info[grepl('~\\$',file_info)])), 
-    locked = T)
+  lock_file_exist <- F
+  if (any(grepl('~\\$',file_info))){
+    lock_file_exist <- T
+    locked_file <- data.frame(
+      file_name = gsub('~\\$','',basename(file_info[grepl('~\\$',file_info)])), 
+      locked = T)}
   
   # compile the po_info data frame
   file_info <- file_info[!grepl('~\\$',file_info)]
   file_info <- data.frame(
     file_name = basename(file_info), relative_path = dirname(file_info))
-  
-  file_info <- merge(file_info,locked_file,all.x=T)
+  if (lock_file_exist){
+    file_info <- merge(file_info,locked_file,all.x=T)
+  }else{
+    file_info$locked <- NA
+  }
   return(file_info)
 }
 
