@@ -5,11 +5,27 @@
 # ------------------------ load required packages ------------------------------
 required_package <- c('shinythemes','DBI','DT', 'shiny', 'shinydashboard', 
                       'scales', 'openxlsx', 'dplyr', 'data.table', 'lubridate')
-# new.packages <- required_package[
-#   !(required_package %in% installed.packages()[,"Package"])]
-# if(length(new.packages)) install.packages(
-#   new.packages, repos = 'https://cloud.r-project.org')
 lapply(required_package, require, character.only = TRUE)
+
+# ---------------------------- paths configuration -----------------------------
+# read the configuration data file
+home_path <- path.expand('~')
+home_path <- gsub('\\\\','/',home_path) #windows fix
+home_path <- gsub('/Documents','',home_path)
+config_path <- file.path(home_path,'invenage_data','invenage_conf.csv')
+
+if (file.exists(config_path)){
+  config_dict <- read.csv(config_path, stringsAsFactors = F)
+}else{
+  stop('invenage_conf.csv not found!')
+}
+# build paths in config_dict
+config_dict$value[config_dict$type=='abs'] <- 
+  gsub(';','/',config_dict$value[config_dict$type=='abs'])
+config_dict$value[config_dict$type=='relative'] <- 
+  gsub(';','/',config_dict$value[config_dict$type=='relative'])
+config_dict$value[config_dict$type=='relative'] <- 
+  file.path(app_path,config_dict$value[config_dict$type=='relative'])
 
 # ------------------------ database configuration ------------------------------
 db_type <- config_dict$value[config_dict$name=='db_type']
@@ -31,8 +47,7 @@ if (all(grepl('windows',os_name))){
 # ------------------------ load remaining scripts ------------------------------
 func_list <- c('base','ui_helper','ui_buttons','report','ui_render')
 for (script_to_load in func_list){
-  script_path <- file.path(config_dict$value[config_dict$name=='app_path'], 'r',
-                         paste0(script_to_load,'.R'))
+  script_path <- file.path(app_path, 'r', paste0(script_to_load,'.R'))
   source(script_path)
 }
 company_name <- config_dict$value[config_dict$name=='company_name']
