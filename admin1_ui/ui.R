@@ -71,6 +71,7 @@ navbarPage(
         width=3, height = 800,
         p(), # space
         htmlOutput('in_prodname_select'),
+        htmlOutput('in_vendor'),
         div(style="display: inline-block;vertical-align:top;width: 110px",
             selectizeInput(
               inputId = 'in_qty', label = ui_elem$actual[ui_elem$label=='qty'],
@@ -89,9 +90,7 @@ navbarPage(
         div(style="display: inline-block;vertical-align:top;width: 5px;",
             HTML("<br>")),
         div(style="display: inline-block;vertical-align:top;width: 140px", 
-            selectizeInput(inputId = 'in_unit_cost', 
-              label = ui_elem$actual[ui_elem$label=='unit_import_cost'],
-              choices = 0, options = list(create = TRUE))),
+            htmlOutput('in_actual_unit_cost')),
         div(style="display: inline-block;vertical-align:top;width: 140px",
             htmlOutput('in_note')),
         actionButton("inv_in",

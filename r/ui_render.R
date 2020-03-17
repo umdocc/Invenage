@@ -1,5 +1,54 @@
 # all reactive functions used to render shiny UI
 
+render_in_vendor <- function(iid,input,config_dict){renderUI({
+  # attemp to identify the vendor from last import
+  vendor_info <- reload_tbl(config_dict,'vendor_info')
+  import_log <- reload_tbl(config_dict,'import_log')
+  product_info <- reload_tbl(config_dict,'product_info')
+  current_prod_code <- product_info$prod_code[
+    product_info$search_str == input$in_prodname_select]
+  # print(current_prod_code)
+  last_vendor_id <- import_log[
+    import_log$prod_code==current_prod_code,]
+  sel_vendor_id <- last_vendor_id$vendor_id[
+    last_vendor_id$delivery_date==max(last_vendor_id$delivery_date)]
+  sel_vendor_id <- sel_vendor_id[!is.na(sel_vendor_id)]
+  if (length(sel_vendor_id)==0){
+    sel_vendor_id <- 1
+  }
+  sel_vendor <- vendor_info$vendor[vendor_info$vendor_id==sel_vendor_id]
+  selectizeInput(
+    inputId = iid, label = ui_elem$actual[ui_elem$label=='vendor'],
+    choices = vendor_info$vendor, selected =  sel_vendor,
+    options = list(create = F)
+  )
+})}
+
+render_in_cost <- function(iid,input,config_dict){renderUI({
+  import_log <- reload_tbl(config_dict,'import_log')
+  product_info <- reload_tbl(config_dict,'product_info')
+  current_prod_code <- product_info$prod_code[
+    product_info$search_str == input$in_prodname_select]
+  current_vendor_id <- vendor_info$vendor_id[
+    vendor_info$vendor==input$in_vendor]
+  current_in_unit <- input$in_unit
+  import_cost <- import_log[import_log$prod_code==current_prod_code & 
+    import_log$vendor_id==current_vendor_id & 
+      import_log$unit==current_in_unit,]
+  sel_import_cost <- import_cost$actual_unit_cost[
+    import_cost$delivery_date==max(import_cost$delivery_date)][1]
+  import_cost_choice <- import_cost$actual_unit_cost
+  # print(import_cost)
+  if (length(import_cost_choice)==0){
+    import_cost_choice <- 0
+    sel_import_cost <- 0}
+  selectizeInput(
+    inputId = iid, label = ui_elem$actual[ui_elem$label=='unit_import_cost'],
+    choices = import_cost_choice, selected =  sel_import_cost,
+    options = list(create = T) )
+  
+}) }
+
 # render a list of pxk
 render_pxk_list <- function(input,config_dict,iid){renderUI({
   conn <- db_open(config_dict)

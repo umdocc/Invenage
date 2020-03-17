@@ -194,7 +194,10 @@ shinyServer(function(input, output,session) {
   # ------------------------------- inv_in UI ----------------------------------
   output$in_prodname_select <- render_prod_name_list(
     input,product_info,'in_prodname_select') # prod_name
+  output$in_vendor <- render_in_vendor(iid = 'in_vendor', input, config_dict)
   output$in_unit <- render_unit(input,'in_unit',type='inv_in')
+  output$in_actual_unit_cost <- render_in_cost(
+    'in_actual_unit_cost', input, config_dict)
   output$in_note <- render_note('in_note')
   # main table
   output$latest_import_tbl <- render_import_tbl()
@@ -209,7 +212,10 @@ shinyServer(function(input, output,session) {
     current_date <- Sys.Date()
     in_warehouse <- product_info$warehouse_id[
       product_info$prod_code==in_prod_code]
+    in_vendor_id <- vendor_info$vendor_id[vendor_info$vendor==input$in_vendor]
+    
     # create append import_log
+    print(paste(as.numeric(input$in_actual_unit_cost)))
     append_import_log <- data.frame(
       prod_code = in_prod_code,
       unit = input$in_unit,
@@ -217,11 +223,14 @@ shinyServer(function(input, output,session) {
       po_name = paste0('import.',current_date),
       lot = input$in_lot,
       exp_date = input$in_expdate,
-      actual_unit_cost = input$in_unit_cost,
-      actual_currency_code=1,
+      actual_unit_cost = as.numeric(input$in_actual_unit_cost),
+      actual_currency_code = 1,
       delivery_date = current_date,
       warehouse_id = in_warehouse,
-      note = input$in_note
+      vendor_id = in_vendor_id,
+      note = paste(
+        vendor_info$vendor[vendor_info$vendor_id==in_vendor_id], input$in_note,
+        sep = ';')
     )
     
     # writing to database

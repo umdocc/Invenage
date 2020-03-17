@@ -2,7 +2,8 @@
 
 # -------------------------- update_db section ---------------------------------
 add_prod_to_db <- function(input,output){
-
+  # reload table
+  vendor_info <- reload_tbl(config_dict,'vendor_info')
   # first add the vendor if not available
   current_vendor_id <- vendor_info$vendor_id[
     vendor_info$vendor==input$add_orig_vendor]
@@ -11,8 +12,11 @@ add_prod_to_db <- function(input,output){
     conn <- db_open(config_dict)
     dbWriteTable(conn,'vendor_info',append_vendor_info,append=T)
     dbDisconnect(conn)
+    vendor_info <- reload_tbl(config_dict,'vendor_info')
   }
-  
+  # pulling information from ui
+  prod_vendor_id <- vendor_info$vendor_id[
+    vendor_info$vendor==input$add_orig_vendor]
   # check if the added product exist
   error_free <- T
   tmp1 <- input$add_orig_vendor; tmp2 <- input$add_ref # cannot read from input
@@ -35,7 +39,7 @@ add_prod_to_db <- function(input,output){
       packaging_str = '', updated_date = format(Sys.Date()), prod_group = '',
       warehouse_id = warehouse_info$warehouse_id[
         warehouse_info$warehouse==input$add_warehouse],
-      active = 1 )
+      active = 1, vendor_id = prod_vendor_id)
     # compose line to be added to packaging
     append_pkg <- data.frame(
       prod_code = input$add_prod_code, unit = tolower(input$add_ordering_unit),
