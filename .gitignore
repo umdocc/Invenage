@@ -39,3 +39,4 @@ private/build_master_db.py
 private/Data/gpnk_spin_311221.xlsx
 *.xlsx
 private/update_import_license.R
+.DS_Store

@@ -215,7 +215,7 @@ shinyServer(function(input, output,session) {
     in_vendor_id <- vendor_info$vendor_id[vendor_info$vendor==input$in_vendor]
     
     # create append import_log
-    print(paste(as.numeric(input$in_actual_unit_cost)))
+    # print(paste(as.numeric(input$in_actual_unit_cost)))
     append_import_log <- data.frame(
       prod_code = in_prod_code,
       unit = input$in_unit,
