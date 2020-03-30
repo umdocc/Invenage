@@ -9,6 +9,7 @@ lapply(required_package, require, character.only = TRUE)
 
 # ---------------------------- paths configuration -----------------------------
 # read the configuration data file
+print(app_path)
 home_path <- path.expand('~')
 home_path <- gsub('\\\\','/',home_path) #windows fix
 home_path <- gsub('/Documents','',home_path)

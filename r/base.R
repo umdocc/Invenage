@@ -69,7 +69,7 @@ read_excel_po <- function(
 # simple db_write auto append
 db_write <- function(config_dict,table_name,x){
   conn <- db_open(config_dict)
-  dbWriteTable(conn,table_name,append_po,append=T)
+  dbWriteTable(conn,table_name,x,append=T)
   dbDisconnect(conn)
 }
 
