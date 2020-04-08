@@ -25,6 +25,57 @@ update_po_info <- function(config_dict){
   }
 }
 
+# this function write new data, as well as update actual_unit_cost to db
+load_po_to_db <- function(po_name,config_dict){
+  
+  # reload all required tables
+  product_info <- reload_tbl(config_dict,'product_info')
+  packaging <- reload_tbl(config_dict,'packaging')
+  
+  # read the PO, excluding locked file(s)
+  po_path <- config_dict$value[config_dict$name=='po_path']
+  po_list <- list.files(po_path, recursive = T)
+  po_list <- po_list[grepl(po_name,po_list)]
+  po_list <- po_list[!grepl('\\$',po_list)]
+  full_path <- file.path(po_path, po_list)
+  po_data <- read_excel_po(full_path)
+  po_data <- merge(po_data,product_info %>% select(ref_smn,vendor,prod_code),
+                   all.x=T)
+  
+  #remove qty = 0 items
+  po_data <- po_data[po_data$qty >0,]
+  
+  # append other information
+  po_data$delivery_date <- Sys.Date() # delivery_date
+  po_data$actual_currency_code <- 1
+  po_data$warehouse_id <- 1
+  po_data <- merge(po_data,vendor_info,all.x=T)
+  
+  # add unit
+  ordering_unit <- get_ordering_unit(packaging)
+  ordering_unit <- ordering_unit[!duplicated(ordering_unit$prod_code),]
+  po_data <- merge(po_data,ordering_unit, all.x=T)
+  
+  po_data <- po_data %>% 
+    select(prod_code,unit,qty,po_name,lot,exp_date,actual_unit_cost,
+           actual_currency_code,delivery_date,warehouse_id,vendor_id,note)
+  
+  # check and remove existing entries
+  po_data <- check_exist(po_data,import_log, 
+                         check_col = c('prod_code','qty','lot','po_name'))
+  po_data <- po_data[!po_data$exist,]
+  po_data$exist <- NULL
+  
+  # remove the "'" in lot/date
+  po_data$lot <- gsub("'","",po_data$lot)
+  po_data$exp_date <- gsub("'","",po_data$exp_date)
+  
+  # writing to database
+  if (nrow(po_data)>0){
+    db_write(config_dict,'import_log',po_data)
+  }
+}
+
 col_name_to_label <- function(config_dict,out_data){
   rename_dict <- reload_tbl(config_dict,'guess_table')
   rename_dict <- rename_dict[rename_dict$guess_type == 'rename_dict',]
