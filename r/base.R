@@ -207,7 +207,7 @@ reload_tbl <- function(config_dict,tbl_name){
   # special change for each table
   if (tbl_name=='product_info'){
     output_tbl$search_str <- paste(
-      output_tbl$ref_smn, output_tbl$name, sep='-')
+      output_tbl$ref_smn, output_tbl$comm_name, sep='-')
   }
   if (tbl_name=='product_type'){
     output_tbl <- merge(output_tbl,ui_elem)

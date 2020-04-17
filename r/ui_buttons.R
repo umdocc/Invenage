@@ -33,7 +33,8 @@ add_prod_to_db <- function(input,output){
   if (error_free){
     # compile the line to be added to product_info
     append_prod <- data.frame( 
-      prod_code = input$add_prod_code, name = input$add_name,
+      prod_code = input$add_prod_code, name = input$add_name, 
+      comm_name = input$add_name,
       vendor = input$add_orig_vendor, ref_smn = input$add_ref,
       type = product_type$prod_type[product_type$actual == input$add_prod_type],
       packaging_str = '', updated_date = format(Sys.Date()), prod_group = '',

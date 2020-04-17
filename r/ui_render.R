@@ -125,7 +125,8 @@ get_pxk_info <- function(pxk_num,translate=TRUE){
 }
 
 # render a list of active product
-render_prod_name_list <- function(input,product_info,iid){renderUI({
+render_prod_name_list <- function(input,config_dict,iid){renderUI({
+  product_info <- reload_tbl(config_dict,'product_info')
   active_prod <- product_info$search_str[product_info$active==1]
   selectizeInput(inputId = iid,
                  label = ui_elem$actual[ui_elem$label=='prod_name'],

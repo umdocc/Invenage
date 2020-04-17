@@ -11,7 +11,7 @@ shinyServer(function(input, output,session) {
   output$customer_selector <- render_customer_list(
     'customer_name', type='inv_out', input) # customer
   output$prod_name_select <- render_prod_name_list(
-    input,product_info,'prod_name_select') # prod_name
+    input,config_dict,'prod_name_select') # prod_name
   output$qty_selector <- render_qty(iid='qty_selector') #Qty
   output$unit_selector <- render_unit(input,iid='unit_selector') #Unit
   output$lot_select <- render_lot(input, iid='lot_select') # Lot
