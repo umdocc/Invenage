@@ -1,5 +1,16 @@
 # all reactive functions used to render shiny UI
 
+# render_po_list
+render_po_list <- function(iid, config_dict){renderUI({
+  po_list <- reload_tbl(config_dict,'po_info')
+  po_list <- po_list$po_name[po_list$completed==0]
+
+  selectizeInput(
+    inputId = iid, label = ui_elem$actual[ui_elem$label=='select_po'],
+    choices = po_list, selected =  po_list[1]
+  )
+})}
+
 render_in_vendor <- function(iid,input,config_dict){renderUI({
   # attemp to identify the vendor from last import
   vendor_info <- reload_tbl(config_dict,'vendor_info')

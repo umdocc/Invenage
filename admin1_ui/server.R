@@ -201,6 +201,8 @@ shinyServer(function(input, output,session) {
   output$in_note <- render_note('in_note')
   # main table
   output$latest_import_tbl <- render_import_tbl()
+  output$po_list_2load <-  render_po_list('po_list_2load', config_dict)
+  
   # ----------- buttons
   # create and append import_log
   observeEvent(input$inv_in,{

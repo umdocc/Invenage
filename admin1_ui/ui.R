@@ -95,7 +95,10 @@ navbarPage(
             htmlOutput('in_note')),
         actionButton("inv_in",
                      ui_elem$actual[ui_elem$label=='inv_in']),
-        p()
+        p(),
+        htmlOutput('po_list_2load'),
+        actionButton("load_excel_po",
+                     ui_elem$actual[ui_elem$label=='load_excel_po']),
       ),
       box(
         width=9, height = 800,

@@ -1,4 +1,39 @@
 # ----------------------- general operation functions --------------------------
+# create list of local po
+get_local_po_list <-  function(config_dict){
+  po_path <- config_dict$value[config_dict$name=='po_path']
+  po_search_str <- config_dict$value[config_dict$name=='po_file_include']
+  
+  # R regex fix, for scanning PO
+  po_search_str <- gsub('\\.','\\\\.',po_search_str)
+  po_list <- get_file_info(po_path)
+  po_list <- po_list[grepl(po_search_str,po_list$file_name),]
+  # remove locked xcel files
+  po_list <- po_list[!grepl('\\$',po_list$file_name),]
+  po_list$po_name <- gsub('\\.xlsx|\\.xls','',po_list$file_name)
+  return(po_list)
+}
+# function to update po_info
+update_po_info <- function(config_dict){
+  po_path <- config_dict$value[config_dict$name=='po_path']
+  # compare with remote database
+  local_po <- get_local_po_list(config_dict)
+  remote_po <- reload_tbl(config_dict,'po_info')
+  
+  # update with new local_po
+  new_po <- check_exist(local_po,remote_po,'po_name')
+  new_po <- new_po[!new_po$exist,]
+  # write new data to database
+  if (nrow(new_po)>0){
+    new_po$completed <- 0
+    new_po$finalised <- 0
+    new_po$note <- ''
+    new_po$exist <- NULL
+    db_write(
+      config_dict,'po_info',new_po %>% select(po_name,completed,finalised,note))
+  }
+}
+
 
 # function to scan the configured directory for po and update the db
 update_po_info <- function(config_dict){
@@ -60,9 +95,16 @@ load_po_to_db <- function(po_name,config_dict){
     select(prod_code,unit,qty,po_name,lot,exp_date,actual_unit_cost,
            actual_currency_code,delivery_date,warehouse_id,vendor_id,note)
   
+  
+  
   # check and remove existing entries
   po_data <- check_exist(po_data,import_log, 
                          check_col = c('prod_code','qty','lot','po_name'))
+  
+  # create a copy to update price
+  po_price <- po_data
+  
+  # drop the existing entries
   po_data <- po_data[!po_data$exist,]
   po_data$exist <- NULL
   
@@ -74,6 +116,19 @@ load_po_to_db <- function(po_name,config_dict){
   if (nrow(po_data)>0){
     db_write(config_dict,'import_log',po_data)
   }
+  
+  #update price
+  conn <- db_open(config_dict)
+  for (i in 1:nrow(po_price)){
+    query <- paste0('update import_log set actual_unit_cost = ',
+                    po_price$actual_unit_cost[i],
+                    ' where po_name like ','"',po_price$po_name[i],'"',
+                    ' AND qty = ',po_price$qty[i], 
+                    ' AND lot like ','"',po_price$lot[i],'"',
+                    ' AND prod_code like ','"',po_price$prod_code[i],'"')
+    dbExecute(conn,query)
+  }
+  dbDisconnect(conn)
 }
 
 col_name_to_label <- function(config_dict,out_data){
