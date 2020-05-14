@@ -193,7 +193,7 @@ shinyServer(function(input, output,session) {
   
   # ------------------------------- inv_in UI ----------------------------------
   output$in_prodname_select <- render_prod_name_list(
-    input,product_info,'in_prodname_select') # prod_name
+    input,config_dict,'in_prodname_select') # prod_name
   output$in_vendor <- render_in_vendor(iid = 'in_vendor', input, config_dict)
   output$in_unit <- render_unit(input,'in_unit',type='inv_in')
   output$in_actual_unit_cost <- render_in_cost(
