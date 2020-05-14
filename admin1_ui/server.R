@@ -243,6 +243,13 @@ shinyServer(function(input, output,session) {
     # refresh the UI
     output$latest_import_tbl <- render_import_tbl()
   })
+  
+  # load the excel po
+  observeEvent(input$load_excel_po,{
+    po_name <- input$po_list_2load
+    print(po_name)
+    load_po_to_db(po_name,config_dict)
+  })
   # ------------------------------- lookup UI ----------------------------------
   output$lookup_tbl_output <- DT::renderDataTable({
     table_name <- ui_elem$label[
