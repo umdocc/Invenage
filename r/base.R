@@ -114,6 +114,7 @@ load_po_to_db <- function(po_name,config_dict){
   
   # writing to database
   if (nrow(po_data)>0){
+    print('writing to import_log'); print(po_data)
     db_write(config_dict,'import_log',po_data)
   }
   
@@ -121,6 +122,7 @@ load_po_to_db <- function(po_name,config_dict){
   # keep only rows with price to prevent writing NA in database
   po_price <- po_price[!is.na(po_price$actual_unit_cost),]
   if (nrow(po_price)>0){
+    print('updating price(s)'); print(po_price)
   conn <- db_open(config_dict)
   for (i in 1:nrow(po_price)){
     query <- paste0('update import_log set actual_unit_cost = ',
