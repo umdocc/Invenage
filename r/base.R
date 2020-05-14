@@ -66,6 +66,7 @@ load_po_to_db <- function(po_name,config_dict){
   # reload all required tables
   product_info <- reload_tbl(config_dict,'product_info')
   packaging <- reload_tbl(config_dict,'packaging')
+  import_log <- reload_tbl(config_dict,'import_log')
   
   # read the PO, excluding locked file(s)
   po_path <- config_dict$value[config_dict$name=='po_path']
@@ -77,8 +78,12 @@ load_po_to_db <- function(po_name,config_dict){
   po_data <- merge(po_data,product_info %>% select(ref_smn,vendor,prod_code),
                    all.x=T)
   
-  #remove qty = 0 items
+  #remove qty = 0 items and items with no lot
   po_data <- po_data[po_data$qty >0,]
+  po_data <- po_data[!is.na(po_data$lot),]
+  # remove the "'" in lot/date
+  po_data$lot <- gsub("'","",po_data$lot)
+  po_data$exp_date <- gsub("'","",po_data$exp_date)
   
   # append other information
   po_data$delivery_date <- Sys.Date() # delivery_date
@@ -101,16 +106,11 @@ load_po_to_db <- function(po_name,config_dict){
   po_data <- check_exist(po_data,import_log, 
                          check_col = c('prod_code','qty','lot','po_name'))
   
-  # create a copy to update price
+  # create a copy to update price, then drop existing entries
   po_price <- po_data
-  
-  # drop the existing entries
   po_data <- po_data[!po_data$exist,]
   po_data$exist <- NULL
   
-  # remove the "'" in lot/date
-  po_data$lot <- gsub("'","",po_data$lot)
-  po_data$exp_date <- gsub("'","",po_data$exp_date)
   
   # writing to database
   if (nrow(po_data)>0){
@@ -118,6 +118,9 @@ load_po_to_db <- function(po_name,config_dict){
   }
   
   #update price
+  # keep only rows with price to prevent writing NA in database
+  po_price <- po_price[!is.na(po_price$actual_unit_cost),]
+  if (nrow(po_price)>0){
   conn <- db_open(config_dict)
   for (i in 1:nrow(po_price)){
     query <- paste0('update import_log set actual_unit_cost = ',
@@ -129,6 +132,7 @@ load_po_to_db <- function(po_name,config_dict){
     dbExecute(conn,query)
   }
   dbDisconnect(conn)
+  }
 }
 
 col_name_to_label <- function(config_dict,out_data){
