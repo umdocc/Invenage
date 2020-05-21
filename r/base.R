@@ -6,7 +6,9 @@ get_tender_status <- function(config_dict, current_tender_id){
   sale_log <- reload_tbl(config_dict, 'sale_log')
   tender_detail <- reload_tbl(config_dict, 'tender_detail')
   
+  # filter sale_log and tender_details
   tender_detail <- tender_detail[tender_detail$tender_id==current_tender_id,]
+  sale_log <- sale_log[!is.na(sale_log$tender_id),]
   tender_sale <- sale_log[sale_log$tender_id==current_tender_id,]
   
   # convert the tender_detail, tender_sale to pack
@@ -24,7 +26,7 @@ get_tender_status <- function(config_dict, current_tender_id){
   tender_detail_pk$tender_pk_remaining <- tender_detail_pk$tender_qty_pack -
     tender_detail_pk$total_tender_sale
   
-  return(tender_status)
+  return(tender_detail_pk)
   
 }
 
@@ -84,18 +86,24 @@ update_tender_id <- function(config_dict, current_tender_id,exclude_code=5){
       }else{next_item <- T}
     }
   }
-
-  # update the database
-  conn <- db_open(config_dict)
-  for (i in 1:nrow(updated_items)){
-    query <- paste0('update sale_log set tender_id = ',
-                    updated_items$new_tender_id[i],' where pxk_num = ',
-                    updated_items$pxk_num[i],' and stt = ',
-                    updated_items$stt[i],' and prod_code = ','"',
-                    updated_items$prod_code[i],'"')
-    dbExecute(conn,query)
+  # select items to update
+  updated_items <- update_candidate[
+    update_candidate$new_tender_id!=update_candidate$tender_id,] %>% 
+    select(pxk_num,stt,prod_code,tender_id,new_tender_id)
+  # if there is anything to update, update the database
+  if (nrow(updated_items)>0){
+    print('updating tender_id'); print(updated_items)
+    conn <- db_open(config_dict)
+    for (i in 1:nrow(updated_items)){
+      query <- paste0('update sale_log set tender_id = ',
+                      updated_items$new_tender_id[i],' where pxk_num = ',
+                      updated_items$pxk_num[i],' and stt = ',
+                      updated_items$stt[i],' and prod_code = ','"',
+                      updated_items$prod_code[i],'"')
+      dbExecute(conn,query)
+    }
+    dbDisconnect(conn)
   }
-  dbDisconnect(conn)
 }
 
 # create list of local po
