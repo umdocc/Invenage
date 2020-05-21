@@ -57,11 +57,9 @@ copyright_str <- paste(
 app_lang <- config_dict$value[config_dict$name=='app_lang']
 
 # connect to database and read start-up information
+product_info <- reload_tbl(config_dict,'product_info')
 conn <- db_open(config_dict)
 report_info <- dbReadTable(conn,"output_info")
-product_info <- dbReadTable(conn,"product_info")
-product_info$search_str <- paste(
-  product_info$ref_smn, product_info$name, sep='-')
 localisation <- dbReadTable(conn,"localisation")
 import_log <- dbReadTable(conn,"import_log")
 customer_info <- dbReadTable(conn,"customer_info")

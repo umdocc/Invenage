@@ -1,4 +1,103 @@
 # ----------------------- general operation functions --------------------------
+# update the tender_id by logic
+# another function here to go through all active tender_id one-by-one
+
+get_tender_status <- function(config_dict, current_tender_id){
+  sale_log <- reload_tbl(config_dict, 'sale_log')
+  tender_detail <- reload_tbl(config_dict, 'tender_detail')
+  
+  tender_detail <- tender_detail[tender_detail$tender_id==current_tender_id,]
+  tender_sale <- sale_log[sale_log$tender_id==current_tender_id,]
+  
+  # convert the tender_detail, tender_sale to pack
+  tender_detail_pk <- convert_to_pack(
+    tender_detail,packaging,'tender_qty','tender_qty_pack') %>%
+    select(prod_code,unit,tender_qty_pack)
+  tender_sale_pk <- convert_to_pack(tender_sale,packaging,'qty','sale_qty_pack')
+  tender_sale_pk <- tender_sale_pk %>% group_by(prod_code,unit) %>% 
+    summarise(total_tender_sale = sum(sale_qty_pack))
+  
+  # merge with tender_detail
+  tender_detail_pk <- merge(tender_detail_pk,tender_sale_pk, all.x=T)
+  tender_detail_pk$total_tender_sale[
+    is.na(tender_detail_pk$total_tender_sale)] <- 0
+  tender_detail_pk$tender_pk_remaining <- tender_detail_pk$tender_qty_pack -
+    tender_detail_pk$total_tender_sale
+  
+  return(tender_status)
+  
+}
+
+update_tender_id <- function(config_dict, current_tender_id,exclude_code=5){
+  # reload database tables
+  tender_info <- reload_tbl(config_dict, 'tender_info')
+  sale_log <- reload_tbl(config_dict, 'sale_log')
+  pxk_info <- reload_tbl(config_dict, 'pxk_info')
+  tender_detail <- reload_tbl(config_dict, 'tender_detail')
+  packaging <- reload_tbl(config_dict, 'packaging')
+  
+  # rebuild sale_log, fill na with default tender_id = 0
+  sale_log <- merge(sale_log,pxk_info)
+  sale_log$tender_id[is.na(sale_log$tender_id)] <- 0
+  
+  # get the customer_id from tender_id
+  current_customer_id <- tender_info$customer_id[
+    tender_info$tender_id==current_tender_id]
+  
+  #get the current tender status
+  tender_status <- get_tender_status(config_dict, current_tender_id)
+  
+  update_candidate <- sale_log[
+    sale_log$customer_id==current_customer_id,]
+  update_candidate$new_tender_id <- update_candidate$tender_id
+  
+  # we will not count items with exchange/warranty payment type, payment-code=5 
+  update_candidate <- update_candidate[
+    update_candidate$payment_code!=exclude_code,]
+  
+  # update tender data based on tender remaining
+  for (i in 1:nrow(tender_status)){
+    
+    # we now attemp to update the sale_log with tender data
+    code_to_fill <- tender_status$prod_code[i]
+    
+    # start another loop with tmp driving
+    next_item <- F
+    while(!next_item){
+      tmp <- update_candidate[update_candidate$new_tender_id==0,]
+      tmp <- tmp %>% arrange(sale_datetime)
+      
+      # isolate the item and check if tmp will overflow the tender
+      tmp <- tmp[tmp$prod_code==code_to_fill,] %>% 
+        select(pxk_num,prod_code,unit,qty,stt)
+      if (nrow(tmp)>0){
+        # select only the first row for action
+        tmp <- tmp[1,]
+        tmp <- convert_to_pack(tmp,packaging,'qty','pack_qty')
+        new_remaining_pk <- tender_status$tender_pk_remaining[
+          tender_status$prod_code==code_to_fill] - tmp$pack_qty
+        if (new_remaining_pk>=0){
+          update_candidate$new_tender_id[
+            update_candidate$pxk_num==tmp$pxk_num & 
+              update_candidate$stt==tmp$stt] <- current_tender_id
+        }else{next_item <- T}
+      }else{next_item <- T}
+    }
+  }
+
+  # update the database
+  conn <- db_open(config_dict)
+  for (i in 1:nrow(updated_items)){
+    query <- paste0('update sale_log set tender_id = ',
+                    updated_items$new_tender_id[i],' where pxk_num = ',
+                    updated_items$pxk_num[i],' and stt = ',
+                    updated_items$stt[i],' and prod_code = ','"',
+                    updated_items$prod_code[i],'"')
+    dbExecute(conn,query)
+  }
+  dbDisconnect(conn)
+}
+
 # create list of local po
 get_local_po_list <-  function(config_dict){
   po_path <- config_dict$value[config_dict$name=='po_path']
@@ -212,8 +311,11 @@ reload_tbl <- function(config_dict,tbl_name){
   
   # special change for each table
   if (tbl_name=='product_info'){
+    output_tbl$packaging_str[is.na(output_tbl$packaging_str)] <- ''
+    output_tbl$packaging_str[output_tbl$packaging_str=='NA'] <- ''
     output_tbl$search_str <- paste(
-      output_tbl$ref_smn, output_tbl$comm_name, sep='-')
+      output_tbl$ref_smn, output_tbl$comm_name, output_tbl$packaging_str, 
+      sep=' ')
   }
   if (tbl_name=='product_type'){
     output_tbl <- merge(output_tbl,ui_elem)

@@ -11,20 +11,20 @@ navbarPage(
         p(), #space
         htmlOutput('customer_selector'),
         htmlOutput('prod_name_select'),
-        div(style="display: inline-block;vertical-align:top;width: 110px", 
+        div(style="display: inline-block;vertical-align:top;width: 140px", 
             htmlOutput("qty_selector")),
         div(style="display: inline-block;vertical-align:top; \
-                        width: 110px",
+                        width: 140px",
             htmlOutput("unit_selector")),
         div(style="display: inline-block;vertical-align:top; \
-                        width: 110px",htmlOutput("lot_select")),
+                        width: 140px",htmlOutput("lot_select")),
         div(style="display: inline-block;vertical-align:top; \
-                        width: 110px",
+                        width: 140px",
             htmlOutput("warehouse_selector")),
         div(style="display: inline-block;vertical-align:top; \
-                        width: 110px", htmlOutput("unit_price")),
+                        width: 120px", htmlOutput("unit_price")),
         div(style="display: inline-block;vertical-align:top; \
-                        width: 110px", htmlOutput("payment_selector")),
+                        width: 160px", htmlOutput("payment_selector")),
         textInput('pxk_note', ui_elem$actual[ui_elem$label=='note']),
         htmlOutput("prod_info_str"),
         actionButton("inventory_out",
