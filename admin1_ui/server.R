@@ -247,8 +247,9 @@ shinyServer(function(input, output,session) {
   # load the excel po
   observeEvent(input$load_excel_po,{
     po_name <- input$po_list_2load
-    print(po_name)
-    load_po_to_db(po_name,config_dict)
+    small_msg <- load_po_to_db(po_name,config_dict)
+    big_msg <- ui_elem$actual[ui_elem$label=='done']
+    shinyalert(title = big_msg, text = small_msg, type = "success")
   })
   # ------------------------------- lookup UI ----------------------------------
   output$lookup_tbl_output <- DT::renderDataTable({

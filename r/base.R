@@ -169,7 +169,7 @@ update_po_info <- function(config_dict){
 
 # this function write new data, as well as update actual_unit_cost to db
 load_po_to_db <- function(po_name,config_dict){
-  
+  out_msg <- '' #init the output message
   # reload all required tables
   product_info <- reload_tbl(config_dict,'product_info')
   packaging <- reload_tbl(config_dict,'packaging')
@@ -223,6 +223,8 @@ load_po_to_db <- function(po_name,config_dict){
   if (nrow(po_data)>0){
     print('writing to import_log'); print(po_data)
     db_write(config_dict,'import_log',po_data)
+    out_msg <- paste0(
+      out_msg, '\n',ui_elem$actual[ui_elem$label=='add_lotdate_success'])
   }
   
   #update price
@@ -231,17 +233,23 @@ load_po_to_db <- function(po_name,config_dict){
   if (nrow(po_price)>0){
     print('updating price(s)'); print(po_price)
   conn <- db_open(config_dict)
-  for (i in 1:nrow(po_price)){
-    query <- paste0('update import_log set actual_unit_cost = ',
-                    po_price$actual_unit_cost[i],
-                    ' where po_name like ','"',po_price$po_name[i],'"',
-                    ' AND qty = ',po_price$qty[i], 
-                    ' AND lot like ','"',po_price$lot[i],'"',
-                    ' AND prod_code like ','"',po_price$prod_code[i],'"')
-    dbExecute(conn,query)
-  }
+    for (i in 1:nrow(po_price)){
+      query <- paste0('update import_log set actual_unit_cost = ',
+                      po_price$actual_unit_cost[i],
+                      ' where po_name like ','"',po_price$po_name[i],'"',
+                      ' AND qty = ',po_price$qty[i], 
+                      ' AND lot like ','"',po_price$lot[i],'"',
+                      ' AND prod_code like ','"',po_price$prod_code[i],'"')
+      dbExecute(conn,query)
+    }
   dbDisconnect(conn)
+  out_msg <- paste0(
+    out_msg, '\n',ui_elem$actual[ui_elem$label=='update_cost_success'])
   }
+  if (out_msg==''){
+    out_msg <- ui_elem$actual[ui_elem$label=='nothing_to_update']
+    }
+  return(out_msg)
 }
 
 col_name_to_label <- function(config_dict,out_data){

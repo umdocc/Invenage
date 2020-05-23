@@ -70,6 +70,7 @@ navbarPage(
       box(
         width=3, height = 800,
         p(), # space
+        h3(ui_elem$actual[ui_elem$label=='inv_in']),
         htmlOutput('in_prodname_select'),
         htmlOutput('in_vendor'),
         div(style="display: inline-block;vertical-align:top;width: 110px",
@@ -96,6 +97,7 @@ navbarPage(
         actionButton("inv_in",
                      ui_elem$actual[ui_elem$label=='inv_in']),
         p(),
+        h3(ui_elem$actual[ui_elem$label=='load_excel_po']),
         htmlOutput('po_list_2load'),
         actionButton("load_excel_po",
                      ui_elem$actual[ui_elem$label=='load_excel_po']),
