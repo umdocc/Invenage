@@ -51,6 +51,7 @@ for (script_to_load in func_list){
   script_path <- file.path(app_path, 'r', paste0(script_to_load,'.R'))
   source(script_path)
 }
+
 company_name <- config_dict$value[config_dict$name=='company_name']
 copyright_str <- paste(
   'Copyright (C) 2017-2019, Data built for:', company_name)

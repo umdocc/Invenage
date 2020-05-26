@@ -6,8 +6,12 @@ shinyServer(function(input, output,session) {
   session$onSessionEnded( function(){
     stopApp()
   }) # quit on session end 
+  if (FALSE){
+  hideTab(inputId = "main", target = ui_elem$actual[ui_elem$label=='inv_out'])
+  }
   # ------------------------------- inv_out UI ----------------------------------
   # sidebar
+  output$tender_name <- render_tender_list('tender_name', config_dict)
   output$customer_selector <- render_customer_list(
     'customer_name', type='inv_out', input) # customer
   output$prod_name_select <- render_prod_name_list(

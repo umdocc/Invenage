@@ -2,7 +2,8 @@
 library(shiny); library(shinythemes); library(shinyalert)
 require(DT)
 navbarPage(
-  theme = shinytheme("united"), title = company_name,
+  theme = shinytheme("united"), title = company_name, id = 'main',
+  # ----------------------------- inv_out tab -----------------------------------
   tabPanel(
     theme = shinytheme("united"), ui_elem$actual[ui_elem$label=='inv_out'],
     fluidRow(
@@ -11,20 +12,22 @@ navbarPage(
         p(), #space
         htmlOutput('customer_selector'),
         htmlOutput('prod_name_select'),
-        div(style="display: inline-block;vertical-align:top;width: 140px", 
+        div(style="display: inline-block;vertical-align:top;width: 90px", 
             htmlOutput("qty_selector")),
         div(style="display: inline-block;vertical-align:top; \
-                        width: 140px",
+                        width: 90px",
             htmlOutput("unit_selector")),
         div(style="display: inline-block;vertical-align:top; \
-                        width: 140px",htmlOutput("lot_select")),
-        div(style="display: inline-block;vertical-align:top; \
-                        width: 140px",
+                        width: 90px",
             htmlOutput("warehouse_selector")),
         div(style="display: inline-block;vertical-align:top; \
-                        width: 120px", htmlOutput("unit_price")),
+                        width: 110px",htmlOutput("lot_select")),
         div(style="display: inline-block;vertical-align:top; \
                         width: 160px", htmlOutput("payment_selector")),
+        div(style="display: inline-block;vertical-align:top; \
+                        width: 110px", htmlOutput("unit_price")),
+        div(style="display: inline-block;vertical-align:top; \
+                        width: 160px", htmlOutput("tender_name")),
         textInput('pxk_note', ui_elem$actual[ui_elem$label=='note']),
         htmlOutput("prod_info_str"),
         actionButton("inventory_out",
@@ -63,7 +66,8 @@ navbarPage(
         )
       )# end inv_out box2
     )# end inv_out fluidRow
-  ), #end inv_out tab
+  ),#end of inv_out tab
+  # --------------------------- inv_in tab -------------------------------------
   tabPanel(
     theme = shinytheme("united"), ui_elem$actual[ui_elem$label=='inv_in'],
     fluidRow(
@@ -111,6 +115,8 @@ navbarPage(
       )
     )
   ), # end of import tab
+  
+  # --------------------------- lookup tab -------------------------------------
   tabPanel(
     ui_elem$actual[ui_elem$label=='lookups'],
     fluidRow(
@@ -130,6 +136,8 @@ navbarPage(
       DT::dataTableOutput('lookup_tbl_output')
     )
   ), # end lookup tab
+  
+  # --------------------------- reports tab ------------------------------------
   tabPanel(
     ui_elem$actual[ui_elem$label=='reports'],
     fluidRow(
@@ -159,6 +167,8 @@ navbarPage(
       )
     )
   ), # end Reports tab
+  
+  # --------------------------- pxk_man tab ------------------------------------
   tabPanel(
     ui_elem$actual[ui_elem$label=='pxk_man'],
     fluidRow(
@@ -200,8 +210,9 @@ navbarPage(
       )
     )
   ), # end pxk_man tab
+  
+  # --------------------------- update_db tab ----------------------------------
   tabPanel(
-    
     ui_elem$actual[ui_elem$label=='update_db'],
     fluidRow(
       useShinyalert(),  # Set up shinyalert
@@ -258,5 +269,5 @@ navbarPage(
             "add_customer", ui_elem$actual[ui_elem$label=='add_customer'])
       )
     )
-  ) # end About tab
+  ) # end update_db tab
 ) # end navbarPage

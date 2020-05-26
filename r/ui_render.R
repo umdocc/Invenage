@@ -1,5 +1,16 @@
 # all reactive functions used to render shiny UI
 
+# render list of tender
+render_tender_list <- function(iid, config_dict){renderUI({
+  tender_info <- reload_tbl(config_dict,'tender_info')
+  default_tender <- tender_info$customer_tender_name[tender_info$tender_id==0]
+  selectizeInput(
+    inputId = iid, label = ui_elem$actual[ui_elem$label=='tender_name'],
+    choices = tender_info$customer_tender_name, selected =  default_tender
+  )
+})}
+
+
 # render_po_list
 render_po_list <- function(iid, config_dict){renderUI({
   po_list <- reload_tbl(config_dict,'po_info')
