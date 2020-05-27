@@ -67,17 +67,21 @@ exec_inv_out <- function(input,output, config_dict){
     pxk_num = current_pxk,
     note = input$pxk_note
   )
+
   # check and write append_sale_log to database
   inv_out_ok <- check_inv_out(append_sale_log, config_dict)
   if (current_stt>10){ #limit the max stt to 10
     inv_out_ok <- F
   }
   if (inv_out_ok){
+
     # add warehouse_id and tender_id
-    append_sale_log$warehouse_id <- warehouse_info$warehouse_id[
+    current_warehouse_id <- warehouse_info$warehouse_id[
       warehouse_info$warehouse == input$warehouse_selector]
+    append_sale_log$warehouse_id <- current_warehouse_id
     append_sale_log$tender_id <- tender_info$tender_id[
-      tender_info$customer_tender_name==input$tender_name]
+      tender_info$customer_tender_name==input$tender_name & 
+        tender_info$warehouse_id==current_warehouse_id]
     
     conn <- db_open(config_dict)
     dbWriteTable(conn,'sale_log',append_sale_log,append=T)
