@@ -1,12 +1,28 @@
 # all reactive functions used to render shiny UI
 
 # render list of tender
-render_tender_list <- function(iid, config_dict){renderUI({
+render_tender_list <- function(iid, config_dict, input){renderUI({
   tender_info <- reload_tbl(config_dict,'tender_info')
-  default_tender <- tender_info$customer_tender_name[tender_info$tender_id==0]
-  selectizeInput(
+  current_cust_id <- customer_info$customer_id[
+    customer_info$customer_name==input$customer_name] # get current customer
+  current_wh_id <- warehouse_info$warehouse_id[
+    warehouse_info$warehouse==input$warehouse_selector] # get current warehouse 
+  # get the tender based on customer & warehouse first
+  default_tender <- tender_info$customer_tender_name[
+    tender_info$customer_id==current_cust_id & tender_info$warehouse_id==
+      current_wh_id]
+  tender_choices <- tender_info$customer_tender_name[
+    tender_info$warehouse_id==current_wh_id | tender_info$tender_id==0
+  ]
+  # if there is nothing, or many thing default to 0
+  if (length(default_tender)!=1){
+    default_tender <- tender_info$customer_tender_name[
+      tender_info$tender_id==0]
+  }
+
+  selectInput(
     inputId = iid, label = ui_elem$actual[ui_elem$label=='tender_name'],
-    choices = tender_info$customer_tender_name, selected =  default_tender
+    choices = tender_choices, selected =  default_tender
   )
 })}
 
@@ -423,7 +439,7 @@ render_warehouse <- function(input,iid,warehouse_info){renderUI({
   }
   selectInput(inputId = iid,
               label = ui_elem$actual[ui_elem$label=='warehouse'],
-              choices = default_warehouse)
+              choices = warehouseChoices, selected = default_warehouse)
 }) }
 
 # this render the current prod_code list, allow adding prod_code

@@ -11,7 +11,7 @@ shinyServer(function(input, output,session) {
   }
   # ------------------------------- inv_out UI ----------------------------------
   # sidebar
-  output$tender_name <- render_tender_list('tender_name', config_dict)
+  output$tender_name <- render_tender_list('tender_name', config_dict, input)
   output$customer_selector <- render_customer_list(
     'customer_name', type='inv_out', input) # customer
   output$prod_name_select <- render_prod_name_list(
