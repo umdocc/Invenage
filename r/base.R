@@ -169,6 +169,7 @@ update_po_info <- function(config_dict){
 
 # this function write new data, as well as update actual_unit_cost to db
 load_po_to_db <- function(po_name,config_dict){
+  print(po_name)
   out_msg <- '' #init the output message
   # reload all required tables
   product_info <- reload_tbl(config_dict,'product_info')
@@ -283,11 +284,13 @@ read_excel_po <- function(
   full_file_path,search_str = 'Description', search_col = 2){
   tmp <- read.xlsx(full_file_path, skipEmptyRows = F)
   start_pt <- which(tmp[,search_col]==search_str)
-  out_data <- read.xlsx(full_file_path, startRow = start_pt)
+  out_data <- read.xlsx(full_file_path, startRow = start_pt, detectDates = T)
   out_data <- col_name_to_label(config_dict,out_data)
   out_data <- out_data[!is.na(out_data$ref_smn),]
   out_data$vendor <- get_vendor_from_filename(config_dict, full_file_path)
   out_data$po_name <- gsub('\\.xlsx','',basename(full_file_path))
+  # ref_smn needs to be string
+  out_data$ref_smn <- as.character(out_data$ref_smn)
   out_data <- out_data %>% 
     select(stt,name,qty,ref_smn,lot,exp_date,actual_unit_cost,note,vendor,po_name)
   return(out_data)
