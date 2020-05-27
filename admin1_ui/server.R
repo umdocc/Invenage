@@ -36,92 +36,10 @@ shinyServer(function(input, output,session) {
   
   # inv_out UI buttons handlers
   observeEvent(input$inventory_out, { # inv_out button
-    output$sys_msg <- render_sys_message('please wait....')
-    # read info from database
-    current_pxk <- get_current_pxk(config_dict)
-    conn <- db_open(config_dict)
-    sale_log <- dbReadTable(conn,"sale_log")
-    pxk_info <- dbReadTable(conn,"pxk_info")
-    payment_type <- dbReadTable(conn,"payment_type")
-    warehouse_info <- dbReadTable(conn,"warehouse_info")
-    dbDisconnect(conn)
-    payment_type <- merge(payment_type,ui_elem,
-                          by.x='payment_label',by.y='label')
+    exec_inv_out(input,output,config_dict) # write to database
+      
 
-    # if this PXK is not in the database yet, create new with completed 0
-    if (nrow(pxk_info[pxk_info$pxk_num==current_pxk,])==0){
-      
-      appendPXKInfo <- data.frame(
-        pxk_num = current_pxk,
-        sale_datetime = format(Sys.time(),'%Y-%m-%d %H:%M:%S'),
-        customer_id = customer_info[
-          customer_info$customer_name==input$customer_name,'customer_id'],
-        payment_code = payment_type$payment_code[
-          payment_type$actual == input$payment_type],
-        completed = 0,
-        admin_id = admin_id
-      )
-      conn <- db_open(config_dict)
-      dbWriteTable(conn,'pxk_info',appendPXKInfo,append=T)
-      pxk_info <- dbReadTable(conn,"pxk_info")
-      dbDisconnect(conn)
-      # set current_stt also
-      current_stt <- 1
-    }else{ #otherwise, read the info from the sale_log
-      conn <- db_open(config_dict)
-      stt_list <- dbGetQuery(conn, "select stt from sale_log
-                               where pxk_num = (
-                               select pxk_num from pxk_info
-                               where completed = 0)")
-      dbDisconnect(conn)
-      
-      # if there is a result, determine the stt from list, otherwise set to 1
-      if (nrow(stt_list)>0){
-        for (i in 1:15){ # loop 20 times
-          if (!any(i==stt_list$stt)){
-            current_stt <- i
-            break
-          }
-        }
-      }else{
-        current_stt <- 1
-      }
-    }
-    # build base sale_log for testing first
-    append_sale_log <- data.frame(
-      stt = current_stt,
-      prod_code = unique(
-        product_info[product_info$search_str==input$prod_name_select,
-                                      "prod_code"]),
-      unit = input$unit_selector,
-      lot = input$lot_select,
-      unit_price = as.integer(input$unit_price),
-      qty = input$qty_selector,
-      pxk_num = current_pxk,
-      note = input$pxk_note
-    )
-    # check and write append_sale_log to database
-    inv_out_ok <- check_inv_out(append_sale_log, config_dict)
-    if (current_stt>10){ #limit the max stt to 10
-      inv_out_ok <- F
-    }
-    if (inv_out_ok){
-      append_sale_log$warehouse_id <- warehouse_info$warehouse_id[
-        warehouse_info$warehouse == input$warehouse_selector]
-      conn <- db_open(config_dict)
-      dbWriteTable(conn,'sale_log',append_sale_log,append=T)
-      sale_log <- dbReadTable(conn,'sale_log')
-      dbDisconnect(conn)
-      output$sys_msg <- render_sys_message(
-        ui_elem$actual[ui_elem$label=='inv_out_success'])
-    }else{
-      # default reason
-      output$sys_msg <- render_sys_message(
-        ui_elem$actual[ui_elem$label=='inv_exceed'])
-      if (current_stt>10){ # more than 10 lines
-        output$sys_msg <- render_sys_message('exceeding 10 lines')
-      }
-    }
+
     # refresh the UI after sucessfull inventory_out
     output$customer_selector <- render_customer_list(
       'customer_name', type='inv_out', input)
@@ -138,7 +56,6 @@ shinyServer(function(input, output,session) {
       config_dict, 'invout_stt_list')
     output$man_pxk_list <- render_pxk_list(
       input,config_dict,'man_pxk_list') #reload pxk_list in pxk_man as well
-    # output$sys_msg <- render_sys_message('ready') # reload sys message
     
   })
   

@@ -339,6 +339,30 @@ reload_tbl <- function(config_dict,tbl_name){
   return(output_tbl)
 }
 
+reload_tbl2 <- function(config_dict,tbl_name_lst){
+  # open db connection, then run through list of tables to be reloaded
+  conn <- db_open(config_dict)
+  for (tbl_name in tbl_name_lst){
+    output_tbl <- dbReadTable(conn,tbl_name) # read the table first
+    
+    # special change for each table
+    if (tbl_name=='product_info'){
+      output_tbl$packaging_str[is.na(output_tbl$packaging_str)] <- ''
+      output_tbl$packaging_str[output_tbl$packaging_str=='NA'] <- ''
+      output_tbl$search_str <- paste(
+        output_tbl$ref_smn, output_tbl$comm_name, output_tbl$packaging_str, 
+        sep=' ')
+    }
+    if (tbl_name=='product_type'){
+      output_tbl <- merge(output_tbl,ui_elem)
+    }
+    
+    # finally assign to global envir
+    assign(tbl_name, output_tbl,envir = .GlobalEnv)
+  }
+  dbDisconnect(conn)
+}
+
 check_exist <- function(current_df, existing_df, check_col = 'file_name'){
   existing_df$exist <- T
   existing_df <- existing_df[,c(check_col,'exist')]
