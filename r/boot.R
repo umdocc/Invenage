@@ -128,3 +128,9 @@ admin_id <- config_dict$value[config_dict$name=='admin_id']
 if (length(admin_id)!=1){
   stop('admin_id not set or corrupted!')
 }
+
+# temporary fix for null comm_name
+conn <- db_open(config_dict)
+dbExecute(conn,
+          'update product_info set comm_name = name where comm_name is null')
+dbDisconnect(conn)
