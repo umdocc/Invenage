@@ -54,6 +54,7 @@ exec_inv_out <- function(input,output, config_dict){
       current_stt <- 1
     }
   }
+  
   # build base sale_log for testing first
   append_sale_log <- data.frame(
     stt = current_stt,
@@ -67,6 +68,8 @@ exec_inv_out <- function(input,output, config_dict){
     pxk_num = current_pxk,
     note = input$pxk_note
   )
+  
+  
 
   # check and write append_sale_log to database
   inv_out_ok <- check_inv_out(append_sale_log, config_dict)
@@ -79,9 +82,18 @@ exec_inv_out <- function(input,output, config_dict){
     current_warehouse_id <- warehouse_info$warehouse_id[
       warehouse_info$warehouse == input$warehouse_selector]
     append_sale_log$warehouse_id <- current_warehouse_id
-    append_sale_log$tender_id <- tender_info$tender_id[
+    current_tender_id <- tender_info$tender_id[
       tender_info$customer_tender_name==input$tender_name & 
         tender_info$warehouse_id==current_warehouse_id]
+    
+    # special handling of no tender
+    tender_0_name <- tender_info$customer_tender_name[
+      tender_info$tender_id==0]
+    if(input$tender_name==tender_0_name){
+      current_tender_id <- 0
+    }
+    
+    append_sale_log$tender_id <- current_tender_id
     
     conn <- db_open(config_dict)
     dbWriteTable(conn,'sale_log',append_sale_log,append=T)
