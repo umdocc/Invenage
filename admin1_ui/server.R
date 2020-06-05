@@ -305,7 +305,7 @@ shinyServer(function(input, output,session) {
   
   # add packaging box
   output$add_pkg_prod_name <- render_prod_name_list(
-    input,product_info,'add_pkg_prod_name')
+    input,config_dict,'add_pkg_prod_name')
   output$add_pkg_str <- render_add_pkg_str(input)
   
   # add customer box
