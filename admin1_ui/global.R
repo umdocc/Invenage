@@ -5,9 +5,9 @@ app_path <- dirname(getwd()) # app_path is one level up from shiny folder
 # print(app_path)
 boot_path <- file.path(app_path,'r','boot.R')
 
-if(file.exists(boot_path)){
-  source(file.path(app_path,'r','boot.R'))
-}else{
+# point to local file as app_path will be invalid during dev
+if(!file.exists(boot_path)){
   app_path <- '~/Documents/GitHub/Invenage/'
-  source(file.path(app_path,'r','boot.R'))
 }
+
+source(file.path(app_path,'r','boot.R'))
