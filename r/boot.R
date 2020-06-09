@@ -52,44 +52,30 @@ for (script_to_load in func_list){
   source(script_path)
 }
 
+# localisation information
+reload_tbl(config_dict,"localisation") # need this first
 company_name <- config_dict$value[config_dict$name=='company_name']
 copyright_str <- paste(
   'Copyright (C) 2017-2019, Data built for:', company_name)
 app_lang <- config_dict$value[config_dict$name=='app_lang']
-
-# connect to database and read start-up information
-product_info <- reload_tbl(config_dict,'product_info')
-conn <- db_open(config_dict)
-report_info <- dbReadTable(conn,"output_info")
-localisation <- dbReadTable(conn,"localisation")
-import_log <- dbReadTable(conn,"import_log")
-customer_info <- dbReadTable(conn,"customer_info")
-packaging <- dbReadTable(conn,"packaging")
-sale_log <- dbReadTable(conn,"sale_log")
-pxk_info <- dbReadTable(conn,"pxk_info")
-warehouse_info <- dbReadTable(conn,"warehouse_info")
-payment_type <- dbReadTable(conn,"payment_type")
-importlic_data <- dbReadTable(conn,"importlic_data")
-tender_detail <- dbReadTable(conn,"tender_detail")
-tender_info <- dbReadTable(conn,"tender_info")
-import_price <- dbReadTable(conn,"import_price")
-vendor_info <- dbReadTable(conn,"vendor_info")
-product_type <- dbReadTable(conn,"product_type")
-guess_table <- dbReadTable(conn,"guess_table")
-dbDisconnect(conn)
-
-# customise
-report_info <- report_info[report_info$type=='report_output',]
-
-
-# --------------------- UI Configurations --------------------------------------
 # use the configured language
 localisation <- localisation[localisation$app_lang==app_lang,]
 # create ui_lem
 ui_elem <- localisation[localisation$group=='ui_elements',]
 
-# create all tables that rely on ui_elem
-product_type <- merge(product_type,ui_elem)
+
+# connect to database and read start-up information
+reload_tbl(config_dict, c(
+  'product_info', "output_info", "import_log","customer_info", "guess_table",
+  "packaging", "sale_log", "pxk_info" , "warehouse_info", "payment_type",
+  "importlic_data", "tender_detail", "tender_info", "import_price", 
+  "vendor_info","product_type","po_info"))
+
+# customise
+report_info <- output_info[output_info$type=='report_output',]
+
+
+# --------------------- UI Configurations --------------------------------------
 
 # list of tables in lookups
 lu_tbl_list <- unlist(strsplit(

@@ -6,16 +6,6 @@ exec_inv_out <- function(input,output, config_dict){
   
   # read info from database
   current_pxk <- get_current_pxk(config_dict)
-  conn <- db_open(config_dict)
-  sale_log <- dbReadTable(conn,"sale_log")
-  pxk_info <- dbReadTable(conn,"pxk_info")
-  payment_type <- dbReadTable(conn,"payment_type")
-  warehouse_info <- dbReadTable(conn,"warehouse_info")
-  dbDisconnect(conn)
-  tender_info <- reload_tbl(config_dict, 'tender_info')
-  
-  payment_type <- merge(payment_type,ui_elem,
-                        by.x='payment_label',by.y='label')
   
   # if this is a new pxk, write to database first
   if (nrow(pxk_info[pxk_info$pxk_num==current_pxk,])==0){
@@ -31,8 +21,9 @@ exec_inv_out <- function(input,output, config_dict){
     )
     conn <- db_open(config_dict)
     dbWriteTable(conn,'pxk_info',appendPXKInfo,append=T)
-    pxk_info <- dbReadTable(conn,"pxk_info")
     dbDisconnect(conn)
+    reload_tbl(config_dict, 'pxk_info')
+    
     # set current_stt also
     current_stt <- 1
   }else{ #otherwise, read the info from the sale_log
@@ -98,6 +89,7 @@ exec_inv_out <- function(input,output, config_dict){
     conn <- db_open(config_dict)
     dbWriteTable(conn,'sale_log',append_sale_log,append=T)
     dbDisconnect(conn)
+    reload_tbl(config_dict, 'sale_log')
     output$sys_msg <- render_sys_message(
       ui_elem$actual[ui_elem$label=='inv_out_success'])
   }else{
@@ -112,8 +104,7 @@ exec_inv_out <- function(input,output, config_dict){
 
 # -------------------------- update_db section ---------------------------------
 add_prod_to_db <- function(input,output){
-  # reload table
-  vendor_info <- reload_tbl(config_dict,'vendor_info')
+
   # first add the vendor if not available
   current_vendor_id <- vendor_info$vendor_id[
     vendor_info$vendor==input$add_orig_vendor]
@@ -170,8 +161,7 @@ add_prod_to_db <- function(input,output){
 add_pkg_to_db <- function(input,output){
   # check the input for correct format
   error_free <- T
-  product_info <- reload_tbl(config_dict,'product_info')
-  packaging <- reload_tbl(config_dict, 'packaging')
+
   cur_prod_code <- product_info$prod_code[
     product_info$search_str==input$add_pkg_prod_name]
   added_unit <- tolower(input$add_pkg_unit) # prevent capital letters
@@ -200,6 +190,9 @@ add_pkg_to_db <- function(input,output){
     conn <- db_open(config_dict)
     dbWriteTable(conn,'packaging',append_pkg,append=T)
     dbDisconnect(conn)
+    reload_tbl(config_dict, 'packaging') #lreload after add
+    
+    # display messages
     big_msg <- ui_elem$actual[ui_elem$label=='done']
     small_msg <- ui_elem$actual[ui_elem$label=='add_pkg_success']
     shinyalert(title = big_msg, text = small_msg, type = "success")
@@ -209,7 +202,7 @@ add_pkg_to_db <- function(input,output){
 add_customer_to_db <- function(input,output){
   error_free <- T
   added_name <- input$add_customer_name
-  test_df <- reload_tbl(config_dict, 'customer_info')
+  test_df <- customer_info
   if(nrow(test_df[test_df$customer_name==added_name,])>0){
     error_free <- F
     big_msg <- ui_elem$actual[ui_elem$label=='error']

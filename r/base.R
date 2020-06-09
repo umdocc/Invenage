@@ -3,9 +3,7 @@
 # another function here to go through all active tender_id one-by-one
 
 get_tender_status <- function(config_dict, current_tender_id){
-  sale_log <- reload_tbl(config_dict, 'sale_log')
-  tender_detail <- reload_tbl(config_dict, 'tender_detail')
-  
+
   # filter sale_log and tender_details
   tender_detail <- tender_detail[tender_detail$tender_id==current_tender_id,]
   sale_log <- sale_log[!is.na(sale_log$tender_id),]
@@ -31,13 +29,7 @@ get_tender_status <- function(config_dict, current_tender_id){
 }
 
 update_tender_id <- function(config_dict, current_tender_id,exclude_code=5){
-  # reload database tables
-  tender_info <- reload_tbl(config_dict, 'tender_info')
-  sale_log <- reload_tbl(config_dict, 'sale_log')
-  pxk_info <- reload_tbl(config_dict, 'pxk_info')
-  tender_detail <- reload_tbl(config_dict, 'tender_detail')
-  packaging <- reload_tbl(config_dict, 'packaging')
-  
+
   # rebuild sale_log, fill na with default tender_id = 0
   sale_log <- merge(sale_log,pxk_info)
   sale_log$tender_id[is.na(sale_log$tender_id)] <- 0
@@ -125,7 +117,7 @@ update_po_info <- function(config_dict){
   po_path <- config_dict$value[config_dict$name=='po_path']
   # compare with remote database
   local_po <- get_local_po_list(config_dict)
-  remote_po <- reload_tbl(config_dict,'po_info')
+  remote_po <- po_info
   
   # update with new local_po
   new_po <- check_exist(local_po,remote_po,'po_name')
@@ -153,7 +145,6 @@ update_po_info <- function(config_dict){
   po_list <- po_list[grepl(po_search_str,po_list$file_name),]
   
   # check data from server
-  po_info <- reload_tbl(config_dict,'po_info')
   po_list <- check_exist(po_list, po_info, check_col = 'file_name')
   
   # if there is sth new write to database
@@ -171,11 +162,7 @@ update_po_info <- function(config_dict){
 load_po_to_db <- function(po_name,config_dict){
   print(po_name)
   out_msg <- '' #init the output message
-  # reload all required tables
-  product_info <- reload_tbl(config_dict,'product_info')
-  packaging <- reload_tbl(config_dict,'packaging')
-  import_log <- reload_tbl(config_dict,'import_log')
-  
+
   # read the PO, excluding locked file(s)
   po_path <- config_dict$value[config_dict$name=='po_path']
   po_list <- list.files(po_path, recursive = T)
@@ -254,8 +241,8 @@ load_po_to_db <- function(po_name,config_dict){
 }
 
 col_name_to_label <- function(config_dict,out_data){
-  rename_dict <- reload_tbl(config_dict,'guess_table')
-  rename_dict <- rename_dict[rename_dict$guess_type == 'rename_dict',]
+  
+  rename_dict <- guess_table[guess_table$guess_type == 'rename_dict',]
   for (input_name in names(out_data)){
     if(input_name %in% rename_dict$input_str){
       new_name <- rename_dict$output_str[rename_dict$input_str==input_name]
@@ -268,8 +255,8 @@ col_name_to_label <- function(config_dict,out_data){
 
 get_vendor_from_filename <- function(config_dict,full_file_path){
   vendor <- NA
-  vendor_dict <- reload_tbl(config_dict,'guess_table')
-  vendor_dict <- vendor_dict[vendor_dict$guess_type == 'vendor_dict',]
+
+  vendor_dict <- guess_table[guess_table$guess_type == 'vendor_dict',]
   for (vendor_name in vendor_dict$input_str){
     if (grepl(vendor_name,full_file_path)){
       vendor <- vendor_dict$output_str[vendor_dict$input_str==vendor_name]
@@ -322,11 +309,10 @@ db_open <- function(config_dict){
   return(conn)
 }
 
-# reload table from database
-reload_tbl <- function(config_dict,tbl_name){
-  conn <- db_open(config_dict)
+# read_tbl is sub-routine for both reload_tbl and write_rld_tbl
+# it assumes connection object conn
+read_tbl <- function(conn,tbl_name){
   output_tbl <- dbReadTable(conn,tbl_name)
-  dbDisconnect(conn)
   
   # special change for each table
   if (tbl_name=='product_info'){
@@ -336,32 +322,23 @@ reload_tbl <- function(config_dict,tbl_name){
       output_tbl$ref_smn, output_tbl$comm_name, output_tbl$packaging_str, 
       sep=' ')
   }
+  
   if (tbl_name=='product_type'){
-    output_tbl <- merge(output_tbl,ui_elem)
-  }
-  return(output_tbl)
+    output_tbl <- merge(output_tbl,ui_elem) }
+  
+  if (tbl_name=='payment_type'){
+    output_tbl <- merge(output_tbl,ui_elem,
+                        by.x='payment_label',by.y='label') }
+  
+  assign(tbl_name,output_tbl, envir = .GlobalEnv)
 }
 
-reload_tbl2 <- function(config_dict,tbl_name_lst){
-  # open db connection, then run through list of tables to be reloaded
+# reload table from database
+reload_tbl <- function(config_dict,tbl_name_lst){
   conn <- db_open(config_dict)
+  # run through the list of tables, load them and assign to .GlobalEnv
   for (tbl_name in tbl_name_lst){
-    output_tbl <- dbReadTable(conn,tbl_name) # read the table first
-    
-    # special change for each table
-    if (tbl_name=='product_info'){
-      output_tbl$packaging_str[is.na(output_tbl$packaging_str)] <- ''
-      output_tbl$packaging_str[output_tbl$packaging_str=='NA'] <- ''
-      output_tbl$search_str <- paste(
-        output_tbl$ref_smn, output_tbl$comm_name, output_tbl$packaging_str, 
-        sep=' ')
-    }
-    if (tbl_name=='product_type'){
-      output_tbl <- merge(output_tbl,ui_elem)
-    }
-    
-    # finally assign to global envir
-    assign(tbl_name, output_tbl,envir = .GlobalEnv)
+    read_tbl(conn,tbl_name)
   }
   dbDisconnect(conn)
 }

@@ -2,7 +2,6 @@
 
 # render list of tender
 render_tender_list <- function(iid, config_dict, input){renderUI({
-  tender_info <- reload_tbl(config_dict,'tender_info')
   current_cust_id <- customer_info$customer_id[
     customer_info$customer_name==input$customer_name] # get current customer
   current_wh_id <- warehouse_info$warehouse_id[
@@ -29,23 +28,20 @@ render_tender_list <- function(iid, config_dict, input){renderUI({
 
 # render_po_list
 render_po_list <- function(iid, config_dict){renderUI({
-  po_list <- reload_tbl(config_dict,'po_info')
-  po_list <- po_list$po_name[po_list$completed==0]
-
+  
+  po_list_active <- po_info$po_name[po_info$completed==0] 
+  
   selectizeInput(
     inputId = iid, label = ui_elem$actual[ui_elem$label=='select_po'],
-    choices = po_list, selected =  po_list[1]
+    choices = po_list_active, selected =  po_list_active[1]
   )
 })}
 
 render_in_vendor <- function(iid,input,config_dict){renderUI({
-  # attemp to identify the vendor from last import
-  vendor_info <- reload_tbl(config_dict,'vendor_info')
-  import_log <- reload_tbl(config_dict,'import_log')
-  product_info <- reload_tbl(config_dict,'product_info')
+
   current_prod_code <- product_info$prod_code[
     product_info$search_str == input$in_prodname_select]
-  # print(current_prod_code)
+
   last_vendor_id <- import_log[
     import_log$prod_code==current_prod_code,]
   sel_vendor_id <- last_vendor_id$vendor_id[
@@ -63,8 +59,7 @@ render_in_vendor <- function(iid,input,config_dict){renderUI({
 })}
 
 render_in_cost <- function(iid,input,config_dict){renderUI({
-  import_log <- reload_tbl(config_dict,'import_log')
-  product_info <- reload_tbl(config_dict,'product_info')
+
   current_prod_code <- product_info$prod_code[
     product_info$search_str == input$in_prodname_select]
   current_vendor_id <- vendor_info$vendor_id[
@@ -76,7 +71,7 @@ render_in_cost <- function(iid,input,config_dict){renderUI({
   sel_import_cost <- import_cost$actual_unit_cost[
     import_cost$delivery_date==max(import_cost$delivery_date)][1]
   import_cost_choice <- import_cost$actual_unit_cost
-  # print(import_cost)
+  
   if (length(import_cost_choice)==0){
     import_cost_choice <- 0
     sel_import_cost <- 0}
@@ -153,7 +148,6 @@ get_pxk_info <- function(pxk_num,translate=TRUE){
 
 # render a list of active product
 render_prod_name_list <- function(input,config_dict,iid){renderUI({
-  product_info <- reload_tbl(config_dict,'product_info')
   active_prod <- product_info$search_str[product_info$active==1]
   selectizeInput(inputId = iid,
                  label = ui_elem$actual[ui_elem$label=='prod_name'],
@@ -202,8 +196,6 @@ render_qty <- function(iid){renderUI({
 }) }
 
 render_unit <- function(input,iid,type='inv_out'){renderUI({
-  packaging <- reload_tbl(config_dict, 'packaging')
-  product_info <- reload_tbl(config_dict, 'product_info')
   if (type=='inv_out'){
     cur_prod_code<- product_info[
       product_info$search_str==input$prod_name_select, "prod_code"]}
@@ -350,14 +342,12 @@ render_man_pxktable <- function(input){DT::renderDataTable({
 # render table for the inv_in tab
 render_import_tbl <- function(){DT::renderDataTable({
   
-  import_log <- reload_tbl(config_dict,'import_log')
-  product_info <- reload_tbl(config_dict,'product_info')
-  import_log <-merge(
+  import_log_tbl <-merge(
     import_log, product_info %>% select(prod_code,name), all.x=T) 
-  import_log <- import_log[order(import_log$id, decreasing = T),]
-  import_log <- import_log %>% 
+  import_log_tbl <- import_log_tbl[order(import_log_tbl$id, decreasing = T),]
+  import_log_tbl <- import_log_tbl %>% 
     select(name, po_name, qty, unit, lot, exp_date, actual_unit_cost, note)
-  output <- translate_tbl_column(import_log,ui_elem)
+  output <- translate_tbl_column(import_log_tbl, ui_elem)
   DT::datatable(output, options = list(pageLength = 10),rownames=F)
 })
 }
@@ -528,8 +518,7 @@ render_add_prod_type <- function(input, iid){renderUI({
 }) }
 
 render_add_pkg_str <- function(input){renderUI({
-  packaging <- reload_tbl(config_dict, 'packaging')
-  product_info <- reload_tbl(config_dict, 'product_info')
+
   ordering_unit <- get_ordering_unit(packaging)
   cur_prod_code <- product_info$prod_code[
     product_info$search_str == input$add_pkg_prod_name]

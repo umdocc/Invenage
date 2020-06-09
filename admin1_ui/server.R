@@ -6,12 +6,15 @@ shinyServer(function(input, output,session) {
   session$onSessionEnded( function(){
     stopApp()
   }) # quit on session end 
+  
+  # ---------------------------- ui configuration ------------------------------
+  # hide ui tab by using logic
+  
   if (FALSE){
   hideTab(inputId = "main", target = ui_elem$actual[ui_elem$label=='inv_out'])
   }
-  # ------------------------------- inv_out UI ----------------------------------
+  # ------------------------------- inv_out UI ---------------------------------
   # sidebar
-  output$tender_name <- render_tender_list('tender_name', config_dict, input)
   output$customer_selector <- render_customer_list(
     'customer_name', type='inv_out', input) # customer
   output$prod_name_select <- render_prod_name_list(
@@ -24,6 +27,7 @@ shinyServer(function(input, output,session) {
   output$unit_price <- render_price(input,iid='unit_price')
   output$payment_selector <- render_payment_type(input,
     iid = 'payment_type',ui_type = 'inv_out') # payment
+  output$tender_name <- render_tender_list('tender_name', config_dict, input)
   output$pxk_note <- render_note(iid='pxk_note') #Note
   output$prod_info_str <- render_prod_info(input) #product Info pane
   output$sys_msg <- render_sys_message('ready')
@@ -120,16 +124,16 @@ shinyServer(function(input, output,session) {
   output$in_actual_unit_cost <- render_in_cost(
     'in_actual_unit_cost', input, config_dict)
   output$in_note <- render_note('in_note')
+  output$po_list_2load <-  render_po_list('po_list_2load', config_dict)
+  
   # main table
   output$latest_import_tbl <- render_import_tbl()
-  output$po_list_2load <-  render_po_list('po_list_2load', config_dict)
   
   # ----------- buttons
   # create and append import_log
   observeEvent(input$inv_in,{
     # extract information
     # reload the table
-    product_info <- reload_tbl(config_dict, 'product_info')
     in_prod_code <- product_info$prod_code[
       product_info$search_str==input$in_prodname_select]
     current_date <- Sys.Date()
@@ -290,7 +294,7 @@ shinyServer(function(input, output,session) {
     dest_path <- create_pxk_file(man_pxk_num) # create the pxk
     system2('open',dest_path,timeout = 2) #open the file
   })
-  # -------------------------- update_db tab -----------------------------------
+  # -------------------------- update_db UI -----------------------------------
   # add prod box
   output$add_prod_code <- render_prod_code_list('add_prod_code', allow_add = T)
   output$add_name <- render_name_list(input, 'add_name', allow_add = T)
@@ -315,10 +319,7 @@ shinyServer(function(input, output,session) {
   # add_prod button
   observeEvent(input$add_product,{
     add_prod_to_db(input,output) # add to database
-    # reload internal table
-    product_info <- reload_tbl(config_dict, 'product_info')
-    vendor_info <- reload_tbl(config_dict, 'vendor_info')
-    packaging <- reload_tbl(config_dict, 'packaging')
+    
     # reload UI
     output[['prod_name_select']] <- render_prod_name_list(
       input, product_info, 'prod_name_select') # prod_name
@@ -332,11 +333,8 @@ shinyServer(function(input, output,session) {
     })
   # add_pkg button
   observeEvent(input$add_pkg,{
-    # reload internal table for comparision
-    packaging <- reload_tbl(config_dict, 'packaging')
     add_pkg_to_db(input,output) # add to database
-    # reload internal table
-    packaging <- reload_tbl(config_dict, 'packaging')
+    
     # reload UI
     output$in_unit <- render_unit(input,'in_unit',type='inv_in') # in_unit
     output$unit_selector <- render_unit(input,iid='unit_selector') #out_unit
