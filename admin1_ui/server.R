@@ -321,7 +321,7 @@ shinyServer(function(input, output,session) {
     add_prod_to_db(input,output) # add to database
     
     # reload UI
-    output[['prod_name_select']] <- render_prod_name_list(
+    output$prod_name_select <- render_prod_name_list(
       input, product_info, 'prod_name_select') # prod_name
     output$in_prodname_select <- render_prod_name_list(
       input,product_info,'in_prodname_select') # prod_name

@@ -46,7 +46,8 @@ if (all(grepl('windows',os_name))){
 }
 
 # ------------------------ load remaining scripts ------------------------------
-func_list <- c('base','ui_helper','ui_buttons','report','ui_render')
+func_list <- c('base','ui_helper','ui_buttons','report','ui_render',
+               'update_db_tab')
 for (script_to_load in func_list){
   script_path <- file.path(app_path, 'r', paste0(script_to_load,'.R'))
   source(script_path)

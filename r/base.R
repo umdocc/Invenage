@@ -343,6 +343,14 @@ reload_tbl <- function(config_dict,tbl_name_lst){
   dbDisconnect(conn)
 }
 
+# append to a table, then reload it
+append_tbl_rld <- function(config_dict,tbl_name,x){
+  conn <- db_open(config_dict)
+  dbWriteTable(conn,tbl_name,x,append=T)
+  read_tbl(conn,tbl_name)
+  dbDisconnect(conn)
+}
+
 check_exist <- function(current_df, existing_df, check_col = 'file_name'){
   existing_df$exist <- T
   existing_df <- existing_df[,c(check_col,'exist')]
