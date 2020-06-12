@@ -249,29 +249,38 @@ round_report_col <- function(rp_data,col_list,decimal = 2){
 
 # create a tender tracking table
 # build tender_track, use config_dict to directly read from database
-create_tender_track <- function(sale_log){
+create_tender_track <- function(sale_log,customer_id = 1){
   
   # build basic details from sale_log
   tmp <- convert_to_pack(sale_log,packaging,'qty','pack_qty')
+  
+  # read only the active tender of the required customer
+  tmp2 <- merge(tender_detail,tender_info %>% select(tender_id,customer_id,active))
+  tmp2 <- tmp2[tmp2$customer_id == customer_id & tmp2$active==1,]
   tmp2 <- convert_to_pack(
-    tender_detail,packaging,'tender_qty','tender_pack_qty')
+    tmp2,packaging,'tender_qty','tender_pack_qty')
+  
   #remove null tender_id
-  tmp <- tmp[!is.na(tmp$tender_id),]
+  tmp <- tmp$tender_id[!is.na(tmp$tender_id),]
   tmp <- tmp %>% group_by(prod_code,tender_id) %>% 
-    summarise(total_sale = sum(pack_qty))
+    summarise(total_sale_pack = sum(pack_qty))
   # since there is no table for tender_id = 0, 
   # inner merge will result in valid tender only
-  tmp <- merge(tmp2,tmp,all.x=T)
+  tmp <- merge(tmp2,tmp,by = c('prod_code','tender_id'),all=T)
   
-  # if total_sale/tender_pack_qty is na we use 0
-  tmp$total_sale[is.na(tmp$total_sale)] <- 0
+  # calculate final_rm_pack_qty
+  tmp$final_rm_pack_qty <- tmp$final_rm_qty/tmp$units_per_pack
+  
+  # if total_sale_pack/tender_pack_qty is na we use 0
+  tmp$total_sale_pack[is.na(tmp$total_sale_pack)] <- 0
   tmp$tender_pack_qty[is.na(tmp$tender_pack_qty)] <- 0
-  tmp$tender_pack_remain <- tmp$tender_pack_qty-tmp$total_sale
+  tmp$tender_pack_remain <- tmp$tender_pack_qty-tmp$total_sale_pack
+  
   # recover customer_id for tender_track
   tmp <- merge(tmp,tender_info %>% select(tender_id, customer_id))
   tmp <- tmp %>% 
-    select(prod_code, tender_id, customer_id,tender_id, customer_id, 
-           total_sale, tender_pack_remain, tender_pack_qty)
+    select(prod_code, tender_id, customer_id, tender_pack_qty,
+           total_sale_pack, tender_pack_remain,final_rm_pack_qty)
   
   # we now create a new dataset for pending tender
   pending_tender <- sale_log[sale_log$tender_id==0,]
