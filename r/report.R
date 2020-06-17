@@ -1,5 +1,7 @@
 # functions related to preparing reports
 # create_report function
+
+
 get_rp_filename <- function(report_type, config_dict){
   report_name <- ui_elem$actual[ui_elem$label==report_type]
   rp_filename <- file.path( # report file name
@@ -167,33 +169,7 @@ build_rp_data <- function(report_type, input, translate=TRUE, prodcode.rm=TRUE){
     rp_data <- round_report_col(rp_data,'remaining_qty')
   }
   if (report_type == 'inv_order_report'){
-    # read the inventory
-    rp_data <- update_inventory(config_dict)
-    # set all negative number to 0
-    rp_data <- rp_data[rp_data$remaining_qty>0,]
-    rp_data <- rp_data %>% group_by(prod_code) %>%
-      summarise(remaining_qty = sum(remaining_qty)) %>% ungroup
-    # merge with prod_info so that we get zero items as well
-    rp_data <- merge(rp_data,product_info %>%
-                               select(prod_code,type),all.y=T)
-    # add sales_summary
-    sales_summary <- get_sales_summary(config_dict)
-    rp_data <- merge(rp_data,sales_summary %>% select(
-      prod_code,ave_mth_sale), all.x=T)
-    #add other info
-    rp_data <- add_inv_report_info(rp_data)
-    # add importlic_exp data
-    rp_data <- merge(rp_data,importlic_data,all.x=T)
-    rp_data$mth_supply_left <- rp_data$remaining_qty /
-      rp_data$ave_mth_sale
-    rp_data <- round_report_col(
-      rp_data, col_list = c('ave_mth_sale', 'mth_supply_left', 'remaining_qty'),
-      decimal = 2)
-    rp_data <- rp_data %>%
-      select(vendor, name, ref_smn, warehouse, remaining_qty,
-             unit, ave_mth_sale,mth_supply_left,importlic_exp,prod_code)
-    tender_track <- create_tender_track(sale_log)
-    rp_data <- merge(rp_data, tender_track, all.x = T)
+    rp_data <- create_inv_order_rp(config_dict,tender_include=T)
   }
   # get the report data
   if (report_type == 'sale_profit_report'){
@@ -248,54 +224,7 @@ round_report_col <- function(rp_data,col_list,decimal = 2){
 }
 
 # create a tender tracking table
-# build tender_track, use config_dict to directly read from database
-create_tender_track <- function(sale_log,customer_id = 1){
-  
-  # build basic details from sale_log
-  tmp <- convert_to_pack(sale_log,packaging,'qty','pack_qty')
-  
-  # read only the active tender of the required customer
-  tmp2 <- merge(tender_detail,tender_info %>% select(tender_id,customer_id,active))
-  tmp2 <- tmp2[tmp2$customer_id == customer_id & tmp2$active==1,]
-  tmp2 <- convert_to_pack(
-    tmp2,packaging,'tender_qty','tender_pack_qty')
-  
-  #remove null tender_id
-  tmp <- tmp$tender_id[!is.na(tmp$tender_id),]
-  tmp <- tmp %>% group_by(prod_code,tender_id) %>% 
-    summarise(total_sale_pack = sum(pack_qty))
-  # since there is no table for tender_id = 0, 
-  # inner merge will result in valid tender only
-  tmp <- merge(tmp2,tmp,by = c('prod_code','tender_id'),all=T)
-  
-  # calculate final_rm_pack_qty
-  tmp$final_rm_pack_qty <- tmp$final_rm_qty/tmp$units_per_pack
-  
-  # if total_sale_pack/tender_pack_qty is na we use 0
-  tmp$total_sale_pack[is.na(tmp$total_sale_pack)] <- 0
-  tmp$tender_pack_qty[is.na(tmp$tender_pack_qty)] <- 0
-  tmp$tender_pack_remain <- tmp$tender_pack_qty-tmp$total_sale_pack
-  
-  # recover customer_id for tender_track
-  tmp <- merge(tmp,tender_info %>% select(tender_id, customer_id))
-  tmp <- tmp %>% 
-    select(prod_code, tender_id, customer_id, tender_pack_qty,
-           total_sale_pack, tender_pack_remain,final_rm_pack_qty)
-  
-  # we now create a new dataset for pending tender
-  pending_tender <- sale_log[sale_log$tender_id==0,]
-  pending_tender <- pending_tender[!is.na(pending_tender$tender_id),]
-  pending_tender <- merge(
-    pending_tender,pxk_info %>% select(pxk_num,customer_id))
-  pending_tender <- convert_to_pack(
-    pending_tender, packaging, 'qty', 'pending_pack_qty')  
-  pending_tender_sum <- pending_tender %>% group_by(prod_code,customer_id) %>% 
-    summarise(total_pending_pack = sum(pending_pack_qty)) %>% ungroup
-  # merge with pending_tender
-  tmp <- merge(tmp, pending_tender_sum %>% 
-                 select(prod_code, customer_id, total_pending_pack),all.x=T)
-  return(tmp)
-}
+
 
 # this funcion expect a table with prod_code, qty, vendor_id columns, it then
 # add the import price
