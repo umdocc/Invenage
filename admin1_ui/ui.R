@@ -142,28 +142,28 @@ navbarPage(
     ui_elem$actual[ui_elem$label=='reports'],
     fluidRow(
       style = "background-color:#f5f5f5;",
-      box(width = 2, height = 800,
+      box(width=12, height = 500,
+      div(style="display: inline-block;vertical-align:top;width: 240px", 
           selectInput(
             inputId = 'report_type', label = ui_elem$actual[
               ui_elem$label=='reportType'],
-            choices = report_list$actual),
-          conditionalPanel(
-            condition = paste0(
-              "input.report_type == '",date_range_tbl_local,"'"),
-            dateInput(inputId = 'from_date',
+            choices = report_list$actual)),
+      div(style="display: inline-block;vertical-align:top;width: 120px",
+          dateInput(inputId = 'from_date',
                       label = ui_elem$actual[
                         ui_elem$label=='from_date'],
-                      value = "2019-11-04", format = date_format_alt)
-          ),
+                      value = "2019-11-04", format = date_format_alt)),
+      div(style="display: inline-block;vertical-align:top;width: 120px",
           dateInput(inputId = 'to_date',
                       label = ui_elem$actual[
                         ui_elem$label=='to_date'],
-                      value = Sys.Date(), format = date_format_alt
-          ),
+                      value = Sys.Date(), format = date_format_alt)),
           actionButton(
             "printReport", ui_elem$actual[ui_elem$label=='printReport'])
-          ,
-          DT::dataTableOutput('report_tbl_output')
+      ),
+      box(width=12, height = 800,
+        h3('data'),
+        DT::dataTableOutput('report_tbl_output')
       )
     )
   ), # end Reports tab
