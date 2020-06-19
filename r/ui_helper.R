@@ -1,34 +1,7 @@
 # ------------------ function to support render_functions ----------------------
 
 # return the latest incomplete pxk, if there is none, create a new one
-get_current_pxk <- function(cofig_dict){
-  admin_id <- config_dict$value[config_dict$name=='admin_id']
-  if (length(admin_id)!=1){
-    stop('Critical Error! admin_id not found')
-  }
-  conn <- db_open(config_dict)
-  pxk_num_list <- dbGetQuery(conn,'select pxk_num from pxk_info')
-  current_pxk <- dbGetQuery(conn,
-                    'select pxk_num from pxk_info where completed = 0')
-  dbDisconnect(conn)
-  if (nrow(current_pxk)>0){
-    newPXK = current_pxk$pxk_num[1]
-  }else{
-    currentDate <- strftime(Sys.time(),'%d%m%y')
-    i <- 1;newPXKNum <- F
-    while (!newPXKNum){
-      tmp_num <- as.numeric(paste0(admin_id, currentDate,
-                                  sprintf("%02d",i)))
-      if (length(pxk_num_list[pxk_num_list$pxk_num==tmp_num,'pxk_num'])==0){
-        newPXK <- tmp_num
-        newPXKNum <- T
-      }else{
-        i <- i+1
-      }
-    }
-  }
-  return(newPXK)
-}
+
 
 # function to select customer using the database to look at PXK
 get_cust_list <- function(config_dict,type){

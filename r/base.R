@@ -2,6 +2,13 @@
 # update the tender_id by logic
 # another function here to go through all active tender_id one-by-one
 
+# use shinyalert specify ony labels
+show_alert <- function(big_label,small_label,msg_type){
+  shinyalert(title = ui_elem$actual[ui_elem$label==big_label],
+             text = ui_elem$actual[ui_elem$label==small_label], 
+             type = "error")
+}
+
 get_tender_status <- function(config_dict, current_tender_id){
 
   # filter sale_log and tender_details
@@ -88,17 +95,21 @@ update_po_info <- function(config_dict){
   }
 }
 
-# this function write new data, as well as update actual_unit_cost to db
-load_po_to_db <- function(po_name,config_dict){
-  print(po_name)
-  out_msg <- '' #init the output message
-
-  # read the PO, excluding locked file(s)
+get_po_filepath <- function(po_name,config_dict){
   po_path <- config_dict$value[config_dict$name=='po_path']
   po_list <- list.files(po_path, recursive = T)
   po_list <- po_list[grepl(po_name,po_list)]
   po_list <- po_list[!grepl('\\$',po_list)]
   full_path <- file.path(po_path, po_list)
+  return(full_path)
+}
+
+# this function write new data, as well as update actual_unit_cost to db
+load_po_to_db <- function(po_name,config_dict){
+  out_msg <- '' #init the output message
+  
+  # read the po data
+  full_path <- get_po_filepath(po_name,config_dict)
   po_data <- read_excel_po(full_path)
   po_data <- merge(po_data,product_info %>% select(ref_smn,vendor,prod_code),
                    all.x=T)
@@ -258,7 +269,7 @@ read_tbl <- function(conn,tbl_name){
   
   if (tbl_name=='payment_type'){
     output_tbl <- merge(output_tbl,ui_elem,
-                        by.x='payment_label',by.y='label') }
+                        by.x='payment_label',by.y='label')}
   
   assign(tbl_name,output_tbl, envir = .GlobalEnv)
 }

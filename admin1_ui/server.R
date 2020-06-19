@@ -40,7 +40,7 @@ shinyServer(function(input, output,session) {
   
   # inv_out UI buttons handlers
   observeEvent(input$inventory_out, { # inv_out button
-    exec_inv_out(input,output,config_dict) # write to database
+    exec_inv_out(input,output) # write to database
       
 
 
@@ -132,39 +132,9 @@ shinyServer(function(input, output,session) {
   # ----------- buttons
   # create and append import_log
   observeEvent(input$inv_in,{
-    # extract information
-    # reload the table
-    in_prod_code <- product_info$prod_code[
-      product_info$search_str==input$in_prodname_select]
-    current_date <- Sys.Date()
-    in_warehouse <- product_info$warehouse_id[
-      product_info$prod_code==in_prod_code]
-    in_vendor_id <- vendor_info$vendor_id[vendor_info$vendor==input$in_vendor]
-    
-    # create append import_log
-    # print(paste(as.numeric(input$in_actual_unit_cost)))
-    append_import_log <- data.frame(
-      prod_code = in_prod_code,
-      unit = input$in_unit,
-      qty = input$in_qty,
-      po_name = paste0('import.',current_date),
-      lot = input$in_lot,
-      exp_date = input$in_expdate,
-      actual_unit_cost = as.numeric(input$in_actual_unit_cost),
-      actual_currency_code = 1,
-      delivery_date = current_date,
-      warehouse_id = in_warehouse,
-      vendor_id = in_vendor_id,
-      note = paste(
-        vendor_info$vendor[vendor_info$vendor_id==in_vendor_id], input$in_note,
-        sep = ';')
-    )
-    
     # writing to database
-    conn <- db_open(config_dict)
-    dbWriteTable(conn, 'import_log', append_import_log, append = T)
-    dbDisconnect(conn)
-    
+    process_inv_in_buttton(config_dict,input)
+  
     # refresh the UI
     output$latest_import_tbl <- render_import_tbl()
   })
@@ -343,5 +313,7 @@ shinyServer(function(input, output,session) {
   # add_customer button
   observeEvent(input$add_customer,{
     add_customer_to_db(input)
+    output$customer_selector <- render_customer_list(
+      'customer_name', type='inv_out', input) # customer
   })
 })

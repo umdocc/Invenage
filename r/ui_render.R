@@ -92,17 +92,7 @@ render_pxk_list <- function(input,config_dict,iid){renderUI({
                   choices = as.character(pxk_num_list$pxk_num))
 }) }
 
-get_pxk_info_str <- function(pxk_num){
-  man_pxk_info <- get_pxk_info(pxk_num)
-  pxk_info_str <- '<font size=+1>'
-  for (i in 1:length(man_pxk_info)){
-    pxk_info_str <- paste0(
-      pxk_info_str, names(man_pxk_info)[i],':', em(man_pxk_info[1,i]),
-      '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp')
-  }
-  pxk_info_str <- paste(pxk_info_str,'<font><br/>')
-  return(pxk_info_str)
-}
+
 
 render_man_pxk_info <- function(input){renderUI({
   pxk_num <- input$man_pxk_list
@@ -110,41 +100,7 @@ render_man_pxk_info <- function(input){renderUI({
   HTML(pxk_info_str)
 }) }
 
-get_pxk_info <- function(pxk_num,translate=TRUE){
-  # read info for pxk_num
-  # print(pxk_num)
-  conn <- db_open(config_dict)
-  query <- paste('select * from pxk_info where pxk_num =',pxk_num)
-  current_pxk_info <- dbGetQuery(conn, query)
-  dbDisconnect(conn)
-  if (nrow(current_pxk_info)==0){
-    current_pxk_info[1,1] <- 1
-    current_pxk_info$pxk_num[1] <- pxk_num
-  }
-  # recover information
-  current_pxk_info <- merge(current_pxk_info,customer_info,all.x=T)
-  current_pxk_info <- merge(current_pxk_info,payment_type,all.x=T)
-  current_pxk_info <- merge(
-    current_pxk_info, ui_elem, by.x = 'payment_label', by.y = 'label', 
-    all.x=T) %>% rename(payment_type = actual)
-  
-  # translate completed column
-  current_pxk_info$label <- ifelse(
-    is.na(current_pxk_info$completed), 'new', ifelse(
-           current_pxk_info$completed==1, 'completed', 'in_progress'))
-  current_pxk_info <- merge(
-    current_pxk_info, ui_elem %>% select(label,actual))
-  current_pxk_info <- current_pxk_info %>% rename(status = actual)
-  # select relevant column and format output
-  current_pxk_info <- current_pxk_info %>% 
-    select(pxk_num,customer_name, payment_type, status)
-  current_pxk_info$pxk_num <- as.character(current_pxk_info$pxk_num)
-  # translate the output
-  if (translate){
-  	current_pxk_info <- translate_tbl_column(current_pxk_info,ui_elem)
-  }
-  return(current_pxk_info)
-}
+
 
 # render a list of active product
 render_prod_name_list <- function(input,config_dict,iid){renderUI({
@@ -299,11 +255,7 @@ build_prod_info <- function(config_dict,input,type){
   )
 }
 
-render_current_pxk_infostr <- function(config_dict){renderUI({
-  pxk_num <- get_current_pxk(config_dict) # get the current pxk_num
-  current_pxk_str <- get_pxk_info_str(pxk_num)
-  HTML(current_pxk_str)
-}) }
+
 
 
 

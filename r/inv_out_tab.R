@@ -1,7 +1,6 @@
-# Functions to handle button presses
-# ------------------------- inv_out buttons ------------------------------------
-exec_inv_out <- function(input,output, config_dict){
-  # custom display messa
+# do everything when press inv_out button
+exec_inv_out <- function(input,output){
+  # custom display message
   output$sys_msg <- render_sys_message('please wait....')
   
   # read info from database
@@ -61,14 +60,14 @@ exec_inv_out <- function(input,output, config_dict){
   )
   
   
-
+  
   # check and write append_sale_log to database
   inv_out_ok <- check_inv_out(append_sale_log, config_dict)
   if (current_stt>10){ #limit the max stt to 10
     inv_out_ok <- F
   }
   if (inv_out_ok){
-
+    
     # add warehouse_id and tender_id
     current_warehouse_id <- warehouse_info$warehouse_id[
       warehouse_info$warehouse == input$warehouse_selector]
@@ -83,13 +82,11 @@ exec_inv_out <- function(input,output, config_dict){
     if(input$tender_name==tender_0_name){
       current_tender_id <- 0
     }
-    
     append_sale_log$tender_id <- current_tender_id
     
-    conn <- db_open(config_dict)
-    dbWriteTable(conn,'sale_log',append_sale_log,append=T)
-    dbDisconnect(conn)
-    reload_tbl(config_dict, 'sale_log')
+    # writing to database
+    append_tbl_rld(config_dict,'sale_log',append_sale_log)
+    # update sys_msg
     output$sys_msg <- render_sys_message(
       ui_elem$actual[ui_elem$label=='inv_out_success'])
   }else{
@@ -102,5 +99,84 @@ exec_inv_out <- function(input,output, config_dict){
   }
 }
 
-# -------------------------- update_db section ---------------------------------
+# get the current pxk
+get_current_pxk <- function(cofig_dict){
+  admin_id <- config_dict$value[config_dict$name=='admin_id']
+  if (length(admin_id)!=1){
+    stop('Critical Error! admin_id not found')
+  }
+  conn <- db_open(config_dict)
+  pxk_num_list <- dbGetQuery(conn,'select pxk_num from pxk_info')
+  current_pxk <- dbGetQuery(
+    conn,paste0("select pxk_num from pxk_info where completed = 0 and ",
+                "admin_id = ",admin_id))
+  dbDisconnect(conn)
+  if (nrow(current_pxk)>0){
+    newPXK = current_pxk$pxk_num[1]
+  }else{
+    currentDate <- strftime(Sys.time(),'%d%m%y')
+    i <- 1;newPXKNum <- F
+    while (!newPXKNum){
+      tmp_num <- as.numeric(paste0(admin_id, currentDate,
+                                   sprintf("%02d",i)))
+      if (length(pxk_num_list[pxk_num_list$pxk_num==tmp_num,'pxk_num'])==0){
+        newPXK <- tmp_num
+        newPXKNum <- T
+      }else{
+        i <- i+1
+      }
+    }
+  }
+  return(newPXK)
+}
 
+render_current_pxk_infostr <- function(config_dict){renderUI({
+  pxk_num <- get_current_pxk(config_dict) # get the current pxk_num
+  current_pxk_str <- get_pxk_info_str(pxk_num)
+  HTML(current_pxk_str)
+}) }
+
+get_pxk_info_str <- function(pxk_num){
+  man_pxk_info <- get_pxk_info(pxk_num)
+  pxk_info_str <- '<font size=+1>'
+  for (i in 1:length(man_pxk_info)){
+    pxk_info_str <- paste0(
+      pxk_info_str, names(man_pxk_info)[i],':', em(man_pxk_info[1,i]),
+      '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp')
+  }
+  pxk_info_str <- paste(pxk_info_str,'<font><br/>')
+  return(pxk_info_str)
+}
+
+get_pxk_info <- function(pxk_num,translate=TRUE){
+  # read info for pxk_num
+  conn <- db_open(config_dict)
+  query <- paste('select * from pxk_info where pxk_num =',pxk_num)
+  current_pxk_info <- dbGetQuery(conn, query)
+  dbDisconnect(conn)
+  if (nrow(current_pxk_info)==0){
+    current_pxk_info[1,1] <- 1
+    current_pxk_info$pxk_num[1] <- pxk_num
+  }
+  # recover information
+  current_pxk_info <- merge(current_pxk_info,customer_info,all.x=T)
+  current_pxk_info <- merge(current_pxk_info,payment_type,all.x=T) %>% 
+    rename(payment_type = actual)
+  
+  # translate completed column
+  current_pxk_info$label <- ifelse(
+    is.na(current_pxk_info$completed), 'new', ifelse(
+      current_pxk_info$completed==1, 'completed', 'in_progress'))
+  current_pxk_info <- merge(
+    current_pxk_info, ui_elem %>% select(label,actual))
+  current_pxk_info <- current_pxk_info %>% rename(status = actual)
+  # select relevant column and format output
+  current_pxk_info <- current_pxk_info %>% 
+    select(pxk_num,customer_name, payment_type, status)
+  current_pxk_info$pxk_num <- as.character(current_pxk_info$pxk_num)
+  # translate the output
+  if (translate){
+    current_pxk_info <- translate_tbl_column(current_pxk_info,ui_elem)
+  }
+  return(current_pxk_info)
+}
