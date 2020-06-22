@@ -5,10 +5,6 @@
 
 # function to select customer using the database to look at PXK
 get_cust_list <- function(config_dict,type){
-  conn <- db_open(config_dict)
-  pxk_info <- dbReadTable(conn,"pxk_info")
-  customer_info <- dbReadTable(conn,"customer_info")
-  dbDisconnect(conn)
   current_pxk <- pxk_info[pxk_info$completed==0,'pxk_num']
   # in type=inv_out, if current_pxk has completion code 
   # then we force customer_name
@@ -22,19 +18,7 @@ get_cust_list <- function(config_dict,type){
   return(cust_choice)
 }
 
-# the get_avail_lot function get a list of available lot, it returns a vector
-# if sortType ='fifo', the earliest exp_date will be on top
-get_avail_lot <- function(current_prod_code,config_dict,sort_type='fifo'){
-  inventory <- update_inventory(config_dict)
-  if (sort_type == 'fifo'){
-    avail_lot <- inventory[inventory$prod_code==current_prod_code,]
-    avail_lot <- avail_lot[order(avail_lot$intexp_date,
-                                       na.last = F, # put NA lot first
-                                       decreasing = F),] #lowest exp_date first
-  }
-  avail_lot <- avail_lot$lot
-  return(avail_lot)
-}
+
 
 # function to build estimated import cost from import_log
 get_est_import_cost <- function(import_log, algorithm='weighted_average'){
