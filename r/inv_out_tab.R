@@ -136,6 +136,7 @@ render_current_pxk_infostr <- function(config_dict){renderUI({
   HTML(current_pxk_str)
 }) }
 
+# an ui line that display pxk information
 get_pxk_info_str <- function(pxk_num){
   man_pxk_info <- get_pxk_info(pxk_num)
   pxk_info_str <- '<font size=+1>'
@@ -148,6 +149,7 @@ get_pxk_info_str <- function(pxk_num){
   return(pxk_info_str)
 }
 
+# function to render pxk information for get_pxk_info_str
 get_pxk_info <- function(pxk_num,translate=TRUE){
   # read info for pxk_num
   conn <- db_open(config_dict)
@@ -179,4 +181,18 @@ get_pxk_info <- function(pxk_num,translate=TRUE){
     current_pxk_info <- translate_tbl_column(current_pxk_info,ui_elem)
   }
   return(current_pxk_info)
+}
+
+# the get_avail_lot function get a list of available lot, it returns a vector
+# if sortType ='fifo', the earliest exp_date will be on top
+get_avail_lot <- function(current_prod_code,config_dict,sort_type='fifo'){
+  inventory <- update_inventory(config_dict)
+  if (sort_type == 'fifo'){
+    avail_lot <- inventory[inventory$prod_code==current_prod_code,]
+    avail_lot <- avail_lot[order(avail_lot$intexp_date,
+                                 na.last = F, # put NA lot first
+                                 decreasing = F),] #lowest exp_date first
+  }
+  avail_lot <- avail_lot$lot
+  return(avail_lot)
 }
