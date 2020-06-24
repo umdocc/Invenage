@@ -254,20 +254,7 @@ delete_pxk <- function(pxk_num,stt,config_dict){
   dbDisconnect(conn)
 }
 
-# function to check if an inv_out entry should be allowed before writing to db
-check_inv_out <- function(append_sale_log, config_dict){
-  curent_prodcode <- as.character(append_sale_log$prod_code[1])
-  current_lot <- as.character(append_sale_log$lot[1])
-  tmp <- convert_to_pack(append_sale_log,packaging,'qty','pack_qty')
-  sale_qty <- tmp$pack_qty
-  inventory <- update_inventory(config_dict)
-  inv_remain <- inventory$remaining_qty[inventory$prod_code == curent_prodcode &
-                                          inventory$lot == current_lot][1]
 
-  if (is.na(inv_remain)){inv_remain <- 0}
-  inv_out_ok <- (inv_remain>=sale_qty)
-  return(inv_out_ok)
-}
 
 # create a list of ordering_unit based on packaging
 get_ordering_unit <- function(packaging){

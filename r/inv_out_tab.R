@@ -196,3 +196,26 @@ get_avail_lot <- function(current_prod_code,config_dict,sort_type='fifo'){
   avail_lot <- avail_lot$lot
   return(avail_lot)
 }
+
+# function to check if an inv_out entry should be allowed before writing to db
+check_inv_out <- function(append_sale_log, config_dict){
+  inv_out_ok <- T
+  curent_prodcode <- as.character(append_sale_log$prod_code[1])
+  current_lot <- as.character(append_sale_log$lot[1])
+  
+  # fix r problem of using factor for everything before convert to pack
+  append_sale_log$qty <- as.numeric(as.character(append_sale_log$qty))
+  tmp <- convert_to_pack(append_sale_log,packaging,'qty','pack_qty')
+  sale_qty <- tmp$pack_qty
+  inventory <- update_inventory(config_dict)
+  inv_remain <- inventory$remaining_qty[inventory$prod_code == curent_prodcode &
+                                          inventory$lot == current_lot][1]
+  if (is.na(inv_remain)){inv_remain <- 0}
+  
+  # check for errors, display message if something is wrong
+  if (inv_remain<sale_qty){
+    show_alert('error','inv_exceed','error')
+    inv_out_ok <- F }
+  
+  return(inv_out_ok)
+}
