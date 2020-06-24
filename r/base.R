@@ -44,11 +44,14 @@ get_local_po_list <-  function(config_dict){
   po_search_str <- gsub('\\.','\\\\.',po_search_str)
   po_list <- get_file_info(po_path)
   po_list <- po_list[grepl(po_search_str,po_list$file_name),]
-  # remove locked xcel files
+  
+  # remove locked excel files, pdf files
   po_list <- po_list[!grepl('\\$',po_list$file_name),]
+  po_list <- po_list[!grepl('pdf',po_list$file_name),]
   po_list$po_name <- gsub('\\.xlsx|\\.xls','',po_list$file_name)
   return(po_list)
 }
+
 # function to update po_info
 update_po_info <- function(config_dict){
   po_path <- config_dict$value[config_dict$name=='po_path']
@@ -70,117 +73,6 @@ update_po_info <- function(config_dict){
   }
 }
 
-
-# function to scan the configured directory for po and update the db
-update_po_info <- function(config_dict){
-  po_path <- config_dict$value[config_dict$name=='po_path']
-  po_search_str <- config_dict$value[config_dict$name=='po_file_include']
-  
-  # R regex fix, for scanning PO
-  po_search_str <- gsub('\\.','\\\\.',po_search_str)
-  po_list <- get_file_info(po_path)
-  po_list <- po_list[grepl(po_search_str,po_list$file_name),]
-  
-  # check data from server
-  po_list <- check_exist(po_list, po_info, check_col = 'file_name')
-  
-  # if there is sth new write to database
-  append_po <- po_list[!po_list$exist,] %>% select(file_name,relative_path)
-  if (nrow(append_po)>0){
-    append_po$completed <- 0
-    append_po$finalised <- 0
-    append_po$note <- NA 
-    # writing to database
-    db_write(config_dict,'po_info',append_po)
-  }
-}
-
-get_po_filepath <- function(po_name,config_dict){
-  po_path <- config_dict$value[config_dict$name=='po_path']
-  po_list <- list.files(po_path, recursive = T)
-  po_list <- po_list[grepl(po_name,po_list)]
-  po_list <- po_list[!grepl('\\$',po_list)]
-  full_path <- file.path(po_path, po_list)
-  return(full_path)
-}
-
-# this function write new data, as well as update actual_unit_cost to db
-load_po_to_db <- function(po_name,config_dict){
-  out_msg <- '' #init the output message
-  
-  # read the po data
-  full_path <- get_po_filepath(po_name,config_dict)
-  po_data <- read_excel_po(full_path)
-  po_data <- merge(po_data,product_info %>% select(ref_smn,vendor,prod_code),
-                   all.x=T)
-  
-  #remove qty = 0 items and items with no lot
-  po_data <- po_data[po_data$qty >0,]
-  po_data <- po_data[!is.na(po_data$lot),]
-  # remove the "'" in lot/date
-  po_data$lot <- gsub("'","",po_data$lot)
-  po_data$exp_date <- gsub("'","",po_data$exp_date)
-  
-  # append other information
-  po_data$delivery_date <- Sys.Date() # delivery_date
-  po_data$actual_currency_code <- 1
-  po_data$warehouse_id <- 1
-  po_data <- merge(po_data,vendor_info,all.x=T)
-  
-  # add unit
-  ordering_unit <- get_ordering_unit(packaging)
-  ordering_unit <- ordering_unit[!duplicated(ordering_unit$prod_code),]
-  po_data <- merge(po_data,ordering_unit, all.x=T)
-  
-  po_data <- po_data %>% 
-    select(prod_code,unit,qty,po_name,lot,exp_date,actual_unit_cost,
-           actual_currency_code,delivery_date,warehouse_id,vendor_id,note)
-  
-  
-  
-  # check and remove existing entries
-  po_data <- check_exist(po_data,import_log, 
-                         check_col = c('prod_code','qty','lot','po_name'))
-  
-  # create a copy to update price, then drop existing entries
-  po_price <- po_data
-  po_data <- po_data[!po_data$exist,]
-  po_data$exist <- NULL
-  
-  
-  # writing to database
-  if (nrow(po_data)>0){
-    print('writing to import_log'); print(po_data)
-    db_write(config_dict,'import_log',po_data)
-    out_msg <- paste0(
-      out_msg, '\n',ui_elem$actual[ui_elem$label=='add_lotdate_success'])
-  }
-  
-  #update price
-  # keep only rows with price to prevent writing NA in database
-  po_price <- po_price[!is.na(po_price$actual_unit_cost),]
-  if (nrow(po_price)>0){
-    print('updating price(s)'); print(po_price)
-  conn <- db_open(config_dict)
-    for (i in 1:nrow(po_price)){
-      query <- paste0('update import_log set actual_unit_cost = ',
-                      po_price$actual_unit_cost[i],
-                      ' where po_name like ','"',po_price$po_name[i],'"',
-                      ' AND qty = ',po_price$qty[i], 
-                      ' AND lot like ','"',po_price$lot[i],'"',
-                      ' AND prod_code like ','"',po_price$prod_code[i],'"')
-      dbExecute(conn,query)
-    }
-  dbDisconnect(conn)
-  out_msg <- paste0(
-    out_msg, '\n',ui_elem$actual[ui_elem$label=='update_cost_success'])
-  }
-  if (out_msg==''){
-    out_msg <- ui_elem$actual[ui_elem$label=='nothing_to_update']
-    }
-  return(out_msg)
-}
-
 col_name_to_label <- function(config_dict,out_data){
   
   rename_dict <- guess_table[guess_table$guess_type == 'rename_dict',]
@@ -196,7 +88,6 @@ col_name_to_label <- function(config_dict,out_data){
 
 get_vendor_from_filename <- function(config_dict,full_file_path){
   vendor <- NA
-
   vendor_dict <- guess_table[guess_table$guess_type == 'vendor_dict',]
   for (vendor_name in vendor_dict$input_str){
     if (grepl(vendor_name,full_file_path)){
@@ -206,23 +97,6 @@ get_vendor_from_filename <- function(config_dict,full_file_path){
   return(vendor)
 }
 
-# the read_excel_po function scan a search string on a specified column then
-# auto adjust, clean data etc
-read_excel_po <- function(
-  full_file_path,search_str = 'Description', search_col = 2){
-  tmp <- read.xlsx(full_file_path, skipEmptyRows = F)
-  start_pt <- which(tmp[,search_col]==search_str)
-  out_data <- read.xlsx(full_file_path, startRow = start_pt, detectDates = T)
-  out_data <- col_name_to_label(config_dict,out_data)
-  out_data <- out_data[!is.na(out_data$ref_smn),]
-  out_data$vendor <- get_vendor_from_filename(config_dict, full_file_path)
-  out_data$po_name <- gsub('\\.xlsx','',basename(full_file_path))
-  # ref_smn needs to be string
-  out_data$ref_smn <- as.character(out_data$ref_smn)
-  out_data <- out_data %>% 
-    select(stt,name,qty,ref_smn,lot,exp_date,actual_unit_cost,note,vendor,po_name)
-  return(out_data)
-}
 
 # simple db_write auto append
 db_write <- function(config_dict,table_name,x){
@@ -300,7 +174,7 @@ check_exist <- function(current_df, existing_df, check_col = 'file_name'){
   return(output_df)
 }
 
-# function to be added to base.R
+# get a list of files in a given path
 get_file_info <- function(file_path){
   file_info <- list.files(file_path,recursive=T)
   # get list of locked files
@@ -341,12 +215,6 @@ get_ui_elem <- function(config_dict){
 # if summarised = T, all lot data will be summarised, leaving only total for
 # a prod_code, this should only be used with pos_items = T
 update_inventory <- function(config_dict, pos_item=TRUE, summarised = FALSE){
-  conn <- db_open(config_dict)
-  import_log <- dbReadTable(conn,"import_log")
-  sale_log <- dbReadTable(conn,"sale_log")
-  pxk_info <- dbReadTable(conn,"pxk_info")
-  product_info <- dbReadTable(conn,'product_info')
-  dbDisconnect(conn)
   
   tmp <- import_log %>% select(prod_code,unit,qty,lot,exp_date,warehouse_id)
   tmp <- convert_to_pack(tmp,packaging,'qty','importQty')

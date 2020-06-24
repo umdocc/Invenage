@@ -180,34 +180,7 @@ clean_duplicates <- function(
 }
 
 # return the pxk data from pxk_num
-render_selected_pxk <- function(selected_pxk_num,config_dict,localised=T){
-  conn <- db_open(config_dict)
-  sale_log <- dbReadTable(conn,'sale_log')
-  pxk_info <- dbReadTable(conn,'pxk_info')
-  dbDisconnect(conn)
-  # selected_pxk_num <- 2012007
-  output_pxk <- sale_log[sale_log$pxk_num==as.integer(selected_pxk_num),]
 
-  output_pxk <- merge(output_pxk,product_info %>% select(prod_code,name))
-  output_pxk <- merge(output_pxk,pxk_info)
-  output_pxk <- merge(output_pxk,customer_info)
-
-  
-  output_pxk <- output_pxk %>% 
-    select(stt,name,unit,unit_price,qty,lot,customer_name,note)
-  output_pxk <- output_pxk[order(output_pxk$stt),] # sort by stt
-  if (localised){
-    ui_elem <- get_ui_elem(config_dict)
-    # output_pxk <- localise_tbl(output_pxk,ui_elem)
-    for (i in 1:length(output_pxk)){
-      if (length(ui_elem$actual[ui_elem$label==names(output_pxk)[i]])==1){
-        names(output_pxk)[i] = ui_elem$actual[
-          ui_elem$label==names(output_pxk)[i]]
-      }
-    }
-  }
-  return(output_pxk)
-}
 
 # translate column
 translate_tbl_column <- function(input_df,ui_elem){
@@ -239,22 +212,6 @@ get_pxk_entry_num <- function(selected_pxk_num,config_dict){
   entry_list <- output_pxk$stt
   return(entry_list)
 }
-
-# a function to delete certain stt on pxk, or if stt = 'all' will delete all
-delete_pxk <- function(pxk_num,stt,config_dict){
-  if (stt=='all'){
-    query <- paste0('delete from sale_log where pxk_num = ',
-                    pxk_num)
-  }else{
-    query <- paste0('delete from sale_log where pxk_num = ',
-                    pxk_num,' and stt = ',stt)
-  }
-  conn = db_open(config_dict)
-  res <- dbExecute(conn,query)
-  dbDisconnect(conn)
-}
-
-
 
 # create a list of ordering_unit based on packaging
 get_ordering_unit <- function(packaging){

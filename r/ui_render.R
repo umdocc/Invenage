@@ -291,27 +291,9 @@ render_man_pxktable <- function(input){DT::renderDataTable({
 })
 }
 
-# render table for the inv_in tab
-render_import_tbl <- function(){DT::renderDataTable({
-  
-  import_log_tbl <-merge(
-    import_log, product_info %>% select(prod_code,name), all.x=T) 
-  import_log_tbl <- import_log_tbl[order(import_log_tbl$id, decreasing = T),]
-  import_log_tbl <- import_log_tbl %>% 
-    select(name, po_name, qty, unit, lot, exp_date, actual_unit_cost, note)
-  output <- translate_tbl_column(import_log_tbl, ui_elem)
-  DT::datatable(output, options = list(pageLength = 10),rownames=F)
-})
-}
 
-# render table for the invout tab
-render_invout_pxktable <- function(){DT::renderDataTable({
-  current_pxk <- get_current_pxk(config_dict)
-  output <- render_selected_pxk(current_pxk,config_dict)
-  
-  DT::datatable(output, options = list(pageLength = 10),rownames=F)
-})
-}
+
+
 
 render_sys_message <- function(sys_msg){renderUI({
   HTML(sys_msg)

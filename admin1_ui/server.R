@@ -41,9 +41,7 @@ shinyServer(function(input, output,session) {
   # inv_out UI buttons handlers
   observeEvent(input$inventory_out, { # inv_out button
     exec_inv_out(input,output) # write to database
-      
-
-
+    
     # refresh the UI after sucessfull inventory_out
     output$customer_selector <- render_customer_list(
       'customer_name', type='inv_out', input)
@@ -91,9 +89,8 @@ shinyServer(function(input, output,session) {
     conn <- db_open(config_dict)
     query <- paste0("update pxk_info set completed = 1
                     where pxk_num = ",finalised_pxk_num)
-
     dbExecute(conn,query)
-
+    read_tbl(conn,'pxk_info')
     dbDisconnect(conn)
     
     # UI refresh
@@ -142,9 +139,10 @@ shinyServer(function(input, output,session) {
   # load the excel po
   observeEvent(input$load_excel_po,{
     po_name <- input$po_list_2load
-    small_msg <- load_po_to_db(po_name,config_dict)
-    big_msg <- ui_elem$actual[ui_elem$label=='done']
-    shinyalert(title = big_msg, text = small_msg, type = "success")
+    load_po_to_db(po_name,config_dict)
+
+    # refresh the UI
+    output$latest_import_tbl <- render_import_tbl()
   })
   # ------------------------------- lookup UI ----------------------------------
   output$lookup_tbl_output <- DT::renderDataTable({

@@ -1,0 +1,156 @@
+####### helper deals with underlying actions and logics
+
+# read the excel po given the file path
+read_excel_po <- function(
+  full_file_path,search_str = 'Description', search_col = 2){
+  tmp <- read.xlsx(full_file_path, skipEmptyRows = F)
+  start_pt <- which(tmp[,search_col]==search_str)
+  out_data <- read.xlsx(full_file_path, startRow = start_pt, detectDates = T)
+  out_data <- col_name_to_label(config_dict,out_data)
+  out_data <- out_data[!is.na(out_data$ref_smn),]
+  out_data$vendor <- get_vendor_from_filename(config_dict, full_file_path)
+  out_data$po_name <- gsub('\\.xlsx','',basename(full_file_path))
+  # ref_smn needs to be string
+  out_data$ref_smn <- as.character(out_data$ref_smn)
+  out_data <- out_data %>% 
+    select(
+      stt,name,qty,ref_smn,lot,exp_date,actual_unit_cost,note,vendor,po_name)
+  return(out_data)
+}
+
+get_po_filepath <- function(po_name,config_dict){
+  po_path <- config_dict$value[config_dict$name=='po_path']
+  po_list <- list.files(po_path, recursive = T)
+  po_list <- po_list[grepl(po_name,po_list)]
+  po_list <- po_list[!grepl('\\$',po_list)]
+  full_path <- file.path(po_path, po_list)
+  return(full_path)
+}
+
+load_po_to_db <- function(po_name,config_dict){
+  out_msg <- '' #init the output message
+  
+  # read the po data
+  full_path <- get_po_filepath(po_name,config_dict)
+  po_data <- read_excel_po(full_path)
+  po_data <- merge(po_data,product_info %>% select(ref_smn,vendor,prod_code),
+                   all.x=T)
+  
+  #remove qty = 0 items and items with no lot
+  po_data <- po_data[po_data$qty >0,]
+  po_data <- po_data[!is.na(po_data$lot),]
+  # remove the "'" in lot/date
+  po_data$lot <- gsub("'","",po_data$lot)
+  po_data$exp_date <- gsub("'","",po_data$exp_date)
+  
+  # at this stage, proceed if only we have data
+  if (nrow(po_data)>0){
+    # append other information
+    po_data$delivery_date <- Sys.Date() # delivery_date
+    po_data$actual_currency_code <- 1
+    po_data$warehouse_id <- 1
+    po_data <- merge(po_data,vendor_info,all.x=T)
+    
+    # add unit
+    ordering_unit <- get_ordering_unit(packaging)
+    ordering_unit <- ordering_unit[!duplicated(ordering_unit$prod_code),]
+    po_data <- merge(po_data,ordering_unit, all.x=T)
+    
+    po_data <- po_data %>% 
+      select(prod_code,unit,qty,po_name,lot,exp_date,actual_unit_cost,
+             actual_currency_code,delivery_date,warehouse_id,vendor_id,note)
+    
+    
+    
+    # check and remove existing entries
+    po_data <- check_exist(po_data,import_log, 
+                           check_col = c('prod_code','qty','lot','po_name'))
+    
+    # create a copy to update price, then drop existing entries
+    po_price <- po_data
+    po_data <- po_data[!po_data$exist,]
+    po_data$exist <- NULL
+    
+    
+    # writing to database
+    if (nrow(po_data)>0){
+      print('writing to import_log'); print(po_data)
+      db_write(config_dict,'import_log',po_data)
+      out_msg <- paste0(
+        out_msg, '\n',ui_elem$actual[ui_elem$label=='add_lotdate_success'])
+    }
+    
+    #update price
+    # keep only rows with price to prevent writing NA in database
+    po_price <- po_price[!is.na(po_price$actual_unit_cost),]
+    if (nrow(po_price)>0){
+      print('updating price(s)'); print(po_price)
+      conn <- db_open(config_dict)
+      for (i in 1:nrow(po_price)){
+        query <- paste0('update import_log set actual_unit_cost = ',
+                        po_price$actual_unit_cost[i],
+                        ' where po_name like ','"',po_price$po_name[i],'"',
+                        ' AND qty = ',po_price$qty[i], 
+                        ' AND lot like ','"',po_price$lot[i],'"',
+                        ' AND prod_code like ','"',po_price$prod_code[i],'"')
+        dbExecute(conn,query)
+      }
+      dbDisconnect(conn)
+      out_msg <- paste0(
+        out_msg, '\n',ui_elem$actual[ui_elem$label=='update_cost_success'])
+    }
+    if (out_msg==''){
+      out_msg <- ui_elem$actual[ui_elem$label=='nothing_to_update']
+    }
+  }
+  # reload import_log
+  reload_tbl(config_dict,'import_log')
+  
+  # show an alert
+  big_msg <- ui_elem$actual[ui_elem$label=='done']
+  shinyalert(title = big_msg, text = out_msg, type = "success")
+}
+
+# function to process the inv_in button
+process_inv_in_buttton <- function(config_dict,input){
+  # reload the table
+  in_prod_code <- product_info$prod_code[
+    product_info$search_str==input$in_prodname_select]
+  current_date <- Sys.Date()
+  in_warehouse <- product_info$warehouse_id[
+    product_info$prod_code==in_prod_code]
+  in_vendor_id <- vendor_info$vendor_id[vendor_info$vendor==input$in_vendor]
+  
+  # enforce lot and date
+  if (input$in_lot==''|is.na(input$in_lot)){in_lot <- 'nolot'
+  }else{in_lot <- input$in_lot}
+  if (input$in_expdate==''|is.na(input$in_expdate)){in_date <- 'nodate'
+  }else{in_date <- input$in_expdate}
+  
+  
+  # create append import_log
+  append_import_log <- data.frame(
+    prod_code = in_prod_code,
+    unit = input$in_unit,
+    qty = input$in_qty,
+    po_name = paste0('import.',current_date),
+    lot = in_lot,
+    exp_date = in_date,
+    actual_unit_cost = as.numeric(input$in_actual_unit_cost),
+    actual_currency_code = 1,
+    delivery_date = current_date,
+    warehouse_id = in_warehouse,
+    vendor_id = in_vendor_id,
+    note = paste(
+      vendor_info$vendor[vendor_info$vendor_id==in_vendor_id], input$in_note,
+      sep = ';')
+  )
+  tmp <- check_exist(append_import_log,import_log,
+                     c('prod_code','unit','qty','po_name','lot','exp_date'))
+  if (any(tmp$exist)){
+    show_alert('error','previously_entered','error')
+  }else{
+    # writing to database
+    append_tbl_rld(config_dict,'import_log',append_import_log)
+  }
+}
