@@ -12,7 +12,7 @@ navbarPage(
         p(), #space
         htmlOutput('customer_selector'),
         htmlOutput('prod_name_select'),
-        div(style="display: inline-block;vertical-align:top;width: 90px", 
+        div(style="display: inline-block;vertical-align:top;width: 90px",
             htmlOutput("qty_selector")),
         div(style="display: inline-block;vertical-align:top; \
                         width: 90px",
@@ -94,7 +94,7 @@ navbarPage(
                       label=ui_elem$actual[ui_elem$label=='exp_date'])),
         div(style="display: inline-block;vertical-align:top;width: 5px;",
             HTML("<br>")),
-        div(style="display: inline-block;vertical-align:top;width: 140px", 
+        div(style="display: inline-block;vertical-align:top;width: 140px",
             htmlOutput('in_actual_unit_cost')),
         div(style="display: inline-block;vertical-align:top;width: 140px",
             htmlOutput('in_note')),
@@ -124,7 +124,7 @@ navbarPage(
       div(
         style="display: inline-block;vertical-align:top;",
         selectInput(
-        inputId = 'lu_tbl_selector', 
+        inputId = 'lu_tbl_selector',
         label = ui_elem$actual[ui_elem$label=='choose_table'],
         choices = lu_tbl_list)),
       div(
@@ -135,7 +135,7 @@ navbarPage(
         ui_elem$actual[ui_elem$label=='printReport'])),
       DT::dataTableOutput('lookup_tbl_output')
     )
-  ), # end lookup tab
+  ),# end lookup tab
   
   # --------------------------- reports tab ------------------------------------
   tabPanel(
@@ -143,7 +143,7 @@ navbarPage(
     fluidRow(
       style = "background-color:#f5f5f5;",
       box(width=12, height = 500,
-      div(style="display: inline-block;vertical-align:top;width: 240px", 
+      div(style="display: inline-block;vertical-align:top;width: 240px",
           selectInput(
             inputId = 'report_type', label = ui_elem$actual[
               ui_elem$label=='reportType'],
@@ -210,7 +210,7 @@ navbarPage(
       )
     )
   ), # end pxk_man tab
-  
+
   # --------------------------- update_db tab ----------------------------------
   tabPanel(
     ui_elem$actual[ui_elem$label=='update_db'],
