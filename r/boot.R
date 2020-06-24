@@ -4,7 +4,8 @@
 
 # ------------------------ load required packages ------------------------------
 required_package <- c('shinythemes','DBI','DT', 'shiny', 'shinydashboard', 
-                      'scales', 'openxlsx', 'dplyr', 'data.table', 'lubridate')
+                      'scales', 'openxlsx', 'dplyr', 'data.table', 'lubridate',
+                      'emayili')
 lapply(required_package, require, character.only = TRUE)
 
 # ---------------------------- paths configuration -----------------------------
