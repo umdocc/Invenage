@@ -68,8 +68,8 @@ update_po_info <- function(config_dict){
     new_po$finalised <- 0
     new_po$note <- ''
     new_po$exist <- NULL
-    db_write(
-      config_dict,'po_info',new_po %>% select(po_name,completed,finalised,note))
+    append_po <- new_po %>% select(po_name,completed,finalised,note)
+    append_tbl_rld(config_dict,'po_info',append_po)
   }
 }
 
