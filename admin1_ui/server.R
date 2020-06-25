@@ -9,9 +9,11 @@ shinyServer(function(input, output,session) {
   
   # ---------------------------- ui configuration ------------------------------
   # hide ui tab by using logic
-  
-  if (FALSE){
+  if ('inv_out' %in% hidden_tab){
   hideTab(inputId = "main", target = ui_elem$actual[ui_elem$label=='inv_out'])
+  }
+  if ('inv_in' %in% hidden_tab){
+    hideTab(inputId = "main", target = ui_elem$actual[ui_elem$label=='inv_in'])
   }
   # ------------------------------- inv_out UI ---------------------------------
   # sidebar

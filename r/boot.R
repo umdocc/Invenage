@@ -1,7 +1,4 @@
-# the boot.r file handle all remaining configuration after config_dict
-# it will assume the global variable config_dict and all paths has been
-# translated
-
+# once global.R fiigured ot the app_path, we use boot.R to handle the boot
 # ------------------------ load required packages ------------------------------
 required_package <- c('shinythemes','DBI','DT', 'shiny', 'shinydashboard', 
                       'scales', 'openxlsx', 'dplyr', 'data.table', 'lubridate',
@@ -126,3 +123,6 @@ conn <- db_open(config_dict)
 dbExecute(conn,
           'update product_info set comm_name = name where comm_name is null')
 dbDisconnect(conn)
+
+# hide tabs as per config_dict
+hidden_tab <- unlist(strsplit(config_dict$value[config_dict$name=='hidden_tab'],';'))
