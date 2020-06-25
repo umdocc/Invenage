@@ -302,16 +302,14 @@ shinyServer(function(input, output,session) {
   # add_pkg button
   observeEvent(input$add_pkg,{
     add_pkg_to_db(input,output) # add to database
+    output <- refresh_ui(input,output,c('in_unit','unit_selector'))
     
-    # reload UI
-    output$in_unit <- render_unit(input,'in_unit',type='inv_in') # in_unit
-    output$unit_selector <- render_unit(input,iid='unit_selector') #out_unit
   })
   
   # add_customer button
   observeEvent(input$add_customer,{
     add_customer_to_db(input)
-    output$customer_selector <- render_customer_list(
-      'customer_name', type='inv_out', input) # customer
+    output <- refresh_ui(input,output,'customer_selector')
+
   })
 })

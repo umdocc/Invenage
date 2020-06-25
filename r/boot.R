@@ -47,7 +47,7 @@ if (all(grepl('windows',os_name))){
 }
 
 # ------------------------ load remaining scripts ------------------------------
-func_list <- c('base',
+func_list <- c('base','refresh_ui',
                'inv_in_tab','inv_in_helper',
                'inv_out_tab','inv_out_helper',
                'report_helper','report_tab',
