@@ -15,50 +15,20 @@ shinyServer(function(input, output,session) {
   }
   # ------------------------------- inv_out UI ---------------------------------
   # sidebar
-  output$customer_selector <- render_customer_list(
-    'customer_name', type='inv_out', input) # customer
-  output$prod_name_select <- render_prod_name_list(
-    input,config_dict,'prod_name_select') # prod_name
-  output$qty_selector <- render_qty(iid='qty_selector') #Qty
-  output$unit_selector <- render_unit(input,iid='unit_selector') #Unit
-  output$lot_select <- render_lot(input, iid='lot_select') # Lot
-  output$warehouse_selector <- render_warehouse(
-    input, 'warehouse_selector',warehouse_info) # warehouse
-  output$unit_price <- render_price(input,iid='unit_price')
-  output$payment_selector <- render_payment_type(input,
-    iid = 'payment_type',ui_type = 'inv_out') # payment
-  output$tender_name <- render_tender_list('tender_name', config_dict, input)
-  output$pxk_note <- render_note(iid='pxk_note') #Note
-  output$prod_info_str <- render_prod_info(input) #product Info pane
-  output$sys_msg <- render_sys_message('ready')
-  # side
-  output$current_pxk_info <- render_current_pxk_infostr(
-    config_dict) #current pxk info
-  output$current_pxk_tbl <- render_invout_pxktable()
-  output$invout_stt_list <- render_invout_stt_list(
-    config_dict, 'invout_stt_list')
+  output <- reload_ui(input,output,
+    c('customer_selector','prod_name_select','qty_selector','unit_selector',
+      'lot_select','warehouse_selector','unit_price','payment_selector',
+      'tender_name','pxk_note','prod_info_str','sys_msg','current_pxk_info',
+      'current_pxk_tbl','invout_stt_list'))
   
   # inv_out UI buttons handlers
   observeEvent(input$inventory_out, { # inv_out button
     exec_inv_out(input,output) # write to database
-    
-    # refresh the UI after sucessfull inventory_out
-    output$customer_selector <- render_customer_list(
-      'customer_name', type='inv_out', input)
-    output$prod_name_selector <- render_prod_name_list(
-      input,product_info,'prod_name_select') # prod_name
-    output$qty_selector <- render_qty(iid='qty_selector') #Qty
-    output$lot_select <- render_lot(input, iid='lot_select') # Lot
-    output$prod_info_str <- render_prod_info(input) #product Info pane
-    output$pxk_note <- render_note(iid='pxk_note') #Note
-    output$current_pxk_info <- render_current_pxk_infostr(
-      config_dict) #current pxk info
-    output$current_pxk_tbl <- render_invout_pxktable() # reload the PXK table
-    output$invout_stt_list <- render_invout_stt_list( # reload invout_stt_list
-      config_dict, 'invout_stt_list')
-    output$man_pxk_list <- render_pxk_list(
-      input,config_dict,'man_pxk_list') #reload pxk_list in pxk_man as well
-    
+    # refresh the ui
+    output <- reload_ui(input,output,
+      c('customer_selector','prod_name_select','qty_selector','lot_select',
+        'pxk_note','prod_info_str','current_pxk_info','current_pxk_tbl',
+        'invout_stt_list','man_pxk_list'))
   })
   
   observeEvent(input$del_invout_stt,{
@@ -70,19 +40,12 @@ shinyServer(function(input, output,session) {
       delete_pxk(current_pxk,stt_to_proc,config_dict)
     }
     # reload UI
-    output$invout_stt_list <- render_invout_stt_list(
-      config_dict, 'invout_stt_list')
-    output$prod_name_selector <- render_prod_name_list(
-      input,product_info,'prod_name_select') # prod_name, required for prod_info
-    output$qty_selector <- render_qty(iid='qty_selector') #Qty
-    output$lot_select <- render_lot(input, iid='lot_select') # Lot
-    output$current_pxk_tbl <- render_invout_pxktable()
-    output$prod_info_str <- render_prod_info(input)
+    output <- reload_ui(input,output,
+      c('invout_stt_list','current_pxk_tbl','prod_info_str'))
   })
   
   observeEvent(input$complete_form,{
-    # getting data to write to excel
-    # finalised_pxk_warehouse <- input$warehouse_selector
+    
     finalised_pxk_num <- get_current_pxk(config_dict)
     
     # update completed field in databse
@@ -302,14 +265,14 @@ shinyServer(function(input, output,session) {
   # add_pkg button
   observeEvent(input$add_pkg,{
     add_pkg_to_db(input,output) # add to database
-    output <- refresh_ui(input,output,c('in_unit','unit_selector'))
+    output <- reload_ui(input,output,c('in_unit','unit_selector'))
     
   })
   
   # add_customer button
   observeEvent(input$add_customer,{
     add_customer_to_db(input)
-    output <- refresh_ui(input,output,'customer_selector')
+    output <- reload_ui(input,output,'customer_selector')
 
   })
 })
