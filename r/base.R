@@ -1,6 +1,11 @@
 # ----------------------- general operation functions --------------------------
-# update the tender_id by logic
-# another function here to go through all active tender_id one-by-one
+
+create_lu_report_list <- function(config_dict){
+  lu_report_list <- unlist(strsplit(
+    config_dict$value[config_dict$name=='lu_report_list_label'],';'))
+  lu_report_list <- data.frame(label = lu_report_list)
+  return(lu_report_list)
+}
 
 # use shinyalert specify ony labels
 show_alert <- function(big_label,small_label,msg_type){
@@ -137,7 +142,12 @@ read_tbl <- function(conn,tbl_name){
       output_tbl$ref_smn, output_tbl$comm_name, output_tbl$packaging_str, 
       sep=' ')
   }
-  
+  if (tbl_name=='report_type'){
+    output_tbl <- merge(output_tbl,ui_elem %>% select(label,actual),
+        by.x='group_label', by.y = 'label')
+    lu_report_list <- create_lu_report_list(config_dict)
+    output_tbl <- merge(lu_report_list,output_tbl)
+  }
   if (tbl_name=='product_type'){
     output_tbl <- merge(output_tbl,ui_elem) }
   

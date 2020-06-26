@@ -69,10 +69,14 @@ reload_ui <- function(input,output,ui_list){
     output$in_unit <- render_unit(input,'in_unit',type='inv_in') # in_unit
   }
   
-  # ---------------------------- pxk_man ui elements ---------------------------
+  # --------------------------- lu_report ui elements --------------------------
   # pxk_man list of pxk
   if ('man_pxk_list' %in% ui_list){
     output$man_pxk_list <- render_pxk_list(input, config_dict, 'man_pxk_list')
+  }
+  if ('lu_report_tbl_selector' %in% ui_list){
+    output$lu_report_tbl_selector <- render_lu_report_list(
+      input, 'lu_report_tbl_selector')
   }
   return(output)
 }

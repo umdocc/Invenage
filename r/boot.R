@@ -68,31 +68,24 @@ ui_elem <- localisation[localisation$group=='ui_elements',]
 
 
 # connect to database and read start-up information
-reload_tbl(config_dict, c(
+reload_tbl(config_dict, c('currency',
   'product_info', "output_info", "import_log","customer_info", "guess_table",
   "packaging", "sale_log", "pxk_info" , "warehouse_info", "payment_type",
   "importlic_data", "tender_detail", "tender_info", "import_price", 
-  "vendor_info","product_type","po_info"))
+  "vendor_info","product_type","po_info","report_type"))
 
 # customise
 report_info <- output_info[output_info$type=='report_output',]
 
-
 # --------------------- UI Configurations --------------------------------------
 
-# list of tables in lookups
-lu_tbl_list <- unlist(strsplit(
-  config_dict$value[config_dict$name=='lookup_tbl_list'],';'))
+# create raw table
+#handle report_group first
+lu_report_list <- create_lu_report_list(config_dict)
+report_group <- unique(report_type$actual)
 
-lu_tbl_list <- data.frame(label = lu_tbl_list)
-lu_tbl_list <- merge(lu_tbl_list,ui_elem,all.x = T)
-lu_tbl_list <- lu_tbl_list$actual
-
-# get the report list
-report_list_label <- config_dict$value[config_dict$name=='report_list_label']
-report_list_label <- data.frame(label = unlist(strsplit(report_list_label,
-                                                        ';')))
-report_list <- merge(report_list_label,ui_elem)
+lu_report_list <- merge(lu_report_list,ui_elem,all.x = T)
+lu_report_list <- lu_report_list$actual
 
 # -------------------------- Start-up Data -------------------------------------
 col_name_label <- localisation$label[localisation$group=='col_rename']

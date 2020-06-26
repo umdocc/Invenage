@@ -1,6 +1,96 @@
-# functions related to preparing reports
-# create_report function
-
+# first stage in reporting is to get everything into single table format
+# using create_lookup_tbl
+create_lookup_tbl <- function(input,table_name,config_dict,translate_colname=TRUE){
+  if (table_name == 'sale_profit_report'){
+    from_date <- input$from_date # from_date and to_date depends on rp type
+    to_date <- input$to_date
+    rp_data <- get_sales_report(config_dict,from_date,to_date)
+    lookup_tbl_output <- clean_duplicates(
+      rp_data,col_list = c("customer_name", "sale_date", "pxk_num"))
+  }
+  if (table_name == 'inv_exp_date_report'){
+    rp_data <- update_inventory(config_dict)
+    rp_data$remaining_days <- rp_data$intexp_date-Sys.time()
+    rp_data$label[rp_data$remaining_days<180] <- 'less_than_6mth'
+    rp_data$label[rp_data$remaining_days<90] <- 'less_than_3mth'
+    rp_data <- rp_data[order(rp_data$intexp_date),]
+    rp_data <- merge(rp_data,ui_elem,all.x=T)
+    rp_data$note <- rp_data$actual
+    lookup_tbl_output <- rp_data %>% select(vendor,name,ref_smn,remaining_qty,
+                                  exp_date,note,prod_code)
+  }
+  if (table_name == 'inv_value_report'){
+    # refresh information
+    lookup_tbl_output <- update_inventory(config_dict)
+  }
+  if (table_name == 'inv_order_report'){
+    lookup_tbl_output <- create_inv_order_rp(config_dict,tender_include=T)
+  }
+  if (table_name == 'inv_audit_report'){
+    # read the inventory
+    rp_data <- update_inventory(config_dict)
+    # set all negative number to 0
+    rp_data <- rp_data[rp_data$remaining_qty>0,]
+    # add ordering unit
+    ordering_unit <- get_ordering_unit(packaging)
+    rp_data <- merge(rp_data,ordering_unit,all.x=T)
+    rp_data <- rp_data %>% 
+      select(vendor,name,ref_smn,lot,exp_date,remaining_qty,unit,prod_code)
+    lookup_tbl_output <- round_report_col(rp_data,'remaining_qty')
+  }
+  if (table_name=='inventory'){
+    lookup_tbl_output <- update_inventory(config_dict)
+    lookup_tbl_output$remaining_qty <- round(
+      lookup_tbl_output$remaining_qty, digits=2)
+    lookup_tbl_output$unit <- NULL
+    ordering_unit <- get_ordering_unit(packaging)
+    lookup_tbl_output <- merge(
+      lookup_tbl_output, ordering_unit,all.x=T)
+    lookup_tbl_output <- merge(
+      lookup_tbl_output, product_info %>% 
+        select(prod_code,name,vendor,ref_smn), all.x = T) %>%
+      select(name, vendor, ref_smn, lot, exp_date, remaining_qty, unit)
+  }
+  # query on simple table
+  if (table_name=='product_info'){
+    lookup_tbl_output <- product_info %>% 
+      select(prod_code, comm_name, vendor, ref_smn, name)
+  }
+  if (table_name=='import_price'){
+    lookup_tbl_output <- merge(import_price,product_info %>% 
+                                 select(prod_code,name,vendor,ref_smn))
+    lookup_tbl_output <- merge(lookup_tbl_output,currency)
+    lookup_tbl_output <- lookup_tbl_output %>% 
+      select(name,vendor,ref_smn,import_price,currency,min_order)
+  }
+  if (table_name=='sale_log'){
+    lookup_tbl_output <- merge(sale_log, product_info %>% select(
+      prod_code,name,vendor,ref_smn))
+    lookup_tbl_output <- merge(lookup_tbl_output,pxk_info %>% select(
+      pxk_num,customer_id,sale_datetime))
+    lookup_tbl_output$customer_id <- as.numeric(
+      lookup_tbl_output$customer_id)
+    lookup_tbl_output <- merge(
+      lookup_tbl_output,customer_info %>% select(customer_id,customer_name))
+    lookup_tbl_output$sale_date <- gsub(
+      ' .*$', '', lookup_tbl_output$sale_datetime)
+    lookup_tbl_output <- lookup_tbl_output %>%
+      select(pxk_num, sale_date, customer_name, name, ref_smn, qty, unit, 
+             lot, note)
+  }
+  if (table_name=='import_log'){
+    lookup_tbl_output <- merge(import_log, product_info%>% select(
+      prod_code,name)) %>% 
+      select(name,unit,qty,lot,exp_date,po_name,actual_unit_cost)
+    
+  }
+  # format the table
+  if (translate_colname){
+    lookup_tbl_output <- translate_tbl_column(lookup_tbl_output,ui_elem)
+  }
+  
+  return(lookup_tbl_output)
+}
 
 get_rp_filename <- function(report_type, config_dict){
   report_name <- ui_elem$actual[ui_elem$label==report_type]
@@ -152,44 +242,9 @@ write_report_data <- function(
 }
 
 build_rp_data <- function(report_type, input, translate=TRUE, prodcode.rm=TRUE){
-  if (report_type == 'inv_value_report'){
-    # refresh information
-    rp_data <- update_inventory(config_dict)
-  }
-  if (report_type == 'inv_audit_report'){
-    # read the inventory
-    rp_data <- update_inventory(config_dict)
-    # set all negative number to 0
-    rp_data <- rp_data[rp_data$remaining_qty>0,]
-    # add ordering unit
-    ordering_unit <- get_ordering_unit(packaging)
-    rp_data <- merge(rp_data,ordering_unit,all.x=T)
-    rp_data <- rp_data %>% 
-      select(vendor,name,ref_smn,lot,exp_date,remaining_qty,unit,prod_code)
-    rp_data <- round_report_col(rp_data,'remaining_qty')
-  }
-  if (report_type == 'inv_order_report'){
-    rp_data <- create_inv_order_rp(config_dict,tender_include=T)
-  }
-  # get the report data
-  if (report_type == 'sale_profit_report'){
-    from_date <- input$from_date # from_date and to_date depends on rp type
-    to_date <- input$to_date
-    rp_data <- get_sales_report(config_dict,from_date,to_date)
-    rp_data <- clean_duplicates(
-      rp_data,col_list = c("customer_name", "sale_date", "pxk_num"))
-  }
-  if (report_type == 'inv_exp_date_report'){
-    rp_data <- update_inventory(config_dict)
-    rp_data$remaining_days <- rp_data$intexp_date-Sys.time()
-    rp_data$label[rp_data$remaining_days<180] <- 'less_than_6mth'
-    rp_data$label[rp_data$remaining_days<90] <- 'less_than_3mth'
-    rp_data <- rp_data[order(rp_data$intexp_date),]
-    rp_data <- merge(rp_data,ui_elem,all.x=T)
-    rp_data$note <- rp_data$actual
-    rp_data <- rp_data %>% select(vendor,name,ref_smn,remaining_qty,
-                                      exp_date,note,prod_code)
-  }
+
+
+
   # options listed in functions
   if (translate){ # default TRUE : translate the column name
     rp_data <- translate_tbl_column(rp_data,ui_elem)

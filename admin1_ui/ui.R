@@ -116,57 +116,58 @@ navbarPage(
     )
   ), # end of import tab
   
-  # --------------------------- lookup tab -------------------------------------
+  # --------------------------- lu_report tab ----------------------------------
   tabPanel(
-    ui_elem$actual[ui_elem$label=='lookups'],
+    ui_elem$actual[ui_elem$label=='lu_report'],
     fluidRow(
       style = "background-color:#f5f5f5;",
-      div(
-        style="display: inline-block;vertical-align:top;",
-        selectInput(
-        inputId = 'lu_tbl_selector',
-        label = ui_elem$actual[ui_elem$label=='choose_table'],
-        choices = lu_tbl_list)),
-      div(
-        style="display: inline-block;vertical-align:top;",
-        HTML("<br>"),
-        actionButton(
-        "print_lu_tbl",
-        ui_elem$actual[ui_elem$label=='printReport'])),
-      DT::dataTableOutput('lookup_tbl_output')
-    )
-  ),# end lookup tab
-  
-  # --------------------------- reports tab ------------------------------------
-  tabPanel(
-    ui_elem$actual[ui_elem$label=='reports'],
-    fluidRow(
-      style = "background-color:#f5f5f5;",
-      box(width=12, height = 500,
-      div(style="display: inline-block;vertical-align:top;width: 240px",
-          selectInput(
-            inputId = 'report_type', label = ui_elem$actual[
-              ui_elem$label=='reportType'],
-            choices = report_list$actual)),
-      div(style="display: inline-block;vertical-align:top;width: 120px",
-          dateInput(inputId = 'from_date',
-                      label = ui_elem$actual[
-                        ui_elem$label=='from_date'],
-                      value = "2019-11-04", format = date_format_alt)),
-      div(style="display: inline-block;vertical-align:top;width: 120px",
-          dateInput(inputId = 'to_date',
-                      label = ui_elem$actual[
-                        ui_elem$label=='to_date'],
-                      value = Sys.Date(), format = date_format_alt)),
-          actionButton(
-            "printReport", ui_elem$actual[ui_elem$label=='printReport'])
+      box(
+        width=3, height = 800,
+      selectInput(
+        inputId = 'lu_report_group_selector',
+        label = ui_elem$actual[ui_elem$label=='choose_group'],
+        choices = report_group),     
+      htmlOutput('lu_report_tbl_selector'),
+      actionButton(
+        "print_lu_report",
+        ui_elem$actual[ui_elem$label=='printReport'])
       ),
-      box(width=12, height = 800,
-        h3('data'),
-        DT::dataTableOutput('report_tbl_output')
+      box(
+        width=9, height = 800,
+      DT::dataTableOutput('lu_report_tbl')
       )
     )
-  ), # end Reports tab
+  ),# end lu_report tab
+  
+  # tabPanel(
+  #   ui_elem$actual[ui_elem$label=='reports'],
+  #   fluidRow(
+  #     style = "background-color:#f5f5f5;",
+  #     box(width=12, height = 500,
+  #     div(style="display: inline-block;vertical-align:top;width: 240px",
+  #         selectInput(
+  #           inputId = 'report_type', label = ui_elem$actual[
+  #             ui_elem$label=='reportType'],
+  #           choices = report_list$actual)),
+  #     div(style="display: inline-block;vertical-align:top;width: 120px",
+  #         dateInput(inputId = 'from_date',
+  #                     label = ui_elem$actual[
+  #                       ui_elem$label=='from_date'],
+  #                     value = "2019-11-04", format = date_format_alt)),
+  #     div(style="display: inline-block;vertical-align:top;width: 120px",
+  #         dateInput(inputId = 'to_date',
+  #                     label = ui_elem$actual[
+  #                       ui_elem$label=='to_date'],
+  #                     value = Sys.Date(), format = date_format_alt)),
+  #         actionButton(
+  #           "printReport", ui_elem$actual[ui_elem$label=='printReport'])
+  #     ),
+  #     box(width=12, height = 800,
+  #       h3('data'),
+  #       DT::dataTableOutput('report_tbl_output')
+  #     )
+  #   )
+  # ), # end Reports tab
   
   # --------------------------- pxk_man tab ------------------------------------
   tabPanel(

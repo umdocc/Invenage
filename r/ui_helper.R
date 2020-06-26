@@ -39,68 +39,7 @@ get_est_import_cost <- function(import_log, algorithm='weighted_average'){
   }
 }
 
-create_lookup_tbl <- function(table_name,config_dict,local_name=TRUE){
-  #re-read the basic tables
-  conn <- db_open(config_dict)
-  sale_log <- dbReadTable(conn,"sale_log")
-  product_info <- dbReadTable(conn,"product_info")
-  import_log <- dbReadTable(conn,"import_log")
-  import_price <- dbReadTable(conn,"import_price")
-  currency <- dbReadTable(conn,"currency")
-  packaging <- dbReadTable(conn,"packaging")
-  dbDisconnect(conn)
-  if (table_name=='inventory'){
-    lookup_tbl_output <- update_inventory(config_dict)
-    lookup_tbl_output$remaining_qty <- round(
-      lookup_tbl_output$remaining_qty, digits=2)
-    lookup_tbl_output$unit <- NULL
-    ordering_unit <- get_ordering_unit(packaging)
-    lookup_tbl_output <- merge(
-      lookup_tbl_output, ordering_unit,all.x=T)
-    lookup_tbl_output <- merge(
-      lookup_tbl_output, product_info %>% 
-        select(prod_code,name,vendor,ref_smn), all.x = T) %>%
-      select(name, vendor, ref_smn, lot, exp_date, remaining_qty, unit)
-  }
-    # query on simple table
-  if (table_name=='product_info'){
-    lookup_tbl_output <- product_info %>% 
-      select(prod_code, name, vendor, ref_smn)
-  }
-  if (table_name=='import_price'){
-    lookup_tbl_output <- merge(import_price,product_info %>% 
-                                 select(prod_code,name,vendor,ref_smn))
-    lookup_tbl_output <- merge(lookup_tbl_output,currency)
-    lookup_tbl_output <- lookup_tbl_output %>% 
-      select(name,vendor,ref_smn,import_price,currency,min_order)
-  }
-  if (table_name=='sale_log'){
-    lookup_tbl_output <- merge(sale_log, product_info %>% select(
-      prod_code,name,vendor,ref_smn))
-    lookup_tbl_output <- merge(lookup_tbl_output,pxk_info %>% select(
-      pxk_num,customer_id,sale_datetime))
-    lookup_tbl_output$customer_id <- as.numeric(
-      lookup_tbl_output$customer_id)
-    lookup_tbl_output <- merge(
-      lookup_tbl_output,customer_info %>% select(customer_id,customer_name))
-    lookup_tbl_output$sale_date <- gsub(
-      ' .*$', '', lookup_tbl_output$sale_datetime)
-    lookup_tbl_output <- lookup_tbl_output %>%
-      select(pxk_num, sale_date, customer_name, name, ref_smn, qty, unit, 
-             lot, note)
-  }
-  if (table_name=='import_log'){
-    lookup_tbl_output <- merge(import_log, product_info%>% select(
-      prod_code,name)) %>% 
-      select(name,unit,qty,lot,exp_date,po_name,actual_unit_cost)
-    
-  }
-  # format the table
-  if (local_name){
-    lookup_tbl_output <- translate_tbl_column(lookup_tbl_output,ui_elem)
-  }
-  return(lookup_tbl_output)
-}
+
 
 # get_latest_price is a function to get the last price sold to a customer
 get_latest_price <- function(customer_id, prod_code, unit, pxk_info){

@@ -1,4 +1,16 @@
 # build tender_track, use config_dict to directly read from database
+
+render_lu_report_list <- function(input, iid){renderUI({
+  group_label <- report_type[
+    report_type$actual==input$lu_report_group_selector,] %>% select(label)
+  lu_report_tbl_list <- merge(group_label,ui_elem)[,'actual']
+  selectInput(
+    inputId = iid,
+    label = ui_elem$actual[ui_elem$label=='choose_table'],
+    choices = lu_report_tbl_list
+  )
+})}
+
 create_tender_track <- function(sale_log,customer_id = 1){
   
   # build basic details from sale_log
