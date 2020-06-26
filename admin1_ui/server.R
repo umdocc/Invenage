@@ -115,16 +115,11 @@ shinyServer(function(input, output,session) {
   output$lu_report_tbl <- DT::renderDataTable({
     table_name <- ui_elem$label[
       ui_elem$actual==input$lu_report_tbl_selector]
-    # print(table_name)
     create_lookup_tbl(input,table_name,config_dict)
   },rownames=F)
   observeEvent(input$print_lu_report,{
-    table_label <- ui_elem$label[
-      ui_elem$actual==input$lu_report_tbl_selector]
-    lu_tbl_out <- create_lookup_tbl(table_label,config_dict)
-    dest_path <- file.path(app_path,'lu_tbl.xlsx')
-    write.xlsx(lu_tbl_out, dest_path,row.names=F)
-    system2('open',dest_path,timeout = 2)
+    # similar to the above but made it into excel format
+    create_full_report(input)
   })
 
   # create the report and open it
