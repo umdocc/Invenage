@@ -109,7 +109,7 @@ shinyServer(function(input, output,session) {
     # refresh the UI
     output$latest_import_tbl <- render_import_tbl()
   })
-  # --------------------------- lookup/report UI -------------------------------
+  # --------------------------- lu_report UI -------------------------------
 
   reload_ui(input,output,'lu_report_tbl_selector')
   output$lu_report_tbl <- DT::renderDataTable({
