@@ -1,4 +1,19 @@
 # ----------------------- general operation functions --------------------------
+# this function translate a strring back into label by a single line ui_elem
+# if a table is provided, it will also translate back to the code/id
+uistr_to_label <- function(uistr,table_name=NULL){
+  
+  ui_label <- ui_elem$label[ui_elem$actual==uistr]
+  
+  if (!is.null(table_name)){
+    db_table <- get(table_name)
+    label_colname <- names(db_table)[grepl('_label',names(db_table))]
+    code_colname <- names(db_table)[grepl('_code|_id',names(db_table))]
+    ui_code <- db_table[db_table[,label_colname]==ui_label,code_colname]
+  }else{ui_code <- ui_label}
+  
+  return(ui_code)
+}
 
 create_lu_report_list <- function(config_dict){
   lu_report_list <- unlist(strsplit(
