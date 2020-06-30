@@ -92,16 +92,27 @@ create_lookup_tbl <- function(input,table_name,config_dict,translate_colname=TRU
   return(lookup_tbl_output)
 }
 
-create_full_report <- function(input){
+create_full_report <- function(input,report_filename='lu_tbl.xlsx'){
   # first create the raw table
-  table_label <- ui_elem$label[
-    ui_elem$actual==input$lu_report_tbl_selector]
-  report <- create_lookup_tbl(
-    input,table_name=table_label,config_dict,translate_colname=TRUE)
-  # these tables can be written directly to excel
+  table_label <- uistr_to_label(input$lu_report_tbl_selector)
+  print(table_label)
+  lu_report_output <- create_lookup_tbl(
+    input,table_name=table_label,config_dict,translate_colname=F)
+  # use one single output file location for all reports
   dest_path <- file.path(config_dict$value[config_dict$name=='report_out_path'],
-                         'lu_tbl.xlsx')
-  write.xlsx(report, dest_path,row.names=F)
+                         report_filename)
+  
+  # these tables will need more processing, so use separate function to write them
+  # which also return the full dest_path so that we can open later
+  if(table_label=='inv_value_report'){
+    write_inv_value_rp(lu_report_output,dest_path)
+  }else{
+    # these tables can be written directly to excel and only need col translate
+    lu_report_output <- translate_tbl_column(lu_report_output,ui_elem)
+    write.xlsx(lu_report_output, dest_path,row.names=F)
+  }
+  
+  # open the file after creation
   system2('open',dest_path,timeout = 2)
 }
 
@@ -116,34 +127,33 @@ get_rp_filename <- function(report_type, config_dict){
   return(rp_filename)
 }
 
-write_inv_value_rp <- function(){
-  rp_data <- update_inventory(config_dict)
+write_inv_value_rp <- function(lu_report_output,rp_filename){
+
   # gather all informations
-  rp_filename <- get_rp_filename('inv_value_report', config_dict)
   summary_sheet_name <- ui_elem$actual[ui_elem$label=='summary']
   missing_price_sheet_name <- ui_elem$actual[ui_elem$label=='missing_price']
   totalNSXcostName <- ui_elem$actual[ui_elem$label=='total_inv_value']
-  val_by_vendor <- rp_data %>% group_by(vendor) %>% summarise(
-    total_inv_value = sum(total_inv_value,na.rm=T)) %>% ungroup
+  val_by_vendor <- lu_report_output %>% group_by(vendor) %>% summarise(
+    total_inv_value = sum(total_inv_value,na.rm=T), .groups='drop') %>% ungroup
   val_by_vendor <- val_by_vendor[!is.na(val_by_vendor$vendor),]
   # get vendor list here
   vendor_list <- gsub('-.*$','',val_by_vendor$vendor)
   vendor_list <- vendor_list[!duplicated(vendor_list)]
   # add total cost, and format the ouput
   tmp <- val_by_vendor[1:2,]
-  tmp[1,] <- ''
+  tmp[1,] <- NA
   tmp$vendor[2] <- ui_elem$actual[ui_elem$label=='total_inv_value']
   tmp$total_inv_value[2] <- sum(val_by_vendor$total_inv_value,na.rm=T)
   val_by_vendor <- rbind(val_by_vendor,tmp)
 
   val_by_vendor$total_inv_value <- format(
-    as.numeric(val_by_vendor$total_inv_value), big.mark=",")
+    as.numeric(val_by_vendor$total_inv_value), trim = T, big.mark=",")
   
   wb <- createWorkbook()
   addWorksheet(wb, summary_sheet_name)
   addWorksheet(wb, missing_price_sheet_name)
   # write missing_price
-  missing_price <- rp_data[is.na(rp_data$ave_pack_import_cost),] %>%
+  missing_price <- lu_report_output[is.na(lu_report_output$ave_pack_import_cost),] %>%
     select(prod_code,name,ref_smn)
   missing_price <- translate_tbl_column(missing_price,ui_elem)
   writeData(wb, sheet=missing_price_sheet_name, missing_price)
@@ -153,7 +163,7 @@ write_inv_value_rp <- function(){
 
   for (i in 1:length(vendor_list)){
     addWorksheet(wb, vendor_list[i])
-    tmp_df <- rp_data[grepl(vendor_list[i],rp_data$vendor),] %>%
+    tmp_df <- lu_report_output[grepl(vendor_list[i],lu_report_output$vendor),] %>%
       select(name,ref_smn,lot,exp_date,remaining_qty,ave_pack_import_cost,
              total_inv_value)
     tmp_df <- translate_tbl_column(tmp_df,ui_elem)
