@@ -42,7 +42,7 @@ get_tender_status <- function(config_dict, current_tender_id){
     select(prod_code,unit,tender_qty_pack)
   tender_sale_pk <- convert_to_pack(tender_sale,packaging,'qty','sale_qty_pack')
   tender_sale_pk <- tender_sale_pk %>% group_by(prod_code,unit) %>% 
-    summarise(total_tender_sale = sum(sale_qty_pack))
+    summarise(total_tender_sale = sum(sale_qty_pack), .groups = 'drop')
   
   # merge with tender_detail
   tender_detail_pk <- merge(tender_detail_pk,tender_sale_pk, all.x=T)
@@ -244,13 +244,13 @@ update_inventory <- function(config_dict, pos_item=TRUE, summarised = FALSE){
   tmp <- import_log %>% select(prod_code,unit,qty,lot,exp_date,warehouse_id)
   tmp <- convert_to_pack(tmp,packaging,'qty','importQty')
   tmp <- tmp %>% group_by(prod_code,unit,lot,warehouse_id) %>% 
-    summarise(totalImportQty = sum(importQty)) %>% ungroup()
+    summarise(totalImportQty = sum(importQty), .groups = 'drop') %>% ungroup()
   tmp2 <- sale_log %>% select(prod_code,unit,qty,lot,warehouse_id)
   
   # for sale_log we need to merge with warehouse_id
   tmp2 <- convert_to_pack(tmp2,packaging,'qty','saleQty')
   tmp2 <- tmp2 %>% group_by(prod_code,unit,lot,warehouse_id) %>% 
-    summarise(totalSaleQty = sum(saleQty)) %>% ungroup()
+    summarise(totalSaleQty = sum(saleQty), .groups = 'drop') %>% ungroup()
   totalInventory <- merge(tmp,tmp2,all=T,
                           by=c('prod_code','unit','lot','warehouse_id'))
   totalInventory$totalSaleQty[is.na(totalInventory$totalSaleQty)] <- 0
@@ -296,7 +296,7 @@ update_inventory <- function(config_dict, pos_item=TRUE, summarised = FALSE){
     inventory <- inventory %>% 
       group_by(prod_code, name, vendor, ref_smn) %>% 
       summarise(total_remain_qty = sum(remaining_qty), 
-                total_inv_value = sum(total_inv_value))
+                total_inv_value = sum(total_inv_value), .groups = 'drop')
   }
   
   return(inventory)
