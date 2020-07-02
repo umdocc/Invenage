@@ -265,4 +265,6 @@ shinyServer(function(input, output,session) {
     output <- reload_ui(input,output,'customer_selector')
 
   })
+  # ---------------------- hr_log tab -------------
+  output$admin_name <- render_admin_name() 
 })

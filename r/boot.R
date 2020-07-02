@@ -50,7 +50,8 @@ func_list <- c('base','refresh_ui',
                'report_helper','report_tab',
                'ui_helper','ui_render',
                'pxk_man_helper',
-               'update_db_tab')
+               'update_db_tab',
+               'hr_log_tab')
 for (script_to_load in func_list){
   script_path <- file.path(app_path, 'r', paste0(script_to_load,'.R'))
   source(script_path)
@@ -67,9 +68,15 @@ localisation <- localisation[localisation$app_lang==app_lang,]
 # create ui_lem
 ui_elem <- localisation[localisation$group=='ui_elements',]
 
+# we can now load the actual ui
+func_list <- 'ui_tabs'
+for (script_to_load in func_list){
+  script_path <- file.path(app_path, 'r', paste0(script_to_load,'.R'))
+  source(script_path)
+}
 
 # connect to database and read start-up information
-reload_tbl(config_dict, c('currency',
+reload_tbl(config_dict, c('currency','staff_info',
   'product_info', "output_info", "import_log","customer_info", "guess_table",
   "packaging", "sale_log", "pxk_info" , "warehouse_info", "payment_type",
   "importlic_data", "tender_detail", "tender_info", "import_price", 
