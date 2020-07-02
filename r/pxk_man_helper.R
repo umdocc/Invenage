@@ -11,18 +11,20 @@ edit_db_pxk <- function(cell,pxk_num){
   tmp <- dbGetQuery(
     conn,paste('select * from sale_log where pxk_num =',pxk_num))
   dbDisconnect(conn)
-  
-  pxk_col_list <- c( # list of pxk fields, as rendered
-    'stt', 'name', 'unit', 'unit_price', 'qty', 'lot', 'customer_name', 'note')
-  allowed_chr_fields <- c(3,4,5,6,8) # allow editing certain fields only
-  if (cell$col %in% (allowed_chr_fields-1) ){ # dt cell has offset of 1
+
+  # allow_edit_pxk_colnum <- c(3,4,5,7) # allow editing certain fields only
+  if (cell$col %in% (allow_edit_pxk_colnum-1) ){ # dt cell has offset of 1
     tmp[tmp$stt==edited_stt,
-        pxk_col_list[cell$col+1]] <- as.character(cell$value)
+        pxk_render_colnames[cell$col+1]] <- as.character(cell$value)
   }
   # check data
   tmp$unit <- tolower(tmp$unit) # clean the unit first
+  
+  # check the edited colname
+  col2update <- print(pxk_render_colnames[cell$col+1])
+  
   errorsFree=T
-  if (pxk_col_list[cell$col+1]=='unit'){ #check the unit
+  if (pxk_render_colnames[cell$col+1]=='unit'){ #check the unit
     test <- merge(tmp,packaging)
     if(length(test$units_per_pack[test$stt==edited_stt])==0){
       errorsFree = F
@@ -33,8 +35,9 @@ edit_db_pxk <- function(cell,pxk_num){
     conn = db_open(config_dict)
     dbExecute(
       conn, paste('delete from sale_log where pxk_num =', pxk_num))
-    dbWriteTable(conn,'sale_log',tmp,append=T)
+    # dbWriteTable(conn,'sale_log',tmp,append=T)
     dbDisconnect(conn)
+    append_tbl_rld(config_dict,'sale_log',tmp)
   }
   return(errorsFree)
 }

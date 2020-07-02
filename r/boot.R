@@ -49,6 +49,7 @@ func_list <- c('base','refresh_ui',
                'inv_out_tab','inv_out_helper',
                'report_helper','report_tab',
                'ui_helper','ui_render',
+               'pxk_man_helper',
                'update_db_tab')
 for (script_to_load in func_list){
   script_path <- file.path(app_path, 'r', paste0(script_to_load,'.R'))
@@ -119,3 +120,9 @@ dbDisconnect(conn)
 
 # hide tabs as per config_dict
 hidden_tab <- unlist(strsplit(config_dict$value[config_dict$name=='hidden_tab'],';'))
+
+# the list of colnames of pxk when rendered
+pxk_render_colnames <- unlist(
+  strsplit(config_dict$value[config_dict$name=='pxk_render_colnames'],';'))
+allow_edit_pxk_colnum <- as.numeric(unlist(
+  strsplit(config_dict$value[config_dict$name=='allow_edit_pxk_colnum'],';')))
