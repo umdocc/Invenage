@@ -78,5 +78,21 @@ reload_ui <- function(input,output,ui_list){
     output$lu_report_tbl_selector <- render_lu_report_list(
       input, 'lu_report_tbl_selector')
   }
+  
+  # ----------------------------- hr_log elements -------------------------------
+  if ('admin_name' %in% ui_list){
+    output$admin_name <- render_admin_name()
+  }
+  if ('hour_logged' %in% ui_list){
+    output$hour_logged <- render_hour_logged()
+  }
+  if ('task_desc' %in% ui_list){
+    output$task_desc <- render_task_desc()
+  }
+  if ('admin_activity_log' %in% ui_list){
+    output$admin_activity_log <- render_activity_log(admin_id)
+  }
+  
+  
   return(output)
 }

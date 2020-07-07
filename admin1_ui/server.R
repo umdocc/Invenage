@@ -9,11 +9,8 @@ shinyServer(function(input, output,session) {
   
   # ---------------------------- ui configuration ------------------------------
   # hide ui tab by using logic
-  if ('inv_out' %in% hidden_tab){
-  hideTab(inputId = "main", target = ui_elem$actual[ui_elem$label=='inv_out'])
-  }
-  if ('inv_in' %in% hidden_tab){
-    hideTab(inputId = "main", target = ui_elem$actual[ui_elem$label=='inv_in'])
+  for (tab_label in hidden_tab){
+  hideTab(inputId = "main", target = ui_elem$actual[ui_elem$label==tab_label])
   }
   # ------------------------------- inv_out UI ---------------------------------
   # sidebar
@@ -121,27 +118,6 @@ shinyServer(function(input, output,session) {
     # similar to the above but made it into excel format
     create_full_report(input)
   })
-
-  # create the report and open it
-  # observeEvent(input$printReport, {
-  #   # gather all data
-  #   report_type <- ui_elem$label[ui_elem$actual==input$report_type]
-  #   rp_data <- build_rp_data(report_type,input)
-  #   to_date <- input$to_date
-  # 
-  #   #from_date and to_date depends on rp type
-  #   if (report_type == 'sale_profit_report'){
-  #     from_date <- input$from_date 
-  #   }else{
-  #     from_date <- strftime(Sys.Date())
-  #   }
-  #   if (report_type == 'inv_value_report'){
-  #     rp_filename <- write_inv_value_rp()
-  #   }else{
-  #     rp_filename <- write_report_data(report_type, rp_data, from_date, to_date)
-  #   }
-  #   system(paste0('open ','"',rp_filename,'"'))
-  # })
 
   # ---------------------------- pxk_man UI ------------------------------------
   # sidebar
@@ -266,5 +242,11 @@ shinyServer(function(input, output,session) {
 
   })
   # ---------------------- hr_log tab -------------
-  output$admin_name <- render_admin_name() 
+  output <- reload_ui(input,output,
+    c('admin_name','hour_logged','task_desc','admin_activity_log'))
+
+  observeEvent(input$task_input,{
+    write_activity_log(input)
+    output <- reload_ui(input,output,'admin_activity_log')
+  })
 })

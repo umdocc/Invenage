@@ -1,18 +1,4 @@
-# as invenage expand, we need to consider separate file for tabs
-
-hr_log_tab <- tabPanel(
-  ui_elem$actual[ui_elem$label=='hr_log'],
-  fluidRow(
-    style = "background-color:#f5f5f5;",
-    box(width = 3, height = 800,
-        htmlOutput('admin_name'),
-    ),
-    box(width = 9, height = 800,
-        
-    )
-  )
-)
-
+# ---------------------------- shiny ui object -----------------------------------
 pxk_man_tab <- tabPanel(
   ui_elem$actual[ui_elem$label=='pxk_man'],
   fluidRow(

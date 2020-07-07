@@ -43,13 +43,21 @@ if (all(grepl('windows',os_name))){
   }
 }
 
-# ------------------------ load remaining scripts ------------------------------
-func_list <- c('base','refresh_ui',
+# ------------------------ load function scripts ------------------------------
+# the base need to be loaded first so that we can load ui_elem
+source(file.path(app_path, 'r', paste0('base.R')))
+#load ui_elem, by filter localisation to local language
+reload_tbl(config_dict,"localisation")
+app_lang <- config_dict$value[config_dict$name=='app_lang']
+localisation <- localisation[localisation$app_lang==app_lang,]
+ui_elem <- localisation[localisation$group=='ui_elements',]
+
+# we can now load the remaining function
+func_list <- c('reload_ui','ui_helper','ui_render','stats',
                'inv_in_tab','inv_in_helper',
                'inv_out_tab','inv_out_helper',
                'report_helper','report_tab',
-               'ui_helper','ui_render',
-               'pxk_man_helper',
+               'pxk_man_tab','pxk_man_helper',
                'update_db_tab',
                'hr_log_tab')
 for (script_to_load in func_list){
@@ -58,25 +66,12 @@ for (script_to_load in func_list){
 }
 
 # localisation information
-reload_tbl(config_dict,"localisation") # need this first
 company_name <- config_dict$value[config_dict$name=='company_name']
 copyright_str <- paste(
   'Copyright (C) 2017-2019, Data built for:', company_name)
-app_lang <- config_dict$value[config_dict$name=='app_lang']
-# use the configured language
-localisation <- localisation[localisation$app_lang==app_lang,]
-# create ui_lem
-ui_elem <- localisation[localisation$group=='ui_elements',]
-
-# we can now load the actual ui
-func_list <- 'ui_tabs'
-for (script_to_load in func_list){
-  script_path <- file.path(app_path, 'r', paste0(script_to_load,'.R'))
-  source(script_path)
-}
 
 # connect to database and read start-up information
-reload_tbl(config_dict, c('currency','staff_info',
+reload_tbl(config_dict, c('currency','staff_info','staff_activity_log',
   'product_info', "output_info", "import_log","customer_info", "guess_table",
   "packaging", "sale_log", "pxk_info" , "warehouse_info", "payment_type",
   "importlic_data", "tender_detail", "tender_info", "import_price", 

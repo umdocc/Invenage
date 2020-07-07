@@ -1,4 +1,4 @@
-# --------------------------- start up script ----------------------------------
+# the purpose of global is to figure out app_path so that we can load boot.R
 rm(list=ls()) # boot clean-up
 options(warn=-1) # supress warnings
 app_path <- dirname(getwd()) # app_path is one level up from shiny folder
@@ -9,4 +9,6 @@ boot_path <- file.path(app_path,'r','boot.R')
 if(!file.exists(boot_path)){
   app_path <- '~/Documents/GitHub/Invenage/'
 }
+
+# load boot
 source(file.path(app_path,'r','boot.R'))
