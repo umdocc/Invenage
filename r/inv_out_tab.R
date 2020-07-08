@@ -1,5 +1,10 @@
-# ------------------------------ ui object ---------------------------------------
-inv_out_tab <- tabPanel(
+# ------------------------------ ui object -------------------------------------
+# if hidden, create blank, otherwise create the tab
+if ('inv_out' %in% hidden_tab){
+  inv_out_tab <- tabPanel(
+    theme = shinytheme("united"), ui_elem$actual[ui_elem$label=='inv_out'])
+}else{
+  inv_out_tab <- tabPanel(
   theme = shinytheme("united"), ui_elem$actual[ui_elem$label=='inv_out'],
   fluidRow(
     box(
@@ -62,7 +67,7 @@ inv_out_tab <- tabPanel(
     )# end inv_out box2
   )# end inv_out fluidRow
 ) # end of ui object
-
+}
 # ---------------------------- render functions ----------------------------------  
 render_current_pxk_infostr <- function(config_dict){renderUI({
   pxk_num <- get_current_pxk(config_dict) # get the current pxk_num
