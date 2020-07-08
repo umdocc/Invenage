@@ -1,3 +1,34 @@
+# create config_dict and build the paths inside, require app_path
+create_config_dict <- function(app_path,location='home'){
+  home_path <- path.expand('~')
+  home_path <- gsub('\\\\','/',home_path) #windows fix
+  home_path <- gsub('/Documents','',home_path)
+  config_path <- file.path(home_path,'invenage_data','invenage_conf.csv')
+  
+  if (file.exists(config_path)){
+    config_dict <- read.csv(config_path, stringsAsFactors = F)
+  }else{
+    stop('invenage_conf.csv not found!')
+  }
+  # build paths in config_dict
+  config_dict$value[config_dict$type=='abs'] <- 
+    gsub(';','/',config_dict$value[config_dict$type=='abs'])
+  config_dict$value[config_dict$type=='relative'] <- 
+    gsub(';','/',config_dict$value[config_dict$type=='relative'])
+  config_dict$value[config_dict$type=='relative'] <- 
+    file.path(app_path,config_dict$value[config_dict$type=='relative'])
+  return(config_dict)
+}
+
+# create ui_elem
+create_ui_elem <- function(){
+  reload_tbl(config_dict,"localisation")
+  app_lang <- config_dict$value[config_dict$name=='app_lang']
+  localisation <- localisation[localisation$app_lang==app_lang,]
+  ui_elem <- localisation[localisation$group=='ui_elements',]
+  return(ui_elem)
+}
+
 # ----------------------- general operation functions --------------------------
 # this function translate a strring back into label by a single line ui_elem
 # if a table is provided, it will also translate back to the code/id
