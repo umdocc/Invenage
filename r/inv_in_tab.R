@@ -1,5 +1,8 @@
 # inv_out tab ui and functions
 # ---------------------------- shiny ui object --------------------------------
+if('inv_in' %in% hidden_tab){
+  inv_in_tab <- tabPanel(ui_elem$actual[ui_elem$label=='inv_in'])
+}else{
 inv_in_tab <- tabPanel(
   theme = shinytheme("united"), ui_elem$actual[ui_elem$label=='inv_in'],
   fluidRow(
@@ -47,7 +50,7 @@ inv_in_tab <- tabPanel(
     )
   )
 )
-
+}
 render_import_tbl <- function(){DT::renderDataTable({
   import_log_tbl <-merge(
     import_log, product_info %>% select(prod_code,comm_name), all.x=T) 

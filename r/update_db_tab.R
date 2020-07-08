@@ -1,9 +1,6 @@
-# all codes used in update_db tab
-
-# ui object
+# --------------------- ui object ----------------------------------------------
 if ('update_db' %in% hidden_tab){
-  update_db_tab <- tabPanel(
-    ui_elem$actual[ui_elem$label=='update_db'])
+  update_db_tab <- tabPanel(ui_elem$actual[ui_elem$label=='update_db'])
 }else{
 update_db_tab <- tabPanel(
   ui_elem$actual[ui_elem$label=='update_db'],

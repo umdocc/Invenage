@@ -1,5 +1,8 @@
 # functions to create the ui for report tab
-lu_report_tab <- tabPanel(
+if('lu_report' %in% hidden_tab){
+  lu_report_tab <- tabPanel(ui_elem$actual[ui_elem$label=='lu_report'])
+}else{
+  lu_report_tab <- tabPanel(
   ui_elem$actual[ui_elem$label=='lu_report'],
   fluidRow(
     style = "background-color:#f5f5f5;",
@@ -20,4 +23,4 @@ lu_report_tab <- tabPanel(
     )
   )
 )
-
+}
