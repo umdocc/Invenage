@@ -2,7 +2,7 @@
 # ----------------------------------- init -------------------------------------
 required_package <- c('shinythemes','DBI','DT', 'shiny', 'shinydashboard', 
                       'scales', 'openxlsx', 'dplyr', 'data.table', 'lubridate',
-                      'emayili')
+                      'emayili','shinyalert')
 lapply(required_package, require, character.only = TRUE)
 
 # source the base script, which provide functions for boot
@@ -32,13 +32,14 @@ hidden_tab <- unlist(
 
 
 # we can now load the remaining function
-func_list <- c('reload_ui','ui_helper','ui_render','stats',
+func_list <- c('reload_ui','ui_helper','shared_ui','stats',
                'inv_in_tab','inv_in_helper',
                'inv_out_tab','inv_out_helper',
                'lu_report_helper','lu_report_tab',
                'pxk_man_tab','pxk_man_helper',
                'update_db_tab',
-               'hr_log_tab')
+               'hr_log_tab',
+               'invoice_update_tab')
 for (script_to_load in func_list){
   # print(script_to_load)
   script_path <- file.path(app_path, 'r', paste0(script_to_load,'.R'))
@@ -55,7 +56,7 @@ reload_tbl(config_dict, c('currency','staff_info','staff_activity_log',
   'product_info', "output_info", "import_log","customer_info", "guess_table",
   "packaging", "sale_log", "pxk_info" , "warehouse_info", "payment_type",
   "importlic_data", "tender_detail", "tender_info", "import_price", 
-  "vendor_info","product_type","po_info"))
+  "vendor_info","product_type","po_info","vendor_invoice"))
 
 # customise
 report_info <- output_info[output_info$type=='report_output',]

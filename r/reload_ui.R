@@ -79,6 +79,11 @@ reload_ui <- function(input,output,ui_list){
       input, 'lu_report_tbl_selector')
   }
   
+  # --------------------------- update_db ui elements --------------------------
+  if ('add_orig_vendor' %in% ui_list){
+    output$add_orig_vendor <- render_vendor_list(
+      input, 'add_orig_vendor', allow_add = T, tab = 'update_db')
+  }
   # ----------------------------- hr_log elements -------------------------------
   if ('admin_name' %in% ui_list){
     output$admin_name <- render_admin_name()
@@ -93,6 +98,18 @@ reload_ui <- function(input,output,ui_list){
     output$admin_activity_log <- render_activity_log(admin_id)
   }
   
-  
+  # ------------------------ invoice_update ui elements ------------------------
+  if ('invoice_vendor' %in% ui_list){
+    output$invoice_vendor <- render_vendor_list(
+      input, 'invoice_vendor', allow_add = F, tab = 'invoice_update')
+  }
+  if ('vendor_invoice_num' %in% ui_list){
+    output$vendor_invoice_num <- render_invoice_num(
+      input, 'vendor_invoice_num', allow_add = T)
+  }
+  if ('invoice_currency' %in% ui_list){
+    output$invoice_currency <- render_invoice_currency(
+      input, 'invoice_currency', allow_add = T)
+  }
   return(output)
 }

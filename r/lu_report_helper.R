@@ -48,8 +48,13 @@ create_lookup_tbl <- function(input,table_name,config_dict,translate_colname=TRU
       lookup_tbl_output, ordering_unit,all.x=T)
     lookup_tbl_output <- merge(
       lookup_tbl_output, product_info %>% 
-        select(prod_code,name,vendor,ref_smn), all.x = T) %>%
-      select(name, vendor, ref_smn, lot, exp_date, remaining_qty, unit)
+        select(prod_code,comm_name,packaging_str,vendor,ref_smn,warehouse_id), 
+      all.x = T)
+    lookup_tbl_output <- merge(lookup_tbl_output,warehouse_info %>% 
+                                 select(warehouse,warehouse_id))
+    lookup_tbl_output <- lookup_tbl_output %>% 
+      select(name, vendor, ref_smn, lot, exp_date, remaining_qty, unit,
+                                                      warehouse)
   }
   # query on simple table
   if (table_name=='product_info'){

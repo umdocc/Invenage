@@ -198,8 +198,7 @@ shinyServer(function(input, output,session) {
   output$add_ref_smn <- render_ref_list(input, 'add_ref', allow_add = T)
   output$add_ordering_unit <- render_add_order_unit(
     input, 'add_ordering_unit', allow_add = T)
-  output$add_orig_vendor <- render_add_vendor(
-    input, 'add_orig_vendor', allow_add = T)
+  reload_ui(input,output,c('add_orig_vendor'))
   output$add_warehouse <- render_add_warehouse(
     input,'add_warehouse', allow_add = T)
   output$add_prod_type <- render_add_prod_type(input, 'add_prod_type')
@@ -241,7 +240,7 @@ shinyServer(function(input, output,session) {
     output <- reload_ui(input,output,'customer_selector')
 
   })
-  # ---------------------- hr_log tab -------------
+  # ------------------------------- hr_log tab ---------------------------------
   output <- reload_ui(input,output,
     c('admin_name','hour_logged','task_desc','admin_activity_log'))
 
@@ -249,4 +248,8 @@ shinyServer(function(input, output,session) {
     write_activity_log(input)
     output <- reload_ui(input,output,'admin_activity_log')
   })
+  
+  # ------------------------- invoice_update tab -------------------------------
+  output <- reload_ui(input,output,
+    c('invoice_vendor','vendor_invoice_num','invoice_currency'))
 })

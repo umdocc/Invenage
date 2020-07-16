@@ -418,17 +418,23 @@ render_add_order_unit <- function(input, iid, allow_add = T){renderUI({
   )
 }) }
 
-render_add_vendor <- function(input, iid, allow_add = T){renderUI({
-  current_vendor <- product_info$vendor[
-    product_info$prod_code == input$add_prod_code]
-  if (length(current_vendor)==0){
-   current_vendor <- vendor_info$vendor
+render_vendor_list <- function(input, iid, allow_add = T,tab='update_db'){
+  renderUI({
+  if (tab=='update_db'){
+    current_vendor <- product_info$vendor[
+      product_info$prod_code == input$add_prod_code]
+    if (length(current_vendor)==0){
+     current_vendor <- vendor_info$vendor
+    }
   }
+  if (tab=='invoice_update'){
+    current_vendor <- vendor_info$vendor[vendor_info$local==0]
+    }
   selectizeInput(
     inputId = iid, label = ui_elem$actual[ui_elem$label=='orig_vendor'],
-    choices = current_vendor, options = list(create = allow_add)
-  )
-}) }
+    choices = current_vendor, options = list(create = allow_add))
+  }) 
+}
 
 render_add_warehouse <- function(input, iid, allow_add = T){renderUI({
   current_warehouse_id <- product_info$warehouse_id[
