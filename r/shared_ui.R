@@ -27,12 +27,11 @@ render_tender_list <- function(iid, config_dict, input){renderUI({
 
 
 # render_po_list
-render_po_list <- function(iid, config_dict){renderUI({
-  
+render_po_list <- function(iid, config_dict,ui_label='select_po'){renderUI({
   po_list_active <- po_info$po_name[po_info$completed==0] 
   
   selectizeInput(
-    inputId = iid, label = ui_elem$actual[ui_elem$label=='select_po'],
+    inputId = iid, label = ui_elem$actual[ui_elem$label==ui_label],
     choices = po_list_active, selected =  po_list_active[1]
   )
 })}
