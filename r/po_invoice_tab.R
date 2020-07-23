@@ -12,6 +12,11 @@ if('invoice_update' %in% hidden_tab){
         htmlOutput('invoice_vendor'),
         htmlOutput('vendor_invoice_num'),
         htmlOutput('invoice_currency'),
+        textInput('invoice_amount',
+                  ui_elem$actual[ui_elem$label=='invoice_amount']),
+        textInput('invoice_cd_num',
+                  ui_elem$actual[ui_elem$label=='invoice_custom_num']),
+        htmlOutput('invoice_po_num'),
         actionButton(
           'update_invoice',
           ui_elem$actual[ui_elem$label=='invoice_update'])

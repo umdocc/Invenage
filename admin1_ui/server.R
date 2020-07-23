@@ -251,5 +251,6 @@ shinyServer(function(input, output,session) {
   
   # ------------------------- invoice_update tab -------------------------------
   output <- reload_ui(input,output,
-    c('invoice_vendor','vendor_invoice_num','invoice_currency'))
+    c('invoice_vendor','vendor_invoice_num','invoice_currency','invoice_cd_num',
+      'invoice_po_num'))
 })

@@ -1,6 +1,4 @@
 ####### helper deals with underlying actions and logics
-
-# read the excel po given the file path
 read_excel_po <- function(
   full_file_path,search_str = 'Description', search_col = 2){
   tmp <- read.xlsx(full_file_path, skipEmptyRows = F)

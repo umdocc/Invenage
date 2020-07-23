@@ -111,5 +111,9 @@ reload_ui <- function(input,output,ui_list){
     output$invoice_currency <- render_invoice_currency(
       input, 'invoice_currency', allow_add = T)
   }
+  if ('invoice_po_num' %in% ui_list){
+    output$invoice_po_num <- render_po_list(
+      'invoice_po_num', config_dict)
+  }
   return(output)
 }

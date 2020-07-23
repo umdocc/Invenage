@@ -39,7 +39,7 @@ func_list <- c('reload_ui','ui_helper','shared_ui','stats',
                'pxk_man_tab','pxk_man_helper',
                'update_db_tab',
                'hr_log_tab',
-               'invoice_update_tab')
+               'po_invoice_tab', 'po_invoice_helper')
 for (script_to_load in func_list){
   # print(script_to_load)
   script_path <- file.path(app_path, 'r', paste0(script_to_load,'.R'))

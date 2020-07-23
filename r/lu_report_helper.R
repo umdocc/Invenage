@@ -271,8 +271,6 @@ write_report_data <- function(
 
 build_rp_data <- function(report_type, input, translate=TRUE, prodcode.rm=TRUE){
 
-
-
   # options listed in functions
   if (translate){ # default TRUE : translate the column name
     rp_data <- translate_tbl_column(rp_data,ui_elem)
@@ -509,3 +507,4 @@ create_inv_order_rp <- function(config_dict,tender_include=T){
            unit, ave_mth_sale,total_tender_pack_rem,prod_code)
   # write.xlsx(rp_data,'tongHopDatHang.xlsx')
 }
+
