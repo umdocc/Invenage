@@ -113,7 +113,15 @@ reload_ui <- function(input,output,ui_list){
   }
   if ('invoice_po_num' %in% ui_list){
     output$invoice_po_num <- render_po_list(
-      'invoice_po_num', config_dict)
+      'invoice_po_num', config_dict,ui_label='po_name')
+  }
+  if ('invoice_amount' %in% ui_list){
+    output$invoice_amount <- render_invoice_amount(
+      input, 'invoice_amount', ui_label='invoice_amount')
+  }
+  if ('invoice_cd_num' %in% ui_list){
+    output$invoice_cd_num <- render_invoice_cd_num(
+      input, 'invoice_cd_num', ui_label='invoice_cd_num')
   }
   return(output)
 }

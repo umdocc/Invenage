@@ -12,11 +12,13 @@ if('invoice_update' %in% hidden_tab){
         htmlOutput('invoice_vendor'),
         htmlOutput('vendor_invoice_num'),
         htmlOutput('invoice_currency'),
-        textInput('invoice_amount',
-                  ui_elem$actual[ui_elem$label=='invoice_amount']),
-        textInput('invoice_cd_num',
-                  ui_elem$actual[ui_elem$label=='invoice_custom_num']),
+        htmlOutput('invoice_amount'),
+        htmlOutput('invoice_cd_num'),
         htmlOutput('invoice_po_num'),
+        textInput('payment_id',
+                  ui_elem$actual[ui_elem$label=='payment_id']),
+        textInput('invoice_note',
+                  ui_elem$actual[ui_elem$label=='note']),
         actionButton(
           'update_invoice',
           ui_elem$actual[ui_elem$label=='invoice_update'])
@@ -47,5 +49,31 @@ render_invoice_currency <- function(input,iid,allow_add=T){renderUI({
   selectInput(
     inputId = iid, label = ui_elem$actual[ui_elem$label=='currency'],
     choices = currency_choice,selected = currency_selected)
+  })
+}
+
+render_invoice_amount <- function(
+  input,iid,ui_label='invoice_amount', allow_add=T){renderUI({
+  current_invoice <- input$vendor_invoice_num
+  invoice_amount <- db_read_query(
+    paste0("select amount from vendor_invoice where invoice_num like'",
+           current_invoice,"'"))$amount
+  selectizeInput(
+    inputId = iid, label = ui_elem$actual[ui_elem$label==ui_label],
+    choices = invoice_amount,selected = invoice_amount[1],
+    options = list(create = allow_add))
+  })
+}
+
+render_invoice_cd_num <- function(
+  input,iid,ui_label='invoice_cd_num',allow_add=T){renderUI({
+    current_invoice <- input$vendor_invoice_num
+    cd_num <- db_read_query(
+      paste0("select cd_num from vendor_invoice where invoice_num like'",
+             current_invoice,"'"))$cd_num
+    selectizeInput(
+      inputId = iid, label = ui_elem$actual[ui_elem$label==ui_label],
+      choices = cd_num,selected = cd_num[1],
+      options = list(create = allow_add))
   })
 }
