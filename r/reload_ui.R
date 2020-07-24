@@ -68,7 +68,22 @@ reload_ui <- function(input,output,ui_list){
   if ('in_unit' %in% ui_list){
     output$in_unit <- render_unit(input,'in_unit',type='inv_in') # in_unit
   }
-  
+  if ('in_invoice_num' %in% ui_list){
+    output$in_invoice_num <- render_in_invoice_num(
+      'in_invoice_num',ui_elem$actual[ui_elem$label=='invoice_num']) # in_unit
+  }
+  if ('in_prodname_select' %in% ui_list){  
+    output$in_prodname_select <- render_prod_name_list(
+      input,config_dict,'in_prodname_select') # prod_name
+  }
+  if ('in_vendor' %in% ui_list){    
+    output$in_vendor <- render_vendor_list(
+      input, iid = 'in_vendor', allow_add = F, tab = 'inv_in')
+  }
+  if ('in_unit' %in% ui_list){    
+    output$in_unit <- render_unit(
+      input,'in_unit',type='inv_in')
+  }
   # --------------------------- lu_report ui elements --------------------------
   # pxk_man list of pxk
   if ('man_pxk_list' %in% ui_list){
@@ -117,7 +132,8 @@ reload_ui <- function(input,output,ui_list){
   }
   if ('invoice_amount' %in% ui_list){
     output$invoice_amount <- render_invoice_amount(
-      input, 'invoice_amount', ui_label='invoice_amount')
+      input,
+      'invoice_amount', ui_label='invoice_amount')
   }
   if ('invoice_cd_num' %in% ui_list){
     output$invoice_cd_num <- render_invoice_cd_num(

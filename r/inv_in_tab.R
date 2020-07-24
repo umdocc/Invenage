@@ -32,6 +32,12 @@ inv_in_tab <- tabPanel(
       div(style="display: inline-block;vertical-align:top;width: 140px",
           htmlOutput('in_actual_unit_cost')),
       div(style="display: inline-block;vertical-align:top;width: 140px",
+          htmlOutput('in_invoice_num')),
+      # div(style="display: inline-block;vertical-align:top;width: 140px",
+      #     htmlOutput('in_vat')),
+      # div(style="display: inline-block;vertical-align:top;width: 140px",
+      #     htmlOutput('in_warehouse')),
+      div(style="display: inline-block;vertical-align:top;width: 140px",
           htmlOutput('in_note')),
       actionButton("inv_in",
                    ui_elem$actual[ui_elem$label=='inv_in']),
@@ -60,4 +66,9 @@ render_import_tbl <- function(){DT::renderDataTable({
   output <- translate_tbl_column(import_log_tbl, ui_elem)
   DT::datatable(output, options = list(pageLength = 10),rownames=F)
 })
+}
+
+render_in_invoice_num <- function(iid,ui_label){renderUI({
+  textInput(iid,label=ui_label)
+  })
 }

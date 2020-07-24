@@ -36,27 +36,6 @@ render_po_list <- function(iid, config_dict,ui_label='select_po'){renderUI({
   )
 })}
 
-render_in_vendor <- function(iid,input,config_dict){renderUI({
-
-  current_prod_code <- product_info$prod_code[
-    product_info$search_str == input$in_prodname_select]
-
-  last_vendor_id <- import_log[
-    import_log$prod_code==current_prod_code,]
-  sel_vendor_id <- last_vendor_id$vendor_id[
-    last_vendor_id$delivery_date==max(last_vendor_id$delivery_date)]
-  sel_vendor_id <- sel_vendor_id[!is.na(sel_vendor_id)]
-  if (length(sel_vendor_id)==0){
-    sel_vendor_id <- 1
-  }
-  sel_vendor <- vendor_info$vendor[vendor_info$vendor_id==sel_vendor_id]
-  selectizeInput(
-    inputId = iid, label = ui_elem$actual[ui_elem$label=='vendor'],
-    choices = vendor_info$vendor, selected =  sel_vendor,
-    options = list(create = F)
-  )
-})}
-
 render_in_cost <- function(iid,input,config_dict){renderUI({
 
   current_prod_code <- product_info$prod_code[
@@ -424,14 +403,31 @@ render_vendor_list <- function(input, iid, allow_add = T,tab='update_db'){
       product_info$prod_code == input$add_prod_code]
     if (length(current_vendor)==0){
      current_vendor <- vendor_info$vendor
+     selected_vendor <- current_vendor[1]
     }
   }
   if (tab=='invoice_update'){
     current_vendor <- vendor_info$vendor[vendor_info$local==0]
+    selected_vendor <- current_vendor[1]
+  }
+  if (tab=='inv_in'){
+    current_vendor <- vendor_info$vendor
+    current_prod_code <- product_info$prod_code[
+      product_info$search_str == input$in_prodname_select]
+    last_vendor_id <- import_log[
+      import_log$prod_code==current_prod_code,]
+    sel_vendor_id <- last_vendor_id$vendor_id[
+      last_vendor_id$delivery_date==max(last_vendor_id$delivery_date)]
+    sel_vendor_id <- sel_vendor_id[!is.na(sel_vendor_id)]
+    if (length(sel_vendor_id)==0){
+      sel_vendor_id <- 1
     }
+    selected_vendor <- vendor_info$vendor[vendor_info$vendor_id==sel_vendor_id]
+  }
   selectizeInput(
     inputId = iid, label = ui_elem$actual[ui_elem$label=='orig_vendor'],
-    choices = current_vendor, options = list(create = allow_add))
+    choices = current_vendor, selected = selected_vendor, 
+    options = list(create = allow_add))
   }) 
 }
 
