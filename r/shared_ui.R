@@ -402,14 +402,14 @@ render_add_order_unit <- function(input, iid, allow_add = T){renderUI({
 
 render_vendor_list <- function(input, iid, ui_label, allow_add = T, tab='update_db'){
   renderUI({
-    # ui_elem$actual[ui_elem$label=='orig_vendor']
+
   if (tab=='update_db'){
     current_vendor <- product_info$vendor[
       product_info$prod_code == input$add_prod_code]
     if (length(current_vendor)==0){
      current_vendor <- vendor_info$vendor
-     selected_vendor <- current_vendor[1]
     }
+    selected_vendor <- current_vendor[1]
   }
   if (tab=='invoice_update'){
     current_vendor <- vendor_info$vendor[vendor_info$local==0]
