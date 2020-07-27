@@ -31,12 +31,19 @@ load_po_to_db <- function(po_name,config_dict){
   # read the po data
   full_path <- get_po_filepath(po_name,config_dict)
   po_data <- read_excel_po(full_path)
+  
+  # add note columns if not presented in the po
+  if (!('note' %in% names(po_data))){
+    po_data$note <- ''
+  }
+  
   po_data <- merge(po_data,product_info %>% select(ref_smn,vendor,prod_code),
                    all.x=T)
   
   #remove qty = 0 items and items with no lot
   po_data <- po_data[po_data$qty >0,]
-  po_data <- po_data[!is.na(po_data$lot),]
+  po_data <- po_data[!is.na(po_data$lot) | po_data$lot=='',]
+  
   # remove the "'" in lot/date
   po_data$lot <- gsub("'","",po_data$lot)
   po_data$exp_date <- gsub("'","",po_data$exp_date)
@@ -114,9 +121,7 @@ process_inv_in_buttton <- function(config_dict,input){
   # reload the table
   in_prod_code <- product_info$prod_code[
     product_info$search_str==input$in_prodname_select]
-  current_date <- Sys.Date()
-  in_warehouse <- product_info$warehouse_id[
-    product_info$prod_code==in_prod_code]
+
   in_vendor_id <- vendor_info$vendor_id[vendor_info$vendor==input$in_vendor]
   
   # enforce lot and date
@@ -131,17 +136,22 @@ process_inv_in_buttton <- function(config_dict,input){
     prod_code = in_prod_code,
     unit = input$in_unit,
     qty = input$in_qty,
-    po_name = paste0('import.',current_date),
+    po_name = paste0('import.',Sys.Date()),
     lot = in_lot,
     exp_date = in_date,
     actual_unit_cost = as.numeric(input$in_actual_unit_cost),
     actual_currency_code = 1,
-    delivery_date = current_date,
-    warehouse_id = in_warehouse,
+    delivery_date = Sys.Date(),
+    warehouse_id = product_info$warehouse_id[
+      product_info$prod_code==in_prod_code],
     vendor_id = in_vendor_id,
     note = paste(
       vendor_info$vendor[vendor_info$vendor_id==in_vendor_id], input$in_note,
-      sep = ';')
+      sep = ';'),
+    in_invoice_num = input$in_invoice_num,
+    in_vat_percent = input$in_vat_percent,
+    in_warehouse_id = warehouse_info$warehouse_id[
+      warehouse_info$warehouse==input$in_warehouse]
   )
   tmp <- check_exist(append_import_log,import_log,
                      c('prod_code','unit','qty','po_name','lot','exp_date'))

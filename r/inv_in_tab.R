@@ -11,7 +11,10 @@ inv_in_tab <- tabPanel(
       p(), # space
       h3(ui_elem$actual[ui_elem$label=='inv_in']),
       htmlOutput('in_prodname_select'),
-      htmlOutput('in_vendor'),
+      div(style="display: inline-block;vertical-align:top;width: 135px",
+          htmlOutput('in_vendor')),
+      div(style="display: inline-block;vertical-align:top;width: 135px",
+          htmlOutput('in_invoice_num')),
       div(style="display: inline-block;vertical-align:top;width: 110px",
           selectizeInput(
             inputId = 'in_qty', label = ui_elem$actual[ui_elem$label=='qty'],
@@ -31,12 +34,11 @@ inv_in_tab <- tabPanel(
           HTML("<br>")),
       div(style="display: inline-block;vertical-align:top;width: 140px",
           htmlOutput('in_actual_unit_cost')),
+
       div(style="display: inline-block;vertical-align:top;width: 140px",
-          htmlOutput('in_invoice_num')),
-      # div(style="display: inline-block;vertical-align:top;width: 140px",
-      #     htmlOutput('in_vat')),
-      # div(style="display: inline-block;vertical-align:top;width: 140px",
-      #     htmlOutput('in_warehouse')),
+          htmlOutput('in_vat_percent')),
+      div(style="display: inline-block;vertical-align:top;width: 140px",
+          htmlOutput('in_warehouse')),
       div(style="display: inline-block;vertical-align:top;width: 140px",
           htmlOutput('in_note')),
       actionButton("inv_in",
@@ -69,6 +71,27 @@ render_import_tbl <- function(){DT::renderDataTable({
 }
 
 render_in_invoice_num <- function(iid,ui_label){renderUI({
-  textInput(iid,label=ui_label)
+  selectizeInput(iid,label=ui_label,choices=NULL,options = list(create=T))
+  })
+}
+
+render_vat_percent <- function(input,iid,ui_label,tab='inv_in'){renderUI({
+  current_prod_code <- product_info$prod_code[
+    product_info$search_str==input$in_prodname_select]
+  current_vendor_id <- vendor_info$vendor_id[
+    vendor_info$vendor==input$in_vendor]
+
+  # set up vat choices and the latest vat
+  vat_choices <- c(0,5,10)
+  last_vat <- import_log[import_log$prod_code==current_prod_code &
+    import_log$vendor_id==current_vendor_id,]
+  last_vat <- last_vat$in_vat_percent[
+    last_vat$delivery_date==max(last_vat$delivery_date)]
+
+  if(is.na(last_vat)){last_vat <- vat_choices[1]} # if nothing default to first
+  
+  selectizeInput(iid,label=ui_label,choices=vat_choices,
+                 selected=last_vat,
+                 options = list(create=T))
   })
 }

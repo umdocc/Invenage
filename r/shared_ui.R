@@ -330,24 +330,28 @@ render_payment_type <- function(input,iid,ui_type){renderUI({
               choices = paymentChoices,selected = defaultPay)
 }) }
 
-render_warehouse <- function(input,iid,warehouse_info){renderUI({
-  warehouseChoices <- warehouse_info$warehouse
-  # get default warehouse based on current product
-  tmp <- update_inventory(config_dict)
-  current_prod_code <- product_info[
-    product_info$search_str==input$prod_name_select, "prod_code"]
-  default_warehouse_id <- tmp$warehouse_id[
-    tmp$prod_code==current_prod_code & 
-      tmp$lot==input$lot_select]
-  if (length(default_warehouse_id)==0){ # set default if we cannot find sth
-    default_warehouse <- warehouseChoices[1]
-  }else{
-    default_warehouse <- warehouse_info$warehouse[
-    warehouse_info$warehouse_id == default_warehouse_id]
+render_warehouse <- function(input, iid, ui_label, tab = 'inv_out'){renderUI({
+  warehouse_choices <- warehouse_info$warehouse
+  default_warehouse <- warehouse_choices[1] # set default_warehouse
+  
+  # if this is inv_out tab, solve for default_warehouse
+  if (tab=='inv_out'){
+    # get default warehouse based on current product
+    tmp <- update_inventory(config_dict)
+    current_prod_code <- product_info[
+      product_info$search_str==input$prod_name_select, "prod_code"]
+    default_warehouse_id <- tmp$warehouse_id[
+      tmp$prod_code==current_prod_code & 
+        tmp$lot==input$lot_select][1]
+    # if we can find sth, set the new default
+    if (length(default_warehouse_id)!=0){
+      default_warehouse <- warehouse_info$warehouse[
+      warehouse_info$warehouse_id == default_warehouse_id]
+    }
   }
   selectInput(inputId = iid,
-              label = ui_elem$actual[ui_elem$label=='warehouse'],
-              choices = warehouseChoices, selected = default_warehouse)
+              label = ui_label,
+              choices = warehouse_choices, selected = default_warehouse)
 }) }
 
 # this render the current prod_code list, allow adding prod_code
@@ -396,8 +400,9 @@ render_add_order_unit <- function(input, iid, allow_add = T){renderUI({
   )
 }) }
 
-render_vendor_list <- function(input, iid, allow_add = T,tab='update_db'){
+render_vendor_list <- function(input, iid, ui_label, allow_add = T, tab='update_db'){
   renderUI({
+    # ui_elem$actual[ui_elem$label=='orig_vendor']
   if (tab=='update_db'){
     current_vendor <- product_info$vendor[
       product_info$prod_code == input$add_prod_code]
@@ -425,7 +430,7 @@ render_vendor_list <- function(input, iid, allow_add = T,tab='update_db'){
     selected_vendor <- vendor_info$vendor[vendor_info$vendor_id==sel_vendor_id]
   }
   selectizeInput(
-    inputId = iid, label = ui_elem$actual[ui_elem$label=='orig_vendor'],
+    inputId = iid, label = ui_label,
     choices = current_vendor, selected = selected_vendor, 
     options = list(create = allow_add))
   }) 

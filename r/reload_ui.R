@@ -22,7 +22,9 @@ reload_ui <- function(input,output,ui_list){
   # inv_out warehouse selector
   if ('warehouse_selector' %in% ui_list){
     output$warehouse_selector <- render_warehouse(
-      input, 'warehouse_selector',warehouse_info)
+      input, iid = 'warehouse_selector',
+      ui_label = ui_elem$actual[ui_elem$label=='warehouse'],
+      tab='inv_out')
   }
   # inv_out lot selector
   if ('lot_select' %in% ui_list){
@@ -78,12 +80,35 @@ reload_ui <- function(input,output,ui_list){
   }
   if ('in_vendor' %in% ui_list){    
     output$in_vendor <- render_vendor_list(
-      input, iid = 'in_vendor', allow_add = F, tab = 'inv_in')
+      input, iid = 'in_vendor', 
+      ui_label = ui_elem$actual[ui_elem$label=='vendor'],
+      allow_add = F, tab = 'inv_in')
   }
   if ('in_unit' %in% ui_list){    
-    output$in_unit <- render_unit(
-      input,'in_unit',type='inv_in')
+    output$in_unit <- render_unit(input,'in_unit',type='inv_in')
   }
+  if ('in_note' %in% ui_list){  
+    output$in_note <- render_note('in_note')
+  }
+  if ('in_actual_unit_cost' %in% ui_list){  
+    output$in_actual_unit_cost <- render_in_cost(
+      'in_actual_unit_cost', input, config_dict)
+  }
+  if ('po_list_2load' %in% ui_list){  
+    output$po_list_2load <-  render_po_list('po_list_2load', config_dict)
+  }
+  if ('in_vat_percent' %in% ui_list){ 
+    output$in_vat_percent <-  render_vat_percent(
+      input,iid='in_vat_percent', ui_elem$actual[ui_elem$label=='vat_percent'],
+      tab = 'inv_in')
+  }
+  if ('in_warehouse' %in% ui_list){ 
+    output$in_warehouse <-  render_warehouse(
+      input, iid='in_warehouse', 
+      ui_label=ui_elem$actual[ui_elem$label=='in_warehouse'], 
+      tab = 'inv_in')
+  }
+  
   # --------------------------- lu_report ui elements --------------------------
   # pxk_man list of pxk
   if ('man_pxk_list' %in% ui_list){
@@ -97,7 +122,9 @@ reload_ui <- function(input,output,ui_list){
   # --------------------------- update_db ui elements --------------------------
   if ('add_orig_vendor' %in% ui_list){
     output$add_orig_vendor <- render_vendor_list(
-      input, 'add_orig_vendor', allow_add = T, tab = 'update_db')
+      input, 'add_orig_vendor', 
+      ui_label = ui_elem$actual[ui_elem$label=='orig_vendor'],
+      allow_add = T, tab = 'update_db')
   }
   # ----------------------------- hr_log elements -------------------------------
   if ('admin_name' %in% ui_list){
@@ -116,7 +143,9 @@ reload_ui <- function(input,output,ui_list){
   # ------------------------ invoice_update ui elements ------------------------
   if ('invoice_vendor' %in% ui_list){
     output$invoice_vendor <- render_vendor_list(
-      input, 'invoice_vendor', allow_add = F, tab = 'invoice_update')
+      input, 'invoice_vendor', 
+      ui_label = ui_elem$actual[ui_elem$label=='orig_vendor'],
+      allow_add = F, tab = 'invoice_update')
   }
   if ('vendor_invoice_num' %in% ui_list){
     output$vendor_invoice_num <- render_invoice_num(

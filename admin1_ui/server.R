@@ -76,14 +76,10 @@ shinyServer(function(input, output,session) {
 
   
   # ------------------------------- inv_in UI ----------------------------------
-  
-  output$in_actual_unit_cost <- render_in_cost(
-    'in_actual_unit_cost', input, config_dict)
-  output$in_note <- render_note('in_note')
-  output$po_list_2load <-  render_po_list('po_list_2load', config_dict)
-  output <- reload_ui(
-    input,output,
-    c('in_invoice_num','in_prodname_select','in_vendor','in_unit'))
+
+  output <- reload_ui(input,output,
+    c('in_invoice_num','in_prodname_select','in_vendor','in_unit','in_note',
+      'in_actual_unit_cost','po_list_2load','in_vat_percent','in_warehouse'))
   # main table
   output$latest_import_tbl <- render_import_tbl()
   
