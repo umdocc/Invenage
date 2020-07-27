@@ -145,16 +145,15 @@ process_inv_in_buttton <- function(config_dict,input){
     warehouse_id = product_info$warehouse_id[
       product_info$prod_code==in_prod_code],
     vendor_id = in_vendor_id,
-    note = paste(
-      vendor_info$vendor[vendor_info$vendor_id==in_vendor_id], input$in_note,
-      sep = ';'),
+    note = input$in_note,
     in_invoice_num = input$in_invoice_num,
     in_vat_percent = input$in_vat_percent,
     in_warehouse_id = warehouse_info$warehouse_id[
       warehouse_info$warehouse==input$in_warehouse]
   )
-  tmp <- check_exist(append_import_log,import_log,
-                     c('prod_code','unit','qty','po_name','lot','exp_date'))
+  tmp <- check_exist(
+    append_import_log,import_log,
+    c('prod_code','unit','qty','po_name','lot','in_invoice_num'))
   if (any(tmp$exist)){
     show_alert('error','previously_entered','error')
   }else{

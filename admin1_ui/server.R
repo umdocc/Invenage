@@ -81,7 +81,7 @@ shinyServer(function(input, output,session) {
     c('in_invoice_num','in_prodname_select','in_vendor','in_unit','in_note',
       'in_actual_unit_cost','po_list_2load','in_vat_percent','in_warehouse'))
   # main table
-  output$latest_import_tbl <- render_import_tbl()
+  output$latest_import_tbl <- render_output_tbl('import_log')
   
   # ----------- buttons
   # create and append import_log
@@ -90,7 +90,7 @@ shinyServer(function(input, output,session) {
     process_inv_in_buttton(config_dict,input)
   
     # refresh the UI
-    output$latest_import_tbl <- render_import_tbl()
+    output$latest_import_tbl <- render_output_tbl()
   })
   
   # load the excel po

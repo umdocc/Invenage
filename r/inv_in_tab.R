@@ -59,14 +59,35 @@ inv_in_tab <- tabPanel(
   )
 )
 }
-render_import_tbl <- function(){DT::renderDataTable({
-  import_log_tbl <-merge(
+
+# call the appropriate sub-rutine based on table name
+render_output_tbl <- function(table_name='import_log'){DT::renderDataTable({
+  if (table_name=='import_log'){
+  output_tbl <-merge(
     import_log, product_info %>% select(prod_code,comm_name), all.x=T) 
-  import_log_tbl <- import_log_tbl[order(import_log_tbl$id, decreasing = T),]
-  import_log_tbl <- import_log_tbl %>% 
-    select(comm_name, po_name, qty, unit, lot, exp_date, actual_unit_cost, note)
-  output <- translate_tbl_column(import_log_tbl, ui_elem)
-  DT::datatable(output, options = list(pageLength = 10),rownames=F)
+  # replace warehouse_id with in_warehouse_id
+  output_tbl$warehouse_id <- output_tbl$in_warehouse_id
+  output_tbl$in_warehouse_id <- NULL
+  # merge info into note
+  output_tbl <- merge(
+    output_tbl, vendor_info %>% select(vendor,vendor_id), all.x=T)
+  output_tbl$qty <- paste(output_tbl$qty,output_tbl$unit)
+  output_tbl <- merge(
+    output_tbl,warehouse_info %>% select(warehouse,warehouse_id), 
+    all.x=T)
+  output_tbl$merged_note <- paste(output_tbl$vendor,output_tbl$warehouse,
+                                  output_tbl$note,
+                                  sep=";")
+  output_tbl$note <- output_tbl$merged_note
+  output_tbl <- output_tbl[order(output_tbl$id, decreasing = T),]
+  output_tbl <- output_tbl %>% 
+    rename(vat_percent=in_vat_percent, invoice_num =  in_invoice_num) %>%
+    select(
+      comm_name, qty, lot, exp_date, actual_unit_cost, 
+      invoice_num, vat_percent, note)
+  }
+  output_tbl <- translate_tbl_column(output_tbl, ui_elem)
+  DT::datatable(output_tbl, options = list(pageLength = 10),rownames=F)
 })
 }
 
