@@ -99,7 +99,7 @@ shinyServer(function(input, output,session) {
     load_po_to_db(po_name,config_dict)
 
     # refresh the UI
-    output$latest_import_tbl <- render_import_tbl()
+    output$latest_import_tbl <- render_output_tbl('import_log')
   })
   # --------------------------- lu_report UI -------------------------------
 
