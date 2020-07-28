@@ -1,8 +1,3 @@
-# ------------------ function to support render_functions ----------------------
-
-# return the latest incomplete pxk, if there is none, create a new one
-
-
 # function to select customer using the database to look at PXK
 get_cust_list <- function(config_dict,type='inv_out'){
   current_pxk <- pxk_info[pxk_info$completed==0,'pxk_num']
@@ -17,8 +12,6 @@ get_cust_list <- function(config_dict,type='inv_out'){
   }
   return(cust_choice)
 }
-
-
 
 # function to build estimated import cost from import_log
 get_est_import_cost <- function(import_log, algorithm='weighted_average'){
@@ -117,9 +110,6 @@ clean_duplicates <- function(
   }
   return(data_df)
 }
-
-# return the pxk data from pxk_num
-
 
 # translate column
 translate_tbl_column <- function(input_df,ui_elem){

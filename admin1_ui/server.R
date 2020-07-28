@@ -56,17 +56,11 @@ shinyServer(function(input, output,session) {
     dbDisconnect(conn)
     
     # UI refresh
-    output$customer_selector <- render_customer_list(
-      'customer_name', type='inv_out', input) # customer
-    output$current_pxk_tbl <- render_invout_pxktable() # current_pxk_tbl
-    output$current_pxk_info <- render_current_pxk_infostr(
-      config_dict) #current pxk info
-    output$prod_name_selector <- render_prod_name_list(
-      input,product_info,'prod_name_select') # prod_name
-    output$qty_selector <- render_qty(iid='qty_selector') #Qty
-    output$lot_select <- render_lot(input, iid='lot_select') # Lot
-    output$prod_info_str <- render_prod_info(input) #product Info pane
-    output$pxk_note <- render_note(iid='pxk_note') #Note
+    output <- reload_ui(
+      input,output,
+      c('customer_selector','prod_name_select','qty_selector','lot_select',
+        'pxk_note','prod_info_str','current_pxk_info','current_pxk_tbl',
+        'invout_stt_list','man_pxk_list'))
     
     # create the excel for current pxk
     dest_path <- create_pxk_file(finalised_pxk_num)
@@ -90,7 +84,7 @@ shinyServer(function(input, output,session) {
     process_inv_in_buttton(config_dict,input)
   
     # refresh the UI
-    output$latest_import_tbl <- render_output_tbl()
+    output$latest_import_tbl <- render_output_tbl('import_log')
   })
   
   # load the excel po
