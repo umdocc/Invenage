@@ -22,6 +22,10 @@ if('invoice_update' %in% hidden_tab){
         actionButton(
           'update_invoice',
           ui_elem$actual[ui_elem$label=='invoice_update'])
+      ),
+      box(
+        width=9, height = 800,
+        DT::dataTableOutput("vendor_invoice_tbl")
       )
     )
   )

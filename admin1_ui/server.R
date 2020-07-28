@@ -248,11 +248,12 @@ shinyServer(function(input, output,session) {
   output <- reload_ui(input,output,
     c('invoice_vendor','vendor_invoice_num','invoice_currency',
       'invoice_amount','invoice_cd_num',
-      'invoice_po_num'))
+      'invoice_po_num','vendor_invoice_tbl'))
   observeEvent(input$update_invoice,{
     update_invoice_data(input)
     output <- reload_ui(
       input,output,
-      c('vendor_invoice_num','invoice_cd_num','invoice_amount'))
+      c('vendor_invoice_num','invoice_cd_num','invoice_amount',
+        'vendor_invoice_tbl'))
   })
 })

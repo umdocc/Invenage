@@ -168,5 +168,8 @@ reload_ui <- function(input,output,ui_list){
     output$invoice_cd_num <- render_invoice_cd_num(
       input, 'invoice_cd_num', ui_label='invoice_cd_num')
   }
+  if ('vendor_invoice_tbl' %in% ui_list){
+    output$vendor_invoice_tbl <- render_output_tbl('vendor_invoice')
+  }
   return(output)
 }
