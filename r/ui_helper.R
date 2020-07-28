@@ -4,7 +4,7 @@
 
 
 # function to select customer using the database to look at PXK
-get_cust_list <- function(config_dict,type){
+get_cust_list <- function(config_dict,type='inv_out'){
   current_pxk <- pxk_info[pxk_info$completed==0,'pxk_num']
   # in type=inv_out, if current_pxk has completion code 
   # then we force customer_name
