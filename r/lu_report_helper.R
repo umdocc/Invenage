@@ -326,8 +326,10 @@ get_import_price <- function(po_data, stringQty = 'qty'){
     all.x=T)
   # if an item has min_order = NA, set it to 1
   po_data$min_order[is.na(po_data$min_order)] <- 1
-  #calculate qty/min_order ratio, then choose one with min of this ratio
+  #calculate qty/min_order ratio, then choose one with 
+  # this ratio >=1 and minimised
   po_data$order_ratio <- po_data$qty/po_data$min_order
+  po_data <- po_data[po_data$order_ratio>=1,]
   po_data <- po_data %>%group_by(prod_code) %>% 
     mutate(min_ratio = min(order_ratio)) %>% ungroup
   po_data <- po_data[po_data$order_ratio==po_data$min_ratio,]
