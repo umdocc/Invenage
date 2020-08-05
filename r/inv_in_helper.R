@@ -1,9 +1,7 @@
 ####### helper deals with underlying actions and logics
 read_excel_po <- function(
   full_file_path,search_str = 'Description', search_col = 2){
-  tmp <- read.xlsx(full_file_path, skipEmptyRows = F)
-  start_pt <- which(tmp[,search_col]==search_str)
-  out_data <- read.xlsx(full_file_path, startRow = start_pt, detectDates = T)
+  out_data <- read_excel_table(full_file_path, search_str, search_col)
   out_data <- col_name_to_label(config_dict,out_data)
   out_data <- out_data[!is.na(out_data$ref_smn),]
   out_data$vendor <- get_vendor_from_filename(config_dict, full_file_path)
@@ -13,6 +11,15 @@ read_excel_po <- function(
   out_data <- out_data %>% 
     select(
       stt,name,qty,ref_smn,lot,exp_date,actual_unit_cost,note,vendor,po_name)
+  return(out_data)
+}
+
+# this function read in the table, with search str and search_col
+read_excel_table <- function(
+  full_file_path,search_str = 'Description', search_col = 2){
+  tmp <- read.xlsx(full_file_path, skipEmptyRows = F)
+  start_pt <- which(tmp[,search_col]==search_str)
+  out_data <- read.xlsx(full_file_path, startRow = start_pt+1, detectDates = T)
   return(out_data)
 }
 
