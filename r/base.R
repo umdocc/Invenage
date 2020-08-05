@@ -1,4 +1,6 @@
 # create config_dict and build the paths inside, require app_path
+# if the db_config flag is true, it will read config from db, merge with local,
+# and prioritise local config in case of duplicates
 create_config_dict <- function(app_path,location='home'){
   home_path <- path.expand('~')
   home_path <- gsub('\\\\','/',home_path) #windows fix
@@ -9,6 +11,9 @@ create_config_dict <- function(app_path,location='home'){
     config_dict <- read.csv(config_path, stringsAsFactors = F)
   }else{
     stop('invenage_conf.csv not found!')
+  }
+  if (config_dict$value[config_dict$name=='config_from_db']=='TRUE'){
+    
   }
   # build paths in config_dict
   config_dict$value[config_dict$type=='abs'] <- 

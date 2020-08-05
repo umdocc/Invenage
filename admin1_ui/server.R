@@ -247,7 +247,7 @@ shinyServer(function(input, output,session) {
     update_invoice_data(input)
     output <- reload_ui(
       input,output,
-      c('vendor_invoice_num','invoice_cd_num','invoice_amount',
+      c('vendor_invoice_num','invoice_amount',
         'vendor_invoice_tbl'))
   })
 })

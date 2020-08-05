@@ -11,5 +11,7 @@ navbarPage(
   pxk_man_tab,
   update_db_tab,
   hr_log_tab,
-  invoice_update_tab
+  navbarMenu("More",
+    invoice_update_tab
+  )
 ) # end navbarPage
