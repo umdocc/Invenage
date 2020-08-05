@@ -88,11 +88,11 @@ render_output_tbl <- function(table_name='import_log'){DT::renderDataTable({
   }
   if (table_name=='vendor_invoice'){
     output_tbl <- vendor_invoice
-    output_tbl$stt <- as.numeric(row.names(vendor_invoice))
     output_tbl <- merge(output_tbl,vendor_info %>% select(vendor_id,vendor))
-    output_tbl <- output_tbl[order(output_tbl$stt, decreasing = T),]
+    output_tbl <- output_tbl[order(output_tbl$id, decreasing = T),]
     output_tbl <- output_tbl %>% 
-      select(vendor, invoice_num, invoice_date, amount, cd_num, po_name)
+      select(vendor, invoice_num, invoice_date, invoice_amount, 
+             invoice_cd_num, po_name)
   }  
   output_tbl <- translate_tbl_column(output_tbl, ui_elem)
   DT::datatable(output_tbl, options = list(pageLength = 10),rownames=F)
