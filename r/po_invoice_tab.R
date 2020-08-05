@@ -60,8 +60,8 @@ render_invoice_amount <- function(
   input,iid,ui_label='invoice_amount', allow_add=T){renderUI({
   current_invoice <- input$vendor_invoice_num
   invoice_amount <- db_read_query(
-    paste0("select amount from vendor_invoice where invoice_num like'",
-           current_invoice,"'"))$amount
+    paste0("select invoice_amount from vendor_invoice where invoice_num like'",
+           current_invoice,"'"))$invoice_amount
   selectizeInput(
     inputId = iid, label = ui_elem$actual[ui_elem$label==ui_label],
     choices = invoice_amount,selected = invoice_amount[1],
@@ -73,8 +73,8 @@ render_invoice_cd_num <- function(
   input,iid,ui_label='invoice_cd_num',allow_add=T){renderUI({
     current_invoice <- input$vendor_invoice_num
     cd_num <- db_read_query(
-      paste0("select cd_num from vendor_invoice where invoice_num like'",
-             current_invoice,"'"))$cd_num
+      paste0("select invoice_cd_num from vendor_invoice where invoice_num like'",
+             current_invoice,"'"))$invoice_cd_num
     selectizeInput(
       inputId = iid, label = ui_elem$actual[ui_elem$label==ui_label],
       choices = cd_num,selected = cd_num[1],

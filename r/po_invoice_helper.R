@@ -48,12 +48,12 @@ update_invoice_data <- function(input){
   append_invoice <- data.frame(
     vendor_id = vendor_info$vendor_id[vendor_info$vendor==input$invoice_vendor],
     invoice_num = current_invoice_num,
-    amount = as.numeric(input$invoice_amount),
+    invoice_amount = as.numeric(input$invoice_amount),
     currency_code = currency$currency_code[
       currency$currency==input$invoice_currency],
     payment_id = input$payment_id,
     invoice_note = input$invoice_note,
-    cd_num = input$invoice_cd_num,
+    invoice_cd_num = input$invoice_cd_num,
     po_name = input$invoice_po_num
   )
   # update by first removing the old data
