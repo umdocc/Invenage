@@ -1,5 +1,4 @@
 # provide various tools
-
 po_name <- 'MDS.Biolabo.PO.280720'
 po_path <- get_po_filepath(po_name,config_dict)
 compare_po_invoice(po_name,invoice_excel_name){

@@ -1,9 +1,9 @@
 # --------------------- ui object ----------------------------------------------
 if ('update_db' %in% hidden_tab){
-  update_db_tab <- tabPanel(ui_elem$actual[ui_elem$label=='update_db'])
+  update_prod_tab <- tabPanel(ui_elem$actual[ui_elem$label=='update_product'])
 }else{
-update_db_tab <- tabPanel(
-  ui_elem$actual[ui_elem$label=='update_db'],
+  update_prod_tab <- tabPanel(
+  ui_elem$actual[ui_elem$label=='update_product'],
   fluidRow(
     useShinyalert(),  # Set up shinyalert
     # add_product box

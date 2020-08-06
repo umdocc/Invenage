@@ -9,9 +9,11 @@ navbarPage(
   inv_in_tab,
   lu_report_tab,
   pxk_man_tab,
-  update_db_tab,
+  # update_db_tab,
   hr_log_tab,
-  navbarMenu("More",
+  navbarMenu(
+    ui_elem$actual[ui_elem$label=='update_db'],
+    update_prod_tab,
     invoice_update_tab
   )
 ) # end navbarPage
