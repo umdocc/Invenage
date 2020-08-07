@@ -169,7 +169,16 @@ reload_ui <- function(input,output,ui_list){
       input, 'invoice_cd_num', ui_label='invoice_cd_num')
   }
   if ('vendor_invoice_tbl' %in% ui_list){
-    output$vendor_invoice_tbl <- render_output_tbl('vendor_invoice')
+    output$vendor_invoice_tbl <- render_output_tbl(input, 'vendor_invoice')
+  }
+  
+  # ----------------------- write_po_price ui ----------------------------------
+  if ('po_man_po_list' %in% ui_list){
+    output$po_man_po_list <- render_po_list(
+      'po_man_po_list', config_dict,ui_label='select_po')
+  }
+  if ('po_man_po_detail' %in% ui_list){
+    output$po_man_po_detail <- render_output_tbl(input, 'po_detail')
   }
   return(output)
 }

@@ -61,7 +61,7 @@ inv_in_tab <- tabPanel(
 }
 
 # render display data
-render_output_tbl <- function(table_name='import_log'){DT::renderDataTable({
+render_output_tbl <- function(input, table_name='import_log'){DT::renderDataTable({
   if (table_name=='import_log'){
   output_tbl <-merge(
     import_log, product_info %>% select(prod_code,comm_name), all.x=T) 
@@ -93,7 +93,14 @@ render_output_tbl <- function(table_name='import_log'){DT::renderDataTable({
     output_tbl <- output_tbl %>% 
       select(vendor, invoice_num, invoice_date, invoice_amount, 
              invoice_cd_num, po_name)
-  }  
+  }
+  if (table_name=='po_detail'){
+    po_name <- input$po_man_po_list
+    # print(po_name)
+    output_tbl <- read_po_data(po_name)
+    output_tbl <- output_tbl %>%
+      select(name, ref_smn, qty, lot, exp_date, actual_unit_cost)
+  }
   output_tbl <- translate_tbl_column(output_tbl, ui_elem)
   DT::datatable(output_tbl, options = list(pageLength = 10),rownames=F)
 })
@@ -111,7 +118,7 @@ render_vat_percent <- function(input,iid,ui_label,tab='inv_in'){renderUI({
     vendor_info$vendor==input$in_vendor]
 
   # set up vat choices and the latest vat
-  vat_choices <- c(0,5,10)
+  vat_choices <- c(0,5,7,10)
   last_vat <- import_log[import_log$prod_code==current_prod_code &
     import_log$vendor_id==current_vendor_id,]
   last_vat <- last_vat$in_vat_percent[

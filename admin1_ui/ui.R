@@ -18,6 +18,6 @@ navbarPage(
   ),
   navbarMenu(
     ui_elem$actual[ui_elem$label=='tools'],
-    write_po_price_tab
+    po_man_tab
   )
 ) # end navbarPage
