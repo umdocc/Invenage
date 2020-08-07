@@ -495,18 +495,26 @@ create_inv_order_rp <- function(config_dict,tender_include=T){
   rp_data <- round_report_col(
     rp_data, col_list = c('ave_mth_sale', 'remaining_qty'), decimal = 2)
   
-  # include final tender remaining if tender_include = T
-  if (tender_include){
-    tender_track <- create_tender_track(sale_log)
-    tender_track <- tender_track %>% group_by(prod_code) %>% 
-      summarise(total_tender_pack_rem = sum(tender_pack_remain))
-    rp_data <- merge(rp_data, tender_track, all.x = T)
-  }else{rp_data$total_tender_rem <- NA}
-  
   # finalise all the required columns
   rp_data <- rp_data %>%
     select(vendor, name, ref_smn, warehouse, remaining_qty,
-           unit, ave_mth_sale,total_tender_pack_rem,prod_code)
-  # write.xlsx(rp_data,'tongHopDatHang.xlsx')
+           unit, ave_mth_sale,prod_code)
+  
+  # include final tender remaining if tender_include = T
+  if (tender_include){
+    # read and summarise the tender track, group by tender_id
+    tender_track <- create_tender_track(sale_log)
+    tender_track <- tender_track %>% group_by(prod_code,tender_id) %>% 
+      summarise(total_tender_pack_rem = sum(tender_pack_remain))
+    
+    # loop through tender track and merge with rp_data
+    for (i in unique(tender_track$tender_id)){
+      tmp <- tender_track[tender_track$tender_id==i,]
+      tmp[,paste('tender',i,'_pack_remain')] <- tmp$total_tender_pack_rem
+      tmp$tender_id <- NULL;tmp$total_tender_pack_rem <- NULL
+      rp_data <- merge(rp_data,tmp,all.x=T)
+    }
+  }
+  return(rp_data)
 }
 
