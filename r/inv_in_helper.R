@@ -17,10 +17,16 @@ read_excel_po <- function(
 # this function read in the table, with search str and search_col
 read_excel_table <- function(
   full_file_path,search_str = 'Description', search_col = 2){
-  tmp <- read.xlsx(full_file_path, skipEmptyRows = F)
-  start_pt <- which(tmp[,search_col]==search_str)
+  start_pt <- get_excel_tbl_startrow(full_file_path,search_str, search_col)
   out_data <- read.xlsx(full_file_path, startRow = start_pt+1, detectDates = T)
   return(out_data)
+}
+
+get_excel_tbl_startrow <- function(
+  full_file_path,search_str = 'Description', search_col = 2){
+  tmp <- read.xlsx(full_file_path, skipEmptyRows = F)
+  start_pt <- which(tmp[,search_col]==search_str)
+  return(start_pt)
 }
 
 get_po_filepath <- function(po_name,config_dict){
