@@ -6,11 +6,7 @@ upload_tender_data <- function(tender_data){
   # checking data requirements
   required_col <- c('stt','comm_name','unit','unit_price',
                     'tender_qty','vendor','tender_id')
-  for (col_name in required_col){
-    if(!(col_name %in% names(tender_data))){
-      stop(paste(col_name, 'column not found'))
-    }
-  }
+  check_required_col(tender_data,required_col)
   
   # use only required columns
   tender_data <- tender_data[,required_col]
@@ -43,4 +39,14 @@ upload_tender_data <- function(tender_data){
   }else{
     print('nothing to upload')
   }
+}
+
+create_vendor_id_dict <- function(){
+  # build the vendor_id dictionary
+  vendor_dict <- guess_table[guess_table$guess_type=='vendor_dict',]
+  vendor_dict <- vendor_dict %>% rename(vendor = output_str)
+  vendor_dict <- merge(vendor_dict,vendor_info,all.x=T)
+  vendor_dict$vendor <- NULL
+  vendor_dict <- vendor_dict %>% rename(vendor = input_str)
+  return(vendor_dict)
 }

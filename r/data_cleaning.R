@@ -1,25 +1,33 @@
 # all data cleaning functions
 # this function use the guess_table to replace all vendor with database vendor_id
-guess_vendor_id <- function(data_df){
-  if (!('vendor' %in% names(data_df))){
-    stop('cannot find vendor column in dataframe')
+guess_vendor_id <- function(input_data,mode='dataframe'){
+  vendor_dict <- create_vendor_id_dict()
+
+  # if a filepath is provided, search through the vendor dict
+  if(mode=='filepath'){
+    for (i in 1:nrow(vendor_dict)){
+      if(grepl(vendor_dict$vendor[i],input_data)){
+        input_data <- vendor_dict$vendor_id[i]
+      }
+    }
   }
-  data_df$vendor <- gsub(' ','',data_df$vendor)
-  vendor_dict <- guess_table[guess_table$guess_type=='vendor_dict',]
-  vendor_dict <- vendor_dict %>% rename(vendor = output_str)
-  vendor_dict <- merge(vendor_dict,vendor_info,all.x=T)
-  vendor_dict$vendor <- NULL
-  vendor_dict <- vendor_dict %>% rename(vendor = input_str)
-  data_df <- data_df[!is.na(data_df$vendor),]
-  
-  #alternative to merge
-  data_df$vendor_id <- 0
-  for (i in 1:nrow(data_df)){
-    if (length(vendor_dict$vendor_id[vendor_dict$vendor==data_df$vendor[i]])>0){
-      data_df$vendor_id[i] <- 
-        vendor_dict$vendor_id[vendor_dict$vendor==data_df$vendor[i]]
+  if(mode=='dataframe'){
+    if (!('vendor' %in% names(input_data))){
+      stop('cannot find vendor column in dataframe')
+    }
+    input_data$vendor <- gsub(' ','',input_data$vendor)
+
+    input_data <- input_data[!is.na(input_data$vendor),]
+    
+    #alternative to merge
+    input_data$vendor_id <- 0
+    for (i in 1:nrow(input_data)){
+      if (length(vendor_dict$vendor_id[vendor_dict$vendor==input_data$vendor[i]])>0){
+        input_data$vendor_id[i] <- 
+          vendor_dict$vendor_id[vendor_dict$vendor==input_data$vendor[i]]
+      }
     }
   }
   # remove all irrelevant vendor
-  return(data_df)
+  return(input_data)
 }
