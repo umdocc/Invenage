@@ -110,7 +110,6 @@ get_local_po_list <-  function(config_dict){
 
 # function to update po_info
 update_po_info <- function(config_dict){
-  po_path <- config_dict$value[config_dict$name=='po_path']
   # compare with remote database
   local_po <- get_local_po_list(config_dict)
   remote_po <- po_info
