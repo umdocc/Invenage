@@ -1,5 +1,10 @@
-# functions to deal with reading and loading data
+# --------------------- functions to read excel files --------------------------
+# this function give and format the po_data given the po_name
+read_po_data <- function(po_name){
+  out_data <- read_excel_po(get_po_filepath(po_name,config_dict))
+}
 
+# ---------------------- functions to update database --------------------------
 # this function take in the raw tender data, as read from excel,
 # do all the cleaning, then upload it to the tender_detail table in the database
 upload_tender_data <- function(tender_data){
@@ -40,7 +45,7 @@ upload_tender_data <- function(tender_data){
     print('nothing to upload')
   }
 }
-
+# --------------------- functions to create tables/dicts -----------------------
 create_vendor_id_dict <- function(){
   # build the vendor_id dictionary
   vendor_dict <- guess_table[guess_table$guess_type=='vendor_dict',]

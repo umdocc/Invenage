@@ -304,54 +304,6 @@ round_report_col <- function(rp_data,col_list,decimal = 2){
   return(rp_data)
 }
 
-# create a tender tracking table
-
-
-# this funcion expect a table with prod_code, qty, vendor_id columns, it then
-# add the import price
-get_import_price <- function(po_data, stringQty = 'qty'){
-  req_col <- c('prod_code','vendor_id',stringQty)
-  for (i in req_col){
-    if (!(i %in% names(po_data))){ stop(paste('error', i, 'not found'))}
-  }
-  
-  # save the name of qty column, then rename it to qty
-  oldname <- stringQty
-  names(po_data)[names(po_data)==stringQty] <- 'qty'
-  
-  # load all import price
-  po_data <- merge(
-    po_data, import_price %>% 
-      select(prod_code, import_price, vendor_id, currency_code, min_order),
-    all.x=T)
-  # if an item has min_order = NA, set it to 1
-  po_data$min_order[is.na(po_data$min_order)] <- 1
-  #calculate qty/min_order ratio, then choose one with 
-  # this ratio >=1 and minimised
-  po_data$order_ratio <- po_data$qty/po_data$min_order
-  po_data <- po_data[po_data$order_ratio>=1,]
-  po_data <- po_data %>%group_by(prod_code) %>% 
-    mutate(min_ratio = min(order_ratio)) %>% ungroup
-  po_data <- po_data[po_data$order_ratio==po_data$min_ratio,]
-  
-  # check for prod_code duplications before returning results
-  if (nrow(po_data[duplicated(po_data %>% select(prod_code,qty)),])>0){
-    stop('po_data contains duplicated line')
-  }else{
-    # restore the name
-    names(po_data)[names(po_data)=='qty'] <- stringQty
-    # remove all useless columns
-    removed_col <- c('min_order','currency_code', 'vendor_id', 'vendor', 
-                     'order_ratio','min_ratio','last_updated', 'lot','exp_date',
-                     'actual_unit_cost','note')
-    for (i in removed_col){ po_data[,i] <- NULL }
-    if ('stt' %in% names(po_data)){
-      po_data <- po_data[order(po_data$stt),]
-    }
-    return(po_data)
-  }
-}
-
 render_lu_report_list <- function(input, iid){renderUI({
   group_label <- report_type[
     report_type$actual==input$lu_report_group_selector,] %>% select(label)
