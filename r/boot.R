@@ -10,6 +10,23 @@ source(file.path(app_path, 'r', paste0('base.R')))
 
 # create config_dict
 config_dict <- create_config_dict(app_path,'home')
+config_dict$source <- 'local'
+
+# read config_dict from db and merge with local
+if (config_dict$value[config_dict$name=='config_from_db']=='TRUE'){
+  admin_id <- config_dict$value[config_dict$name=='admin_id']
+  conn <- db_open(config_dict)
+  db_config <- dbReadTable(conn,'config_dict')
+  db_config <- db_config[db_config$admin_id==admin_id|db_config$admin_id==0,]
+  dbDisconnect(conn)
+  db_config$admin_id <- NULL
+  db_config$source <- 'db'
+  db_config <- build_config_dict_path(db_config)
+  config_dict <- rbind(config_dict,db_config)
+  config_dict <- config_dict[!duplicated(config_dict$name),]
+}
+
+
 
 # database configuration
 db_type <- config_dict$value[config_dict$name=='db_type']

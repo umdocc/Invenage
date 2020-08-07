@@ -12,15 +12,20 @@ create_config_dict <- function(app_path,location='home'){
   }else{
     stop('invenage_conf.csv not found!')
   }
-  if (config_dict$value[config_dict$name=='config_from_db']=='TRUE'){
-    
-  }
+  
+  # # build paths in config_dict
+  config_dict <- build_config_dict_path(config_dict)
+  
+  return(config_dict)
+}
+
+build_config_dict_path <- function(config_dict){
   # build paths in config_dict
-  config_dict$value[config_dict$type=='abs'] <- 
+  config_dict$value[config_dict$type=='abs'] <-
     gsub(';','/',config_dict$value[config_dict$type=='abs'])
-  config_dict$value[config_dict$type=='relative'] <- 
+  config_dict$value[config_dict$type=='relative'] <-
     gsub(';','/',config_dict$value[config_dict$type=='relative'])
-  config_dict$value[config_dict$type=='relative'] <- 
+  config_dict$value[config_dict$type=='relative'] <-
     file.path(app_path,config_dict$value[config_dict$type=='relative'])
   return(config_dict)
 }
