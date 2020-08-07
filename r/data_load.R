@@ -1,7 +1,18 @@
 # --------------------- functions to read excel files --------------------------
 # this function give and format the po_data given the po_name
 read_po_data <- function(po_name){
-  out_data <- read_excel_po(get_po_filepath(po_name,config_dict))
+  po_filepath <- get_po_filepath(po_name,config_dict)
+  out_data <- read_excel_po(po_filepath)
+  # get the vendor_id
+  out_data$vendor_id <- guess_vendor_id(po_filepath,mode='filepath')
+  out_data$vendor <- NULL # remove legacy vendor
+  out_data <- merge(out_data,product_info %>% 
+                      select(vendor_id,ref_smn,prod_code))
+  # check data
+  if (nrow(out_data[is.na(out_data$prod_code),])>0){
+    warning('not all product in po can be identifed')
+  }
+  return(out_data)
 }
 
 # ---------------------- functions to update database --------------------------
