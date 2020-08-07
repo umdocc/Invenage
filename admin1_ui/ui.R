@@ -15,5 +15,9 @@ navbarPage(
     ui_elem$actual[ui_elem$label=='update_db'],
     update_prod_tab,
     invoice_update_tab
+  ),
+  navbarMenu(
+    ui_elem$actual[ui_elem$label=='tools'],
+    write_po_price_tab
   )
 ) # end navbarPage
