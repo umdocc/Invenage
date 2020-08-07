@@ -1,7 +1,7 @@
 # the invoice update tab is for logistics staff to update new 
 # import-related invoice
 if('invoice_update' %in% hidden_tab){
-  invoice_update <- tabPanel(ui_elem$actual[ui_elem$label=='invoice_update'])
+  invoice_update_tab <- tabPanel(ui_elem$actual[ui_elem$label=='invoice_update'])
 }else{
   invoice_update_tab <- tabPanel(
     theme = shinytheme("united"), 
