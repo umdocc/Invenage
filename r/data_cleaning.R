@@ -99,6 +99,22 @@ add_import_price <- function(po_data, stringQty = 'qty'){
     if ('stt' %in% names(po_data)){
       po_data <- po_data[order(po_data$stt),]
     }
+    
+    # display a warning if price not found
+    warn_msg <- check_col_for_na(po_data,'import_price','prod_code')
+    print(warn_msg)
+    
     return(po_data)
+  }
+}
+
+# check the given column for na and return a message identify the rows
+check_col_for_na <- function(data_df,check_col,identity_col){
+  missing_data <- data_df[is.na(data_df[,check_col]),]
+  if (nrow(missing_data)>0){
+    identity_list <- paste(missing_data[[identity_col]],collapse = ';')
+    warn_msg <- paste(check_col,'for the following',identity_col,'not found:',
+                identity_list)
+    return(warn_msg)
   }
 }
