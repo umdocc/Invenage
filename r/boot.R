@@ -33,7 +33,7 @@ hidden_tab <- unlist(
 
 # we can now load the remaining function
 func_list <- c('reload_ui','ui_helper','shared_ui','stats','data_cleaning',
-               'data_load',
+               'data_load','data_check',
                'inv_in_tab','inv_in_helper',
                'inv_out_tab','inv_out_helper',
                'lu_report_helper','lu_report_tab',
