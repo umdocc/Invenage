@@ -149,9 +149,9 @@ shinyServer(function(input, output,session) {
     new_customer_id <- customer_info$customer_id[
       customer_info$customer_name == new_customer]
     new_payment <- input$manpxk_pay_change
-    tmp <- merge(payment_type,ui_elem,by.x = 'payment_label', by.y = 'label')
-    new_payment_code <- tmp$payment_code[
-      tmp$actual == new_payment]
+    
+    new_payment_code <- payment_type$payment_code[
+      payment_type$actual == new_payment]
     
     # writing to database
     conn <- db_open(config_dict)
