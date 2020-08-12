@@ -60,7 +60,8 @@ add_importlic_info <- function(raw_importlic){
 
 # this funcion expect a table with prod_code, qty, vendor_id columns, it then
 # add the exw import price
-add_import_price <- function(po_data, stringQty = 'qty'){
+add_import_price <- function(
+  po_data, stringQty = 'qty', price_level='auto'){
   req_col <- c('prod_code','vendor_id',stringQty)
   for (i in req_col){
     if (!(i %in% names(po_data))){ stop(paste('error', i, 'not found'))}
@@ -77,13 +78,25 @@ add_import_price <- function(po_data, stringQty = 'qty'){
     all.x=T)
   # if an item has min_order = NA, set it to 1
   po_data$min_order[is.na(po_data$min_order)] <- 1
-  #calculate qty/min_order ratio, then choose one with 
-  # this ratio >=1 and minimised
+  
+  #calculate qty/min_order ratio
   po_data$order_ratio <- po_data$qty/po_data$min_order
-  po_data <- po_data[po_data$order_ratio>=1,]
-  po_data <- po_data %>%group_by(prod_code) %>% 
-    mutate(min_ratio = min(order_ratio)) %>% ungroup
-  po_data <- po_data[po_data$order_ratio==po_data$min_ratio,]
+  
+  # if detect_price_level = auto, choose price with 
+  # order_ratio ratio >=1 and minimised
+  if(price_level=='auto'){
+    po_data <- po_data[po_data$order_ratio>=1,]
+    po_data <- po_data %>%group_by(prod_code) %>% 
+      mutate(min_ratio = min(order_ratio)) %>% ungroup
+    po_data <- po_data[po_data$order_ratio==po_data$min_ratio,]
+  }
+  # if price_level = 'max', choose price with 
+  # max order ratio (minimum order)
+  if(price_level=='max'){
+    po_data <- po_data %>%group_by(prod_code) %>% 
+      mutate(max_ratio = max(order_ratio)) %>% ungroup
+    po_data <- po_data[po_data$order_ratio==po_data$max_ratio,]
+  }
   
   # check for prod_code duplications before returning results
   if (nrow(po_data[duplicated(po_data %>% select(prod_code,qty)),])>0){
