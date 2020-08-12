@@ -427,14 +427,14 @@ update_tender_id <- function(config_dict, exclude_code=5){
 }
 
 # this function will create a report for inventory order
-create_inv_order_rp <- function(config_dict,tender_include=T){
+create_inv_order_rp <- function(config_dict,tender_include=T,vendor_id=0){
   rp_data <- update_inventory(config_dict)
   rp_data <- rp_data %>% group_by(prod_code) %>%
     summarise(remaining_qty = sum(remaining_qty)) %>% ungroup
   
   # merge with prod_info so that we get zero items as well
   rp_data <- merge(rp_data,product_info %>% filter(active==T) %>%
-                     select(prod_code,type),all.y=T)
+                     select(prod_code,type,std_mth_stock,min_mth_stock),all.y=T)
   rp_data$remaining_qty[is.na(rp_data$remaining_qty)] <- 0
   
   # add sales_summary
@@ -450,23 +450,39 @@ create_inv_order_rp <- function(config_dict,tender_include=T){
   # finalise all the required columns
   rp_data <- rp_data %>%
     select(vendor, name, ref_smn, warehouse, remaining_qty,
-           unit, ave_mth_sale,prod_code)
+           unit, ave_mth_sale,prod_code,std_mth_stock,min_mth_stock)
   
   # include final tender remaining if tender_include = T
   if (tender_include){
     # read and summarise the tender track, group by tender_id
     tender_track <- create_tender_track(sale_log)
     tender_track <- tender_track %>% group_by(prod_code,tender_id) %>% 
-      summarise(total_tender_pack_rem = sum(tender_pack_remain))
+      summarise(total_tender_pack_rem = sum(tender_pack_remain),.groups='drop')
     
     # loop through tender track and merge with rp_data
     for (i in unique(tender_track$tender_id)){
       tmp <- tender_track[tender_track$tender_id==i,]
-      tmp[,paste('tender',i,'_pack_remain')] <- tmp$total_tender_pack_rem
+      tmp[,paste0('tender',i,'_pack_remain')] <- tmp$total_tender_pack_rem
       tmp$tender_id <- NULL;tmp$total_tender_pack_rem <- NULL
       rp_data <- merge(rp_data,tmp,all.x=T)
     }
   }
+  
+  # finally clean up columns with no data
+  for (col_name in names(rp_data)){
+    if(all(is.na(rp_data[[col_name]]))){
+      rp_data[[col_name]] <- NULL
+    }
+  }
+  
+  # add suggested order, but only suggest items less than min_mon_stock
+  rp_data$suggested_order <- round(rp_data$ave_mth_sale*rp_data$std_mth_stock-
+    rp_data$remaining_qty,digits=0)
+  rp_data$mth_stock_left <- rp_data$remaining_qty/rp_data$ave_mth_sale
+  rp_data$suggested_order[rp_data$mth_stock_left>rp_data$min_mth_stock] <- 0
+  
+  # check the import price internally and 
+  
   return(rp_data)
 }
 

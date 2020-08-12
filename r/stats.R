@@ -3,7 +3,8 @@
 
 # this function return the entire sale data, 
 # with all id/codes reaplaced with names/str
-get_sale_data <- function(vendor='all',from_date){
+get_sale_summary <- function(
+  vendor='all',from_date,group_cols = c('prod_code','customer_id')){
   sale_data <- merge(
     sale_log,pxk_info %>% select(pxk_num,customer_id,sale_datetime))
   sale_data <- merge(sale_data, product_info %>% select(prod_code,vendor_id))
@@ -17,8 +18,16 @@ get_sale_data <- function(vendor='all',from_date){
   # filter using from_date
   sale_data <- sale_data[sale_data$sale_datetime>as.POSIXct(from_date),]
   
+  # convert to pack
+  sale_data <- convert_to_pack(sale_data,packaging,'qty','pack_qty')
+  
+  # by default we group by prod_code and customer_id
+  sale_data <- sale_data %>% group_by_at(group_cols) %>%
+    summarise(total_sale_pack = sum(pack_qty),.groups = 'drop')
+
   # get the customer name
-  sale_data <- merge(sale_data,customer_info %>% select(customer_id,customer_name))
+  sale_data <- merge(sale_data,customer_info %>% 
+                       select(customer_id,customer_name))
   
   # return
   return(sale_data)
