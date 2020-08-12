@@ -25,7 +25,11 @@ read_excel_table <- function(
 get_excel_tbl_startrow <- function(
   full_file_path,search_str = 'Description', search_col = 2){
   tmp <- read.xlsx(full_file_path, skipEmptyRows = F)
-  start_pt <- which(tmp[,search_col]==search_str)
+  if (search_str %in% names(tmp)){
+    start_pt <- 0
+  }else{
+    start_pt <- which(tmp[,search_col]==search_str)
+  }
   return(start_pt)
 }
 
