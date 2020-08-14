@@ -9,12 +9,12 @@ check_inv_out <- function(append_sale_log, config_dict){
   # fix r problem of using factor for everything before convert to pack
   append_sale_log$qty <- as.numeric(as.character(append_sale_log$qty))
   tmp <- convert_to_pack(append_sale_log,packaging,'qty','pack_qty')
-  sale_qty <- tmp$pack_qty
+  sale_qty <- round(tmp$pack_qty,digits=4)
   inventory <- update_inventory(config_dict)
   inv_remain <- inventory$remaining_qty[inventory$prod_code == curent_prodcode &
                                           inventory$lot == current_lot][1]
   if (is.na(inv_remain)){inv_remain <- 0}
-  
+  inv_remain <- round(inv_remain,digits = 4)
   # check for errors, display message if something is wrong
   if (inv_remain<sale_qty){
     show_alert('error','inv_exceed','error')
