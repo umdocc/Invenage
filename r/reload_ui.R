@@ -180,5 +180,17 @@ reload_ui <- function(input,output,ui_list){
   if ('po_man_po_detail' %in% ui_list){
     output$po_man_po_detail <- render_output_tbl(input, 'po_detail')
   }
+  
+  if ('uip_prod_name' %in% ui_list){
+    output$uip_prod_name <- render_prod_name_list(
+      input,product_info,'uip_prod_name') # prod_name
+  }
+
+  if ('uip_import_price' %in% ui_list){
+    output$uip_import_price <- render_prod_import_price(
+      input,product_info,'uip_import_price') # prod_name
+  }
+  
+    
   return(output)
 }

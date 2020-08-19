@@ -1,5 +1,7 @@
-# --------------------- ui object ----------------------------------------------
-if ('update_db' %in% hidden_tab){
+# this tab handle all the update ui and will be big
+# ui layout code
+# ----------------------------- update_prod_tab --------------------------------
+if ('update_prod' %in% hidden_tab){
   update_prod_tab <- tabPanel(ui_elem$actual[ui_elem$label=='update_product'])
 }else{
   update_prod_tab <- tabPanel(
@@ -62,7 +64,26 @@ if ('update_db' %in% hidden_tab){
 )
 }
 
-# -------------------------- ui renderers --------------------------------------
+# ----------------------- update_import_price_tab ------------------------------
+if ('update_import_price' %in% hidden_tab){
+  update_import_price_tab <- 
+    tabPanel(ui_elem$actual[ui_elem$label=='update_import_price'])
+}else{
+  update_import_price_tab <- tabPanel(
+    ui_elem$actual[ui_elem$label=='update_import_price'],
+    fluidRow(
+      useShinyalert(),  # Set up shinyalert
+      # add_product box
+      box(width = 3, height = 400,
+          h3(ui_elem$actual[ui_elem$label=='update_import_price']),
+          htmlOutput('uip_prod_name'),
+          htmlOutput('uip_import_price'),
+      )
+    )
+  )
+}
+
+# -------------------------- render functions ----------------------------------
 render_add_pkg_str <- function(input){renderUI({
   
   ordering_unit <- get_ordering_unit(packaging)
