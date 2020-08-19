@@ -252,7 +252,7 @@ shinyServer(function(input, output,session) {
   })
   # ------------------------- update_import_price tab --------------------------
   output <- reload_ui(input,output,
-              c('uip_prod_name'))
+              c('uip_prod_name','uip_vendor'))
   
   
   # ----------------------------- po_man tab ---------------------------------
