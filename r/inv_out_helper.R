@@ -288,6 +288,14 @@ create_pxk_file <- function(pxk_num){
   printingCustomerName <- dbGetQuery(conn,query)
   printingCustomerName <- printingCustomerName$customer_name[1]
   
+  # append the customer code if needed
+  if(config_dict$value[config_dict$name=='add_customer_code']=='TRUE'){
+    customer_code <- customer_info$customer_code[
+      customer_info$customer_name==printingCustomerName]
+    printingCustomerName <- paste(printingCustomerName,customer_code)
+  }
+  
+  
   output_info <- dbGetQuery(
     conn,'select * from output_info where type = "pxk_output"')
   dbDisconnect(conn)
