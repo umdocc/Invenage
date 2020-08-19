@@ -288,14 +288,6 @@ create_pxk_file <- function(pxk_num){
   printingCustomerName <- dbGetQuery(conn,query)
   printingCustomerName <- printingCustomerName$customer_name[1]
   
-  # append the customer code if needed
-  if(config_dict$value[config_dict$name=='add_customer_code']=='TRUE'){
-    customer_code <- customer_info$customer_code[
-      customer_info$customer_name==printingCustomerName]
-    printingCustomerName <- paste(printingCustomerName,customer_code)
-  }
-  
-  
   output_info <- dbGetQuery(
     conn,'select * from output_info where type = "pxk_output"')
   dbDisconnect(conn)
@@ -305,9 +297,19 @@ create_pxk_file <- function(pxk_num){
     output_info$value[output_info$name=='customerNameRow'])
   customerNameCol <- as.numeric(
     output_info$value[output_info$name=='customerNameCol'])
-  
   writeData(wb,sheet=1,printingCustomerName, startRow=customerNameRow, 
             startCol=customerNameCol, colNames = F)
+  
+  # append the customer code if needed
+  if(config_dict$value[config_dict$name=='add_customer_code']=='TRUE'){
+    # read the customer code, then write it to the cell next to customer name
+    customer_code <- customer_info$customer_code[
+      customer_info$customer_name==printingCustomerName]
+    customer_code_offset <- as.numeric(config_dict$value[
+      config_dict$name=='customer_code_offset'])
+    writeData(wb,sheet=1,customer_code, startRow=customerNameRow, 
+              startCol=customerNameCol+customer_code_offset, colNames = F)
+  }
   
   # writing pxkNum
   pxkNumRow <- as.numeric(output_info$value[output_info$name=='pxkNumRow'])
