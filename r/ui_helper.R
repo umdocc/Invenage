@@ -8,7 +8,7 @@ get_cust_list <- function(config_dict,type='inv_out'){
     cust_choice <- customer_info$customer_name[
       customer_info$customer_id==current_cust_id]
   }else{
-    cust_choice <- customer_info$customer_name
+    cust_choice <- customer_info$customer_name[customer_info$active!=0]
   }
   return(cust_choice)
 }
