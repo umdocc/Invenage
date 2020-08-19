@@ -22,6 +22,8 @@ if (config_dict$value[config_dict$name=='config_from_db']=='TRUE'){
   db_config$admin_id <- NULL
   db_config$source <- 'db'
   db_config <- build_config_dict_path(db_config)
+  # by rbind these two data frame and remove duplicates
+  # any config in db will be overwritten by local config
   config_dict <- rbind(config_dict,db_config)
   config_dict <- config_dict[!duplicated(config_dict$name),]
 }
@@ -47,22 +49,13 @@ lu_report_list <- lu_report_list$actual
 hidden_tab <- unlist(
   strsplit(config_dict$value[config_dict$name=='hidden_tab'],';'))
 
-
-# we can now load the remaining function
-func_list <- c('reload_ui','ui_helper','shared_ui','stats','data_cleaning',
-               'data_load','data_check','data_write',
-               'inv_in_tab','inv_in_helper',
-               'inv_out_tab','inv_out_helper',
-               'lu_report_helper','lu_report_tab',
-               'pxk_man_tab','pxk_man_helper',
-               'update_db_tab',
-               'hr_log_tab',
-               'po_invoice_tab', 'po_invoice_helper',
-               'po_man_tab')
+# load the remaining function
+func_list <- list.files(file.path(app_path,'r'),full.names = T, recursive = T)
+# exclude base/boot otherwise it will stuck in a loop
+func_list <- func_list[!grepl('base|boot',func_list)]
 for (script_to_load in func_list){
   # print(script_to_load)
-  script_path <- file.path(app_path, 'r', paste0(script_to_load,'.R'))
-  source(script_path)
+  source(script_to_load)
 }
 
 # localisation information
