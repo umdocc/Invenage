@@ -46,7 +46,8 @@ render_vendor_list <- function(input, iid, ui_label, allow_add = T, tab='update_
     
     selectizeInput(
       inputId = iid, label = ui_label,
-      choices = current_vendor, selected = selected_vendor, 
+      choices = current_vendor, 
+      selected = selected_vendor, 
       options = list(create = allow_add))
   }) 
 }

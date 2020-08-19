@@ -77,25 +77,11 @@ if ('update_import_price' %in% hidden_tab){
       box(width = 3, height = 400,
           h3(ui_elem$actual[ui_elem$label=='update_import_price']),
           htmlOutput('uip_prod_name'),
-          htmlOutput('uip_import_price'),
+          htmlOutput('uip_vendor')
       )
     )
   )
 }
-
-# -------------------------- render functions ----------------------------------
-render_add_pkg_str <- function(input){renderUI({
-  
-  ordering_unit <- get_ordering_unit(packaging)
-  cur_prod_code <- product_info$prod_code[
-    product_info$search_str == input$add_pkg_prod_name]
-  cur_order_unit <- ordering_unit$unit[ordering_unit$prod_code==cur_prod_code]
-  output <- paste0(
-    ui_elem$actual[ui_elem$label=='add_pkg'],'  ',input$add_unitspp,
-    input$add_pkg_unit,'/',cur_order_unit,' ',
-    ui_elem$actual[ui_elem$label=='for_prod'],' ', input$add_pkg_prod_name)
-  HTML(output)
-}) }
 
 # ----------------------- button functions -------------------------------------
 # update_db :: add product to db button
@@ -143,10 +129,6 @@ add_prod_to_db <- function(input,output){
     append_tbl_rld(config_dict, 'product_info',append_prod)
     append_tbl_rld(config_dict, 'packaging',append_pkg)
     
-    # conn <- db_open(config_dict)
-    # dbWriteTable(conn,'product_info',append_prod,append=T)
-    # dbWriteTable(conn,'packaging',append_pkg,append=T)
-    # dbDisconnect(conn)
     big_msg <- ui_elem$actual[ui_elem$label=='done']
     small_msg <- ui_elem$actual[ui_elem$label=='add_prod_success']
     shinyalert(title = big_msg, text = small_msg, type = "success")
