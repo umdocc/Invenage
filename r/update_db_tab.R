@@ -191,7 +191,8 @@ add_customer_to_db <- function(input,output){
       customer_email = input$add_customer_email,
       customer_address = input$add_customer_address,
       customer_phone = input$add_customer_phone,
-      customer_tfn = input$add_customer_tfn)
+      customer_tfn = input$add_customer_tfn,
+      active = 1)
     append_tbl_rld(config_dict,'customer_info',append_customer)
 
     big_msg <- ui_elem$actual[ui_elem$label=='done']
