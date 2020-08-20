@@ -358,3 +358,9 @@ convert_to_pack <- function(inputDF,packaging,stringSL,packString){
   inputDF[[stringSL]] <- NULL
   return(inputDF)
 }
+
+# return the actual value of an ui_elem label
+get_actual <- function(label_str){
+  actual_str <- ui_elem$actual[ui_elem$label==label_str]
+  return(actual_str)
+}

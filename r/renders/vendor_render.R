@@ -1,8 +1,8 @@
 
-render_vendor_list <- function(input, iid, ui_label, allow_add = T, tab='update_prod'){
-  renderUI({
+render_vendor_list <- function(
+  input, iid, ui_label, allow_add = T, tab='update_product_info'){renderUI({
     
-    if (tab=='update_prod'){
+    if (tab=='update_product_info'){
       current_vendor <- product_info$vendor[
         product_info$prod_code == input$add_prod_code]
       if (length(current_vendor)==0){

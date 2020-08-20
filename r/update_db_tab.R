@@ -1,4 +1,5 @@
 # this tab handle all the update ui and will be big
+
 # ui layout code
 # ----------------------------- update_customer_tab ----------------------------
 if ('update_customer' %in% hidden_tab){
@@ -91,7 +92,18 @@ if ('update_import_price' %in% hidden_tab){
       box(width = 3, height = 400,
           h3(ui_elem$actual[ui_elem$label=='update_import_price']),
           htmlOutput('uip_prod_name'),
-          htmlOutput('uip_vendor')
+          div(style="display: inline-block;vertical-align:top;width: 130px",
+              htmlOutput('uip_vendor')),
+          div(style="display: inline-block;vertical-align:top;width: 110px",
+              htmlOutput('uip_import_price')),
+          div(style="display: inline-block;vertical-align:top;width: 50px",
+          htmlOutput('uip_currency')),
+          textInput(
+            inputId = 'uip_source',
+            label = ui_elem$actual[ui_elem$label=='source']),
+          actionButton(
+            'uip_update_button',
+            label = get_actual('update_import_price'))
       )
     )
   )
