@@ -194,7 +194,21 @@ add_customer_to_db <- function(input,output){
       customer_tfn = input$add_customer_tfn,
       active = 1)
     append_tbl_rld(config_dict,'customer_info',append_customer)
-
+    
+    # if the syste indicate customer_code, retrieve the id then
+    # create new to be compatible with customer_id
+    if (config_dict$value[config_dict$name=='add_customer_code']=="TRUE"){
+      customer_id <- customer_info$customer_id[
+        customer_info$customer_name==input$add_customer_name]
+      customer_code <- paste0('KH',sprintf(paste0('%0',config_dict$value[
+        config_dict$name=='customer_code_width'],'d'),customer_id))
+      # writing to database
+      db_exec_query(
+        paste0("update customer_info set customer_code='",customer_code,
+                    "' where customer_id=",customer_id))
+    }
+    
+    # display message
     big_msg <- ui_elem$actual[ui_elem$label=='done']
     small_msg <- ui_elem$actual[ui_elem$label=='add_customer_success']
     shinyalert(title = big_msg, text = small_msg, type = "success")
