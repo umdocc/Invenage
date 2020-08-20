@@ -1,17 +1,4 @@
-# function to select customer using the database to look at PXK
-get_cust_list <- function(config_dict,type='inv_out'){
-  current_pxk <- pxk_info[pxk_info$completed==0,'pxk_num']
-  # in type=inv_out, if current_pxk has completion code 
-  # then we force customer_name
-  if (length(current_pxk)>0 & type=='inv_out'){
-    current_cust_id <- pxk_info$customer_id[pxk_info$pxk_num==current_pxk]
-    cust_choice <- customer_info$customer_name[
-      customer_info$customer_id==current_cust_id]
-  }else{
-    cust_choice <- customer_info$customer_name[customer_info$active!=0]
-  }
-  return(cust_choice)
-}
+
 
 # function to build estimated import cost from import_log
 get_est_import_cost <- function(import_log, algorithm='weighted_average'){
