@@ -303,12 +303,16 @@ create_pxk_file <- function(pxk_num){
   # append the customer code if needed
   if(config_dict$value[config_dict$name=='add_customer_code']=='TRUE'){
     # read the customer code, then write it to the cell next to customer name
-    customer_code <- customer_info$customer_code[
-      customer_info$customer_name==printingCustomerName]
-    customer_code_offset <- as.numeric(config_dict$value[
-      config_dict$name=='customer_code_offset'])
-    writeData(wb,sheet=1,customer_code, startRow=customerNameRow, 
-              startCol=customerNameCol+customer_code_offset, colNames = F)
+    outprefix <- config_dict$value[config_dict$name=='customer_code_outprefix']
+    customer_code <- paste0(outprefix,customer_info$customer_code[
+      customer_info$customer_name==printingCustomerName])
+    customer_code_pxkrow <- as.numeric(config_dict$value[
+      config_dict$name=='customer_code_pxkrow'])
+    customer_code_pxkcol <- as.numeric(config_dict$value[
+      config_dict$name=='customer_code_pxkcol'])
+    
+    writeData(wb,sheet=1,customer_code, startRow=customer_code_pxkrow, 
+              startCol=customer_code_pxkcol, colNames = F)
   }
   
   # writing pxkNum

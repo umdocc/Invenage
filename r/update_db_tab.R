@@ -220,6 +220,7 @@ add_customer_to_db <- function(input,output){
       db_exec_query(
         paste0("update customer_info set customer_code='",customer_code,
                     "' where customer_id=",customer_id))
+      reload_tbl(config_dict,'customer_info')
     }
     
     # display message
