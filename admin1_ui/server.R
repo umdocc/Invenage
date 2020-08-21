@@ -56,8 +56,7 @@ shinyServer(function(input, output,session) {
     dbDisconnect(conn)
     
     # UI refresh
-    output <- reload_ui(
-      input,output,
+    output <- reload_ui(input,output,
       c('customer_selector','prod_name_select','qty_selector','lot_select',
         'pxk_note','prod_info_str','current_pxk_info','current_pxk_tbl',
         'invout_stt_list','man_pxk_list'))

@@ -181,57 +181,7 @@ render_note <- function(iid){renderUI({
             value = '')
 }) }
 
-# render product info default to inv_out but things can change
-render_prod_info <- function(input,type='inv_out'){renderUI({
-  product_info_str <- build_prod_info(config_dict,input,type)
-  HTML(product_info_str)
-}) }
 
-# function to rebuild the productInfo HTML string
-build_prod_info <- function(config_dict,input,type){
-  inventory <- update_inventory(config_dict)
-  if (type=='inv_out'){
-    current_select <- product_info[
-    product_info$search_str==input$prod_name_select,]
-  }
-  total_available <-inventory[
-    inventory$prod_code == current_select$prod_code &
-      inventory$lot == input$lot_select,
-    'remaining_qty']
-
-  if(length(total_available)==0){total_available <- 0}
-  current_exp_date <- inventory[
-    inventory$prod_code == current_select$prod_code &
-      inventory$lot == input$lot_select, 'exp_date']
-  packaging_str <- packaging[
-    packaging$prod_code == current_select$prod_code &
-      packaging$unit == input$unit_selector,]
-  ordering_unit <- get_ordering_unit(packaging)
-  current_order_unit <- ordering_unit$unit[
-    ordering_unit$prod_code==current_select$prod_code]
-  current_selected_unit <- packaging[
-    packaging$unit==input$unit_selector & 
-      packaging$prod_code==current_select$prod_code,]
-  packaging_str <- paste0(packaging_str$units_per_pack[1],
-                          packaging_str$unit[1],'/',current_order_unit)
-
-  return(paste(
-    "Information:", '<br/>',
-    ui_elem$actual[ui_elem$label=='prod_code'],':',
-    current_select$prod_code, '<br/>',
-    ui_elem$actual[ui_elem$label=='vendor'],':',
-    current_select$vendor,'<br/>',
-    "REF: ",current_select$ref_smn,'<br/>',
-    ui_elem$actual[ui_elem$label=='exp_date'],':',
-    current_exp_date, '<br/>',
-    ui_elem$actual[ui_elem$label=='total_available'],':',
-    round(total_available*current_selected_unit$units_per_pack,digits=0),
-    current_selected_unit$unit,'(',
-    round(total_available,digits=1), current_order_unit, ')<br/>',
-    ui_elem$actual[ui_elem$label=='packaging_str'],
-    ':',packaging_str)
-  )
-}
 
 
 
