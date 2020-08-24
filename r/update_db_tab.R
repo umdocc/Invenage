@@ -110,7 +110,7 @@ if ('update_import_price' %in% hidden_tab){
 }
 
 # ----------------------- button functions -------------------------------------
-# update_db :: add product to db button
+# update_prod :: add product to db button
 add_prod_to_db <- function(input,output){
   
   # first add the vendor if not available
@@ -160,7 +160,8 @@ add_prod_to_db <- function(input,output){
     shinyalert(title = big_msg, text = small_msg, type = "success")
   }
 }
-# update_db :: add packaging to db button
+
+# update_prod :: add packaging to db button
 add_pkg_to_db <- function(input,output){
   # check the input for correct format
   error_free <- T
@@ -199,7 +200,8 @@ add_pkg_to_db <- function(input,output){
     shinyalert(title = big_msg, text = small_msg, type = "success")
   }
 }
-# update_db: add customer to db button
+
+# update_customer: add customer to db button
 add_customer_to_db <- function(input,output){
   error_free <- T
   added_name <- input$add_customer_name
@@ -239,5 +241,28 @@ add_customer_to_db <- function(input,output){
     big_msg <- ui_elem$actual[ui_elem$label=='done']
     small_msg <- ui_elem$actual[ui_elem$label=='add_customer_success']
     shinyalert(title = big_msg, text = small_msg, type = "success")
+  }
+}
+
+# update_import_price :: add/update import price
+update_price_from_uip <- function(input,track_change=T){
+  current_prod_code <- product_info$prod_code[
+    product_info$search_str==input$uip_prod_name]
+  current_vendor_id <- vendor_info$vendor_id[
+    vendor_info$vendor == input$uip_vendor]
+  
+  # also need current_min_order here
+  current_min_order <- input$uip_min_order
+  
+  
+  current_import_price <- import_price[
+    import_price$prod_code==current_prod_code&
+      import_price$vendor_id==current_vendor_id,]
+  new_import_price <- input$uip_import_price
+  # if there is something the new price is different, write to database
+  if(nrow(current_import_price)>0){
+    if(track_change){
+
+    }
   }
 }

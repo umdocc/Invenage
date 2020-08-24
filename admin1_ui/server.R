@@ -253,6 +253,9 @@ shinyServer(function(input, output,session) {
   output <- reload_ui(input,output,
               c('uip_prod_name', 'uip_vendor', 'uip_import_price',
                 'uip_currency'))
+  observeEvent(input$uip_update_button,{
+    update_price_from_uip(input)
+  })
   
   
   # ----------------------------- po_man tab ---------------------------------
