@@ -199,6 +199,11 @@ reload_ui <- function(input,output,ui_list){
       input, iid = 'uip_import_price',
       tab = 'update_import_price')
   }
+
+  if ('uip_min_order' %in% ui_list){
+    output$uip_min_order <- render_min_order(input, iid = 'uip_min_order')
+  }
+  
   
   if ('uip_currency' %in% ui_list){
     output$uip_currency <- render_currency(

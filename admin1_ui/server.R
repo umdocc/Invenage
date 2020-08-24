@@ -252,7 +252,7 @@ shinyServer(function(input, output,session) {
   # ------------------------- update_import_price tab --------------------------
   output <- reload_ui(input,output,
               c('uip_prod_name', 'uip_vendor', 'uip_import_price',
-                'uip_currency'))
+                'uip_currency','uip_min_order'))
   observeEvent(input$uip_update_button,{
     update_price_from_uip(input)
   })

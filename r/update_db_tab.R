@@ -94,9 +94,11 @@ if ('update_import_price' %in% hidden_tab){
           htmlOutput('uip_prod_name'),
           div(style="display: inline-block;vertical-align:top;width: 130px",
               htmlOutput('uip_vendor')),
+          div(style="display: inline-block;vertical-align:top;width: 130px",
+              htmlOutput('uip_min_order')),
           div(style="display: inline-block;vertical-align:top;width: 110px",
               htmlOutput('uip_import_price')),
-          div(style="display: inline-block;vertical-align:top;width: 50px",
+          div(style="display: inline-block;vertical-align:middle;width: 100px",
           htmlOutput('uip_currency')),
           textInput(
             inputId = 'uip_source',
@@ -254,15 +256,25 @@ update_price_from_uip <- function(input,track_change=T){
   # also need current_min_order here
   current_min_order <- input$uip_min_order
   
-  
+  # get current data, defined by prod_code, vendor_id and min_order
   current_import_price <- import_price[
     import_price$prod_code==current_prod_code&
-      import_price$vendor_id==current_vendor_id,]
+      import_price$vendor_id==current_vendor_id&
+      import_price$min_order==current_min_order,]
+  
+  # get input data
   new_import_price <- input$uip_import_price
-  # if there is something the new price is different, write to database
-  if(nrow(current_import_price)>0){
+  # if there is something the new price is different, update database
+  if(nrow(current_import_price)>0&
+     current_import_price$import_price[1]!=new_import_price){
+    
+    # handle track change first
     if(track_change){
-
+      append_tbl_rld(config_dict,'track_import_price',current_import_price)
     }
+    query <- paste0("update import price set import_price=",new_import_price,
+                    "where prod_code='",current_prod_code,
+                    "' and vendor_id=",current_vendor_id,
+                    " and min_order=",current_min_order)
   }
 }
