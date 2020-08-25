@@ -26,6 +26,12 @@ render_prod_info <- function(input,type='inv_out'){renderUI({
       inventory$lot == input$lot_select,
     'remaining_qty']
   
+  # also get all other available lot
+  alllot_available <- inventory[
+    inventory$prod_code == current_select$prod_code &
+      inventory$lot != input$lot_select,]
+  alllot_available$exp_date[is.na(alllot_available$exp_date)] <- 'nodate'
+  
   if(length(total_available)==0){total_available <- 0}
   current_exp_date <- inventory[
     inventory$prod_code == current_select$prod_code &
@@ -41,7 +47,18 @@ render_prod_info <- function(input,type='inv_out'){renderUI({
       packaging$prod_code==current_select$prod_code,]
   packaging_str <- paste0(packaging_str$units_per_pack[1],
                           packaging_str$unit[1],'/',current_order_unit)
-  
+  alllot_str <- ''
+  alllot_available <- merge(alllot_available,ordering_unit,all.x=T)
+  if (nrow(alllot_available)>0){
+    for(i in 1:nrow(alllot_available)){
+      alllot_str <- paste0(
+        alllot_str,alllot_available$lot[i],' - ',alllot_available$exp_date[i],
+        ' - ',alllot_available$remaining_qty[i],'',alllot_available$unit[i],
+        '<br/>')
+    }
+  }
+  # print(alllot_available)
+  # print(current_select$prod_code)
   product_info_str <- paste(
     "Information:", '<br/>',
     ui_elem$actual[ui_elem$label=='prod_code'],':',
@@ -56,7 +73,7 @@ render_prod_info <- function(input,type='inv_out'){renderUI({
     current_selected_unit$unit,'(',
     round(total_available,digits=1), current_order_unit, ')<br/>',
     ui_elem$actual[ui_elem$label=='packaging_str'],
-    ':',packaging_str)
+    ':',packaging_str, '<br/>',get_actual('other_lot'),':<br/>',alllot_str)
   HTML(product_info_str)
 }) }
 
