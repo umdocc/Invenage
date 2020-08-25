@@ -19,7 +19,7 @@ navbarPage(
     update_import_price_tab
   ),
   navbarMenu(
-    ui_elem$actual[ui_elem$label=='tools'],
+    get_actual('tools'),
     po_man_tab
   )
 ) # end navbarPage
