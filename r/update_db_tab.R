@@ -92,11 +92,11 @@ if ('update_import_price' %in% hidden_tab){
       box(width = 3, height = 400,
           h3(ui_elem$actual[ui_elem$label=='update_import_price']),
           htmlOutput('uip_prod_name'),
-          div(style="display: inline-block;vertical-align:top;width: 130px",
+          div(style="display: inline-block;vertical-align:top;width: 150px",
               htmlOutput('uip_vendor')),
-          div(style="display: inline-block;vertical-align:top;width: 130px",
+          div(style="display: inline-block;vertical-align:top;width: 100px",
               htmlOutput('uip_min_order')),
-          div(style="display: inline-block;vertical-align:top;width: 110px",
+          div(style="display: inline-block;vertical-align:top;width: 150px",
               htmlOutput('uip_import_price')),
           div(style="display: inline-block;vertical-align:middle;width: 100px",
           htmlOutput('uip_currency')),
@@ -270,11 +270,32 @@ update_price_from_uip <- function(input,track_change=T){
     
     # handle track change first
     if(track_change){
+      current_import_price$id <- NULL
       append_tbl_rld(config_dict,'track_import_price',current_import_price)
     }
-    query <- paste0("update import price set import_price=",new_import_price,
-                    "where prod_code='",current_prod_code,
+    query <- paste0("update import_price set import_price=",new_import_price,
+                    ",source_name ='",input$uip_source,
+                    "' where prod_code='",current_prod_code,
                     "' and vendor_id=",current_vendor_id,
                     " and min_order=",current_min_order)
+    db_exec_query(query)
+    show_alert(get_actual('success'),'',msg_type = 'success')
+  }
+  # if there is no current import price, write new to database
+  if(nrow(current_import_price)==0){
+    append_import_price <- data.frame(
+      prod_code = current_prod_code,
+      import_price = new_import_price,
+      currency_code = currency$currency_code[
+        currency$currency==input$uip_currency],
+      min_order = input$uip_min_order,
+      last_updated = Sys.Date(),
+      vendor_id = vendor_info$vendor_id[
+        vendor_info$vendor==input$uip_vendor],
+      source_name = input$uip_source
+    )
+    # print(append_import_price)
+    append_tbl_rld(config_dict,'import_price',append_import_price)
+    show_alert('success','abcd',msg_type='success')
   }
 }

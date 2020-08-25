@@ -18,9 +18,12 @@ render_import_price <- function(
           import_price$vendor_id==sel_vendor_id]
       selected_price <- price_choices[1]
     }
+    
     selectizeInput(
-      inputId = iid, label = ui_elem$actual[ui_elem$label=='import_price'],
-      choices = price_choices, selected =  selected_price,
+      inputId = iid, 
+      label = get_actual('import_price'),
+      choices = price_choices, 
+      selected =  selected_price,
       options = list(create=allow_add)
     )
   })

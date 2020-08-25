@@ -186,31 +186,24 @@ reload_ui <- function(input,output,ui_list){
     output$uip_prod_name <- render_prod_name_list(
       input,product_info,'uip_prod_name') # prod_name
   }
-  
   if ('uip_vendor' %in% ui_list){
     output$uip_vendor <- render_vendor_list(
       input, iid='uip_vendor', 
       ui_label=ui_elem$actual[ui_elem$label=='vendor'], 
       tab='update_import_price')
   }
-  
   if ('uip_import_price' %in% ui_list){
     output$uip_import_price <- render_import_price(
       input, iid = 'uip_import_price',
       tab = 'update_import_price')
   }
-
+  if ('uip_currency' %in% ui_list){
+    output$uip_currency <- render_currency(
+      input, iid = 'uip_currency')
+  }
   if ('uip_min_order' %in% ui_list){
     output$uip_min_order <- render_min_order(input, iid = 'uip_min_order')
   }
   
-  
-  if ('uip_currency' %in% ui_list){
-    output$uip_currency <- render_currency(
-      input,iid = 'uip_currency',
-      tab='update_import_price')
-  }
-  
-    
   return(output)
 }

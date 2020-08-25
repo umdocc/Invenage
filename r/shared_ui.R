@@ -182,11 +182,6 @@ render_note <- function(iid){renderUI({
 }) }
 
 
-
-
-
-
-
 build_pxk_status_str <- function(pxk_num,config_dict){
   conn <- db_open(config_dict)
   pxk_status_code <- dbGetQuery(
