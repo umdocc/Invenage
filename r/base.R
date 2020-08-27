@@ -1,3 +1,5 @@
+# --------------------- config and localisation --------------------------------
+
 # create config_dict and build the paths inside, require app_path
 # if the db_config flag is true, it will read config from db, merge with local,
 # and prioritise local config in case of duplicates
@@ -37,6 +39,63 @@ create_ui_elem <- function(){
   localisation <- localisation[localisation$app_lang==app_lang,]
   ui_elem <- localisation[localisation$group=='ui_elements',]
   return(ui_elem)
+}
+
+# return the actual value of an ui_elem label
+get_actual <- function(label_str){
+  actual_str <- ui_elem$actual[ui_elem$label==label_str]
+  return(actual_str)
+}
+
+# --------------------------- database functions -------------------------------
+
+# db_open create a conn object that database call can use
+db_open <- function(config_dict){
+  db_type <- config_dict$value[config_dict$name=='db_type']
+  if (db_type == 'SQLite'){
+    database_path <- config_dict$value[config_dict$name=='db_file']
+    # sqlite.driver <- dbDriver("SQLite")
+    conn <- dbConnect(drv = RSQLite::SQLite(), dbname = database_path)
+  }
+  if (db_type == 'MariaDB'){
+    conn <- dbConnect(
+      drv = RMariaDB::MariaDB(), 
+      username = config_dict$value[config_dict$name=='sql_usr'],
+      password = config_dict$value[config_dict$name=='sql_pswd'], 
+      host = config_dict$value[config_dict$name=='sql_host'],
+      port = 3306, dbname = 'invenage')
+  }
+  return(conn)
+}
+
+# simple db_write auto append
+db_write <- function(config_dict,table_name,x){
+  conn <- db_open(config_dict)
+  dbWriteTable(conn,table_name,x,append=T)
+  dbDisconnect(conn)
+}
+
+# one line db read
+db_read_query <- function(query){
+  conn <- db_open(config_dict)
+  dataout <- dbGetQuery(conn,query)
+  dbDisconnect(conn)
+  return(dataout)
+}
+
+# one-line db exec
+db_exec_query <- function(query){
+  conn <- db_open(config_dict)
+  dbExecute(conn,query)
+  dbDisconnect(conn)
+}
+
+# append to a table, then reload it
+append_tbl_rld <- function(config_dict,tbl_name,x){
+  conn <- db_open(config_dict)
+  dbWriteTable(conn,tbl_name,x,append=T)
+  read_tbl(conn,tbl_name)
+  dbDisconnect(conn)
 }
 
 # ----------------------- general operation functions --------------------------
@@ -158,31 +217,9 @@ get_vendor_from_filename <- function(config_dict,full_file_path){
 }
 
 
-# simple db_write auto append
-db_write <- function(config_dict,table_name,x){
-  conn <- db_open(config_dict)
-  dbWriteTable(conn,table_name,x,append=T)
-  dbDisconnect(conn)
-}
 
-# db_open create a conn object that database call can use
-db_open <- function(config_dict){
-  db_type <- config_dict$value[config_dict$name=='db_type']
-  if (db_type == 'SQLite'){
-    database_path <- config_dict$value[config_dict$name=='db_file']
-    # sqlite.driver <- dbDriver("SQLite")
-    conn <- dbConnect(drv = RSQLite::SQLite(), dbname = database_path)
-  }
-  if (db_type == 'MariaDB'){
-    conn <- dbConnect(
-      drv = RMariaDB::MariaDB(), 
-      username = config_dict$value[config_dict$name=='sql_usr'],
-      password = config_dict$value[config_dict$name=='sql_pswd'], 
-      host = config_dict$value[config_dict$name=='sql_host'],
-      port = 3306, dbname = 'invenage')
-  }
-  return(conn)
-}
+
+
 
 # read_tbl is sub-routine for both reload_tbl and write_rld_tbl
 # it assumes connection object conn
@@ -223,13 +260,7 @@ reload_tbl <- function(config_dict,tbl_name_lst){
   dbDisconnect(conn)
 }
 
-# append to a table, then reload it
-append_tbl_rld <- function(config_dict,tbl_name,x){
-  conn <- db_open(config_dict)
-  dbWriteTable(conn,tbl_name,x,append=T)
-  read_tbl(conn,tbl_name)
-  dbDisconnect(conn)
-}
+
 
 check_exist <- function(current_df, existing_df, check_col = 'file_name'){
   existing_df$exist <- T
@@ -359,8 +390,3 @@ convert_to_pack <- function(inputDF,packaging,stringSL,packString){
   return(inputDF)
 }
 
-# return the actual value of an ui_elem label
-get_actual <- function(label_str){
-  actual_str <- ui_elem$actual[ui_elem$label==label_str]
-  return(actual_str)
-}

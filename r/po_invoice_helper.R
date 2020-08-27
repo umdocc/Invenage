@@ -66,16 +66,6 @@ update_invoice_data <- function(input){
   show_alert('success','invoice_update_success','success')
 }
 
-# one-line db read/exec
-db_exec_query <- function(query){
-  conn <- db_open(config_dict)
-  dbExecute(conn,query)
-  dbDisconnect(conn)
-}
 
-db_read_query <- function(query){
-  conn <- db_open(config_dict)
-  dataout <- dbGetQuery(conn,query)
-  dbDisconnect(conn)
-  return(dataout)
-}
+
+

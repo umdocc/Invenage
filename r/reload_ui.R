@@ -140,6 +140,10 @@ reload_ui <- function(input,output,ui_list){
     output$admin_activity_log <- render_activity_log(admin_id)
   }
   
+  if ('hrl_del_stt' %in% ui_list){
+    output$hrl_del_stt <- render_stt(input, iid='hrl_del_stt')
+  }
+  
   # ------------------------ invoice_update ui elements ------------------------
   if ('invoice_vendor' %in% ui_list){
     output$invoice_vendor <- render_vendor_list(

@@ -230,7 +230,8 @@ shinyServer(function(input, output,session) {
   })
   # ------------------------------- hr_log tab ---------------------------------
   output <- reload_ui(input,output,
-    c('admin_name','hour_logged','task_desc','admin_activity_log'))
+    c('admin_name','hour_logged','task_desc','admin_activity_log',
+      'hrl_del_stt'))
 
   observeEvent(input$task_input,{
     write_activity_log(input)

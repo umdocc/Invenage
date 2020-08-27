@@ -12,7 +12,15 @@ hr_log_tab <- tabPanel(
                      ui_elem$actual[ui_elem$label=='enter_data'])
     ),
     box(width = 9, height = 800,
-        DT::dataTableOutput('admin_activity_log')
+        DT::dataTableOutput('admin_activity_log'),
+        p(),
+        div(style="display: inline-block;padding-top:2px;;width: 200px",
+            dateInput('hrl_log_date', label=get_actual('entry_date'))),
+        div(style="display: inline-block;padding-top:10px;;width: 200px",
+            htmlOutput('hrl_del_stt')),
+        div(style="display: inline-block;padding-top:2px;;width: 200px",
+            actionButton('del_hr_log_entry', label=get_actual('delete_stt')
+        ))
     )
   )
 )
