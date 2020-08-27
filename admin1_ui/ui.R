@@ -14,7 +14,7 @@ navbarPage(
   navbarMenu(
     get_actual('update_db'),
     update_customer_tab,
-    update_prod_tab,
+    update_product_tab,
     invoice_update_tab,
     update_import_price_tab
   ),

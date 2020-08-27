@@ -33,10 +33,10 @@ if ('update_customer' %in% hidden_tab){
 
 
 # ----------------------------- update_prod_tab --------------------------------
-if ('update_prod' %in% hidden_tab){
-  update_prod_tab <- tabPanel(ui_elem$actual[ui_elem$label=='update_product'])
+if ('update_product' %in% hidden_tab){
+  update_product_tab <- tabPanel(ui_elem$actual[ui_elem$label=='update_product'])
 }else{
-  update_prod_tab <- tabPanel(
+  update_product_tab <- tabPanel(
   ui_elem$actual[ui_elem$label=='update_product'],
   fluidRow(
     useShinyalert(),  # Set up shinyalert
