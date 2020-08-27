@@ -19,6 +19,14 @@ if (config_dict$value[config_dict$name=='config_from_db']=='TRUE'){
   db_config <- dbReadTable(conn,'config_dict')
   db_config <- db_config[db_config$admin_id==admin_id|db_config$admin_id==0,]
   dbDisconnect(conn)
+  
+  # if there is duplicated items in db_config, use the one with admin_id
+  db_config$value[db_config$name==db_config$name[duplicated(db_config$name)]] <-
+    db_config$value[db_config$name==db_config$name[duplicated(db_config$name)]&
+                      db_config$admin_id==admin_id][1]
+  db_config <- db_config[!duplicated(db_config$name),]
+  
+  #remove admin_id and finalise
   db_config$admin_id <- NULL
   db_config$source <- 'db'
   db_config <- build_config_dict_path(db_config)
