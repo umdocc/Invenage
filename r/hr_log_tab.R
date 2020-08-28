@@ -86,11 +86,15 @@ render_activity_log <- function(admin_id){DT::renderDataTable({
 # delete an entry from activity log
 del_hrl_stt <- function(input){
   stt_to_del <- input$hrl_del_stt
-  date_to_del <- input$hrl_del_log_date
-  admin_to_del <- staff_info$admin_id[staff_info$admin_name==input$admin_name]
-  query <- paste0("delete from staff_activity_log where activity_date='",
-                  date_to_del,"' and stt=",stt_to_del," and admin_id=",
-                  admin_to_del)
-  db_exec_query(query)
-  reload_tbl(config_dict,'staff_activity_log')
+  # only do something if stt is not blank
+  if(stt_to_del!=''){
+    date_to_del <- input$hrl_del_log_date
+    admin_to_del <- staff_info$admin_id[staff_info$admin_name==input$admin_name]
+    query <- paste0("delete from staff_activity_log where activity_date='",
+                    date_to_del,"' and stt=",stt_to_del," and admin_id=",
+                    admin_to_del)
+    print(query)
+    db_exec_query(query)
+    reload_tbl(config_dict,'staff_activity_log')
+  }
 }
