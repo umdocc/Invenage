@@ -235,7 +235,14 @@ shinyServer(function(input, output,session) {
 
   observeEvent(input$task_input,{
     write_activity_log(input)
-    output <- reload_ui(input,output,'admin_activity_log')
+    output <- reload_ui(input,output,
+      c('admin_name','hour_logged','task_desc','admin_activity_log',
+        'hrl_del_stt'))
+  })
+  observeEvent(input$del_hrl_entry,{
+  del_hrl_stt(input)
+    output <- reload_ui(input,output,
+      c('admin_activity_log','hrl_del_stt'))
   })
   
   # ------------------------- invoice_update tab -------------------------------
