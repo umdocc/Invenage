@@ -168,12 +168,14 @@ process_inv_in_buttton <- function(config_dict,input){
     in_warehouse_id = warehouse_info$warehouse_id[
       warehouse_info$warehouse==input$in_warehouse]
   )
-  tmp <- check_exist(
-    append_import_log,import_log,
-    c('prod_code','unit','qty','po_name','lot','in_invoice_num'))
-  if (any(tmp$exist)){
-    show_alert('error','previously_entered','error')
-  }else{
+  
+  # during data check, the error_label gets overwritten with label
+  # integrity and duplication check
+  error_label <- check_data(append_import_log)
+  error_label <- dup_check(append_import_log,tbl_name = 'import_log')
+  
+  # if error_label='', all checks passed and we can write to db
+  if(error_label==''){
     # writing to database
     append_tbl_rld(config_dict,'import_log',append_import_log)
   }
