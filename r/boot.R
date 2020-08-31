@@ -11,19 +11,19 @@ source(file.path(app_path, 'r', paste0('base.R')))
 # create config_dict
 config_dict <- create_config_dict(app_path,'home')
 config_dict$source <- 'local'
+admin_id <- as.integer(
+  config_dict$value[config_dict$name=='admin_id'])
 
 # read config_dict from db and merge with local
 if (config_dict$value[config_dict$name=='config_from_db']=='TRUE'){
-  admin_id <- config_dict$value[config_dict$name=='admin_id']
+  
   conn <- db_open(config_dict)
   db_config <- dbReadTable(conn,'config_dict')
-  db_config <- db_config[db_config$admin_id==admin_id|db_config$admin_id==0,]
   dbDisconnect(conn)
+  db_config <- db_config[db_config$admin_id==admin_id|db_config$admin_id==0,]
   
   # if there is duplicated items in db_config, use the one with admin_id
-  db_config$value[db_config$name==db_config$name[duplicated(db_config$name)]] <-
-    db_config$value[db_config$name==db_config$name[duplicated(db_config$name)]&
-                      db_config$admin_id==admin_id][1]
+  db_config <- db_config %>% arrange(desc(admin_id))
   db_config <- db_config[!duplicated(db_config$name),]
   
   #remove admin_id and finalise
