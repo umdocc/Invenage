@@ -26,22 +26,7 @@ hr_log_tab <- tabPanel(
   )
 )
 
-# ---------------------------- ui renderers --------------------------------------
-render_admin_name <- function(){renderUI({
-  admin_name <- staff_info$admin_name[
-    staff_info$admin_id==as.integer(
-      config_dict$value[config_dict$name=='admin_id'])]
-  selectInput('admin_name',
-              ui_elem$actual[ui_elem$label=='admin_name'],
-              choices = admin_name,selected = admin_name)
-}) }
-
-render_hour_logged <- function(){renderUI({
-  selectizeInput('hour_logged',
-                 ui_elem$actual[ui_elem$label=='hour_logged'],
-                 choices = seq(0.25,3,0.25),selected = 0.25)
-}) }
-
+# ---------------------------- ui renderers ------------------------------------
 render_task_desc <- function(){renderUI({
   textInput('task_desc',
                  ui_elem$actual[ui_elem$label=='task_desc'])
@@ -50,11 +35,25 @@ render_task_desc <- function(){renderUI({
 # function to render activity log table
 
 # function to handle task_input button
+
 write_activity_log <- function(input){
+  
+  # decode the hour logged
+  hour_table <- guess_table[guess_table$guess_type=='activity_hour',]
+  hour_log <- data.frame(input_str = input$hour_logged)
+  hour_log <- merge(hour_log,hour_table,all.x=T)
+  
+  # if decode failed, attemp to use simple numeric mode
+  if(all(is.na(hour_log$output_str))){
+    hour_log <- sum(as.numeric(input$hour_logged),na.rm = T)
+  }else{
+    hour_log <- sum(as.numeric(hour_log$output_str),na.rm = T)
+  }
+  
   activity_data <- data.frame(
     admin_id = admin_id,
     activity_date = input$hrl_log_date,
-    hour_logged = input$hour_logged,
+    hour_logged = hour_log,
     detail = input$task_desc,
     stt = get_new_hrl_stt(input,stt_type='hrl_new')
   )
