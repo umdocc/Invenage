@@ -137,7 +137,8 @@ reload_ui <- function(input,output,ui_list){
     output$task_desc <- render_task_desc()
   }
   if ('admin_activity_log' %in% ui_list){
-    output$admin_activity_log <- render_activity_log(admin_id)
+    output$admin_activity_log <- render_dt(
+      input, tbl_name='admin_activity_log')
   }
   
   if ('hrl_del_stt' %in% ui_list){

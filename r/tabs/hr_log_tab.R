@@ -61,27 +61,6 @@ write_activity_log <- function(input){
   append_tbl_rld(config_dict,'staff_activity_log',activity_data)
 }
 
-# render data for selected staff only
-render_activity_log <- function(admin_id){DT::renderDataTable({
-  current_staff_log <- staff_activity_log[
-    staff_activity_log$admin_id==as.numeric(admin_id),]
-  current_staff_log <- merge(
-    current_staff_log,staff_info %>% select(admin_id,admin_name))
-  # remove id, translate and render
-  current_staff_log$id <- NULL
-  current_staff_log$admin_id <- NULL
-  
-  # select column,sort, translate
-  current_staff_log <- current_staff_log %>% 
-    arrange(desc(activity_date),desc(stt))
-  current_staff_log <- current_staff_log %>%
-    select(stt,activity_date,detail,hour_logged,admin_name)
-  current_staff_log <- translate_tbl_column(current_staff_log,ui_elem)
-  
-  DT::datatable(current_staff_log, options = list(pageLength = 10),rownames=F)
-})
-}
-
 # delete an entry from activity log
 del_hrl_stt <- function(input){
   stt_to_del <- input$hrl_del_stt

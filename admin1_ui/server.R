@@ -245,6 +245,13 @@ shinyServer(function(input, output,session) {
       c('admin_activity_log','hrl_del_stt'))
   })
   
+  observeEvent(input$admin_activity_log_cell_edit,{
+    edit_dt(input,tbl_name='admin_activity_log')
+    output <- reload_ui(input,output,
+                        c('admin_activity_log','hrl_del_stt'))
+    
+  })
+  
   # ------------------------- invoice_update tab -------------------------------
   output <- reload_ui(input,output,
     c('invoice_vendor','vendor_invoice_num','invoice_currency',
