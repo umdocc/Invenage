@@ -2,7 +2,7 @@
 # ----------------------------------- init -------------------------------------
 required_package <- c('shinythemes','DBI','DT', 'shiny', 'shinydashboard', 
                       'scales', 'openxlsx', 'dplyr', 'data.table', 'lubridate',
-                      'emayili','shinyalert')
+                      'emayili','shinyalert','ggplot2')
 lapply(required_package, require, character.only = TRUE)
 
 # source the base script, which provide functions for boot
