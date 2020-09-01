@@ -14,14 +14,22 @@ hr_log_tab <- tabPanel(
     ),
     box(width = 9, height = 800,
         DT::dataTableOutput('admin_activity_log'),
-        p(),
-        div(style="display: inline-block;padding-top:2px;;width: 200px",
-            dateInput('hrl_del_log_date', label=get_actual('entry_date'))),
-        div(style="display: inline-block;padding-top:2px;;width: 100px",
+        div(
+          style="display: inline-block;vertical-align:top",
+          h5(get_actual('del_selected_stt'))),
+        div(
+          style="display: inline-block;vertical-align:top;width: 80px",
             htmlOutput('hrl_del_stt')),
-        div(style="display: inline-block;padding-top:2px;;width: 200px",
-            actionButton('del_hrl_entry', label=get_actual('delete_stt')
-        ))
+        div(
+          style="display: inline-block;vertical-align:top",
+          h5(get_actual('entry_date'))),
+        div(
+          style="display: inline-block;vertical-align:top;width: 150px",
+          dateInput('hrl_del_log_date', label=NULL)),
+        div(
+          style="display: inline-block;vertical-align:top;width: 200px",
+          actionButton('del_hrl_entry', label=get_actual('delete_stt'))),
+        plotOutput('hrl_sum_plot')
     )
   )
 )

@@ -145,6 +145,11 @@ reload_ui <- function(input,output,ui_list){
     output$hrl_del_stt <- render_stt(input, iid='hrl_del_stt')
   }
   
+  if ('hrl_sum_plot' %in% ui_list){
+    output$hrl_sum_plot <- render_hrl_plot(input)
+  }
+  
+  
   # ------------------------ invoice_update ui elements ------------------------
   if ('invoice_vendor' %in% ui_list){
     output$invoice_vendor <- render_vendor_list(

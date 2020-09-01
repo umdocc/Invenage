@@ -5,9 +5,11 @@ render_dt <- function(
       # read, translate and render
       admin_id <- staff_info$admin_id[staff_info$admin_name==input$admin_name]
       out_table <- read_activity_log(admin_id, mode='display')
+      numofrow <- as.integer(config_dict$value[
+        config_dict$name=='admin_activity_log_numofrow'][1])
     }
     out_table <- translate_tbl_column(out_table,ui_elem)
-    DT::datatable(out_table, options = list(pageLength = 10),rownames=F,
+    DT::datatable(out_table, options = list(pageLength = numofrow),rownames=F,
                 editable = allow_edit)
 })
 }
@@ -28,7 +30,7 @@ read_activity_log <- function(admin_id, mode='display'){
   current_staff_log <- current_staff_log %>% 
     arrange(desc(activity_date),desc(stt))
   display_col <- unlist(strsplit(config_dict$value[
-    config_dict$name=='display_admin_activity_log'],split=';'))
+    config_dict$name=='admin_activity_log_displaycol'],split=';'))
   if(mode=='display'){
     current_staff_log <- current_staff_log[,display_col]
   }

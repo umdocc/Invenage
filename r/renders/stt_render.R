@@ -8,7 +8,7 @@ render_stt <- function(input, iid){renderUI({
              " and activity_date='",selected_date,"'"))
     box_choices <- current_data$stt
     box_selected <- box_choices[1]
-    box_label <- get_actual('stt')
+    box_label <- NULL
   }
   selectInput(iid, label = box_label, 
               choices = box_choices, selected = box_selected)
