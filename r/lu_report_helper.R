@@ -1,15 +1,16 @@
 # first stage in reporting is to get everything into single table format
 # using create_lookup_tbl
-create_lookup_tbl <- function(input,table_name,config_dict,translate_colname=TRUE){
+create_lookup_tbl <- function(
+  input,table_name,config_dict,translate_colname=TRUE){
+  lu_to_date=input$lur_to_date
   if (table_name == 'sale_profit_report'){
     from_date <- input$from_date # from_date and to_date depends on rp type
-    to_date <- input$to_date
-    rp_data <- get_sales_report(config_dict,from_date,to_date)
+    rp_data <- get_sales_report(config_dict,from_date,lu_to_date)
     lookup_tbl_output <- clean_duplicates(
       rp_data,col_list = c("customer_name", "sale_date", "pxk_num"))
   }
   if (table_name == 'inv_exp_date_report'){
-    rp_data <- update_inventory(config_dict)
+    rp_data <- update_inventory(config_dict, to_date = lu_to_date)
     rp_data$remaining_days <- rp_data$intexp_date-Sys.time()
     rp_data$label[rp_data$remaining_days<180] <- 'less_than_6mth'
     rp_data$label[rp_data$remaining_days<90] <- 'less_than_3mth'
@@ -21,14 +22,14 @@ create_lookup_tbl <- function(input,table_name,config_dict,translate_colname=TRU
   }
   if (table_name == 'inv_value_report'){
     # refresh information
-    lookup_tbl_output <- update_inventory(config_dict)
+    lookup_tbl_output <- update_inventory(config_dict, to_date = lu_to_date)
   }
   if (table_name == 'inv_order_report'){
     lookup_tbl_output <- create_inv_order_rp(config_dict,tender_include=T)
   }
   if (table_name == 'inv_audit_report'){
     # read the inventory
-    rp_data <- update_inventory(config_dict)
+    rp_data <- update_inventory(config_dict, to_date = lu_to_date)
     # set all negative number to 0
     rp_data <- rp_data[rp_data$remaining_qty>0,]
     # add ordering unit
@@ -39,7 +40,7 @@ create_lookup_tbl <- function(input,table_name,config_dict,translate_colname=TRU
     lookup_tbl_output <- round_report_col(rp_data,'remaining_qty')
   }
   if (table_name=='inventory'){
-    lookup_tbl_output <- update_inventory(config_dict)
+    lookup_tbl_output <- update_inventory(config_dict, to_date = lu_to_date)
     lookup_tbl_output$remaining_qty <- round(
       lookup_tbl_output$remaining_qty, digits=2)
     lookup_tbl_output$unit <- NULL
@@ -71,8 +72,12 @@ create_lookup_tbl <- function(input,table_name,config_dict,translate_colname=TRU
   if (table_name=='sale_log'){
     lookup_tbl_output <- merge(sale_log, product_info %>% select(
       prod_code,name,vendor,ref_smn))
+
     lookup_tbl_output <- merge(lookup_tbl_output,pxk_info %>% select(
       pxk_num,customer_id,sale_datetime))
+    # filter on to_date
+    lookup_tbl_output <- lookup_tbl_output[
+      lookup_tbl_output$sale_datetime<=as.Date(lu_to_date,format='%Y-%m-%d'),]
     lookup_tbl_output$customer_id <- as.numeric(
       lookup_tbl_output$customer_id)
     lookup_tbl_output <- merge(
@@ -86,8 +91,9 @@ create_lookup_tbl <- function(input,table_name,config_dict,translate_colname=TRU
   if (table_name=='import_log'){
     lookup_tbl_output <- merge(import_log, product_info%>% select(
       prod_code,name)) %>% 
-      select(name,unit,qty,lot,exp_date,po_name,actual_unit_cost)
-    
+      select(name,unit,qty,lot,exp_date,po_name,actual_unit_cost,delivery_date)
+    lookup_tbl_output <- lookup_tbl_output[
+      lookup_tbl_output$delivery_date<=as.Date(lu_to_date,format='%Y-%m-%d'),]
   }
   # format the table
   if (translate_colname){

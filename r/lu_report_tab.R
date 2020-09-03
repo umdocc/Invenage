@@ -13,6 +13,7 @@ if('lu_report' %in% hidden_tab){
         label = ui_elem$actual[ui_elem$label=='choose_group'],
         choices = report_group),     
       htmlOutput('lu_report_tbl_selector'),
+      dateInput('lur_to_date',get_actual('to_date')),
       actionButton(
         "print_lu_report",
         ui_elem$actual[ui_elem$label=='printReport'])

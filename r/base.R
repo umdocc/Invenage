@@ -310,13 +310,20 @@ get_ui_elem <- function(config_dict){
 # if pos_items ==T, it will only return items with positive stock
 # if summarised = T, all lot data will be summarised, leaving only total for
 # a prod_code, this should only be used with pos_items = T
-update_inventory <- function(config_dict, pos_item=TRUE, summarised = FALSE){
-  
-  tmp <- import_log %>% select(prod_code,unit,qty,lot,exp_date,warehouse_id)
+update_inventory <- function(config_dict, pos_item=TRUE, summarised = FALSE,
+                             to_date = Sys.Date()){
+  # pre-process import_log as tmp
+  tmp <- import_log %>% 
+    select(prod_code,unit,qty,lot,exp_date,warehouse_id,delivery_date)
+  tmp <- tmp[tmp$delivery_date<=as.Date(to_date,format='%Y-%m-%d'),]
   tmp <- convert_to_pack(tmp,packaging,'qty','importQty')
   tmp <- tmp %>% group_by(prod_code,unit,lot,warehouse_id) %>% 
     summarise(totalImportQty = sum(importQty), .groups = 'drop') %>% ungroup()
-  tmp2 <- sale_log %>% select(prod_code,unit,qty,lot,warehouse_id)
+  
+  # process sale_log as tmp2
+  tmp2 <- sale_log %>% select(prod_code,unit,qty,lot,warehouse_id,pxk_num)
+  tmp2 <- merge(tmp2,pxk_info %>% select(pxk_num,sale_datetime),all.x=T)
+  tmp2 <- tmp2[tmp2$sale_datetime<=as.Date(to_date,format='%Y-%m-%d'),]
   
   # for sale_log we need to merge with warehouse_id
   tmp2 <- convert_to_pack(tmp2,packaging,'qty','saleQty')
