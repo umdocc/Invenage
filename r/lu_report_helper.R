@@ -17,7 +17,7 @@ create_lookup_tbl <- function(
     rp_data <- rp_data[order(rp_data$intexp_date),]
     rp_data <- merge(rp_data,ui_elem,all.x=T)
     rp_data$note <- rp_data$actual
-    lookup_tbl_output <- rp_data %>% select(vendor,name,ref_smn,remaining_qty,
+    lookup_tbl_output <- rp_data %>% select(vendor,comm_name,ref_smn,remaining_qty,
                                   exp_date,note,prod_code)
   }
   if (table_name == 'inv_value_report'){
@@ -36,7 +36,7 @@ create_lookup_tbl <- function(
     ordering_unit <- get_ordering_unit(packaging)
     rp_data <- merge(rp_data,ordering_unit,all.x=T)
     rp_data <- rp_data %>% 
-      select(vendor,name,ref_smn,lot,exp_date,remaining_qty,unit,prod_code)
+      select(vendor,comm_name,ref_smn,lot,exp_date,remaining_qty,unit,prod_code)
     lookup_tbl_output <- round_report_col(rp_data,'remaining_qty')
   }
   if (table_name=='inventory'){
@@ -54,7 +54,7 @@ create_lookup_tbl <- function(
     lookup_tbl_output <- merge(lookup_tbl_output,warehouse_info %>% 
                                  select(warehouse,warehouse_id))
     lookup_tbl_output <- lookup_tbl_output %>% 
-      select(name, vendor, ref_smn, lot, exp_date, remaining_qty, unit,
+      select(comm_name, vendor, ref_smn, lot, exp_date, remaining_qty, unit,
                                                       warehouse)
   }
   # query on simple table
@@ -106,7 +106,7 @@ create_lookup_tbl <- function(
 create_full_report <- function(input,report_filename='lu_tbl.xlsx'){
   # first create the raw table
   table_label <- uistr_to_label(input$lu_report_tbl_selector)
-  print(table_label)
+  # print(table_label)
   lu_report_output <- create_lookup_tbl(
     input,table_name=table_label,config_dict,translate_colname=F)
   # use one single output file location for all reports
@@ -455,7 +455,7 @@ create_inv_order_rp <- function(config_dict,tender_include=T,vendor_id=0){
   
   # finalise all the required columns
   rp_data <- rp_data %>%
-    select(vendor, name, ref_smn, warehouse, remaining_qty,
+    select(vendor, comm_name, ref_smn, warehouse, remaining_qty,
            unit, ave_mth_sale,prod_code,std_mth_stock,min_mth_stock)
   
   # include final tender remaining if tender_include = T
