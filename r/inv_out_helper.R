@@ -141,10 +141,11 @@ exec_inv_out <- function(input,output){
     current_stt <- 1
   }else{ #otherwise, read the info from the sale_log
     conn <- db_open(config_dict)
-    stt_list <- dbGetQuery(conn, "select stt from sale_log
+    stt_list <- dbGetQuery(conn, paste0("select stt from sale_log
                                where pxk_num = (
                                select pxk_num from pxk_info
-                               where completed = 0)")
+                               where completed = 0 and admin_id=",admin_id,
+                           ")"))
     dbDisconnect(conn)
     # if there is a result, determine the stt from list, otherwise set to 1
     if (nrow(stt_list)>0){
@@ -159,6 +160,7 @@ exec_inv_out <- function(input,output){
     }
   }
   
+  print(current_stt)
   # build base sale_log for testing first
   append_sale_log <- data.frame(
     stt = current_stt,
@@ -172,6 +174,7 @@ exec_inv_out <- function(input,output){
     pxk_num = current_pxk,
     note = input$pxk_note
   )
+  print(append_sale_log)
   
   # check and write append_sale_log to database
   inv_out_ok <- check_inv_out(append_sale_log, config_dict)
