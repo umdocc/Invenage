@@ -165,7 +165,7 @@ write_inv_value_rp <- function(lu_report_output,rp_filename){
   addWorksheet(wb, missing_price_sheet_name)
   # write missing_price
   missing_price <- lu_report_output[is.na(lu_report_output$ave_pack_import_cost),] %>%
-    select(prod_code,name,ref_smn)
+    select(prod_code, comm_name, ref_smn)
   missing_price <- translate_tbl_column(missing_price,ui_elem)
   writeData(wb, sheet=missing_price_sheet_name, missing_price)
   # write summary sheet
@@ -175,7 +175,7 @@ write_inv_value_rp <- function(lu_report_output,rp_filename){
   for (i in 1:length(vendor_list)){
     addWorksheet(wb, vendor_list[i])
     tmp_df <- lu_report_output[grepl(vendor_list[i],lu_report_output$vendor),] %>%
-      select(name,ref_smn,lot,exp_date,remaining_qty,ave_pack_import_cost,
+      select(comm_name,ref_smn,lot,exp_date,remaining_qty,ave_pack_import_cost,
              total_inv_value)
     tmp_df <- translate_tbl_column(tmp_df,ui_elem)
     writeData(wb, sheet=vendor_list[i], tmp_df)
@@ -185,7 +185,7 @@ write_inv_value_rp <- function(lu_report_output,rp_filename){
 }
 
 get_sales_report <- function(config_dict, from_date='2019-11-04',
-                             to_date = '2019-11-10'){
+                             to_date = Sys.Date()){
   # getting variables ready
   from_date <- strptime(from_date,'%Y-%m-%d')
   # since strptime start from 00:00:00 we need to add a day in seconds 
