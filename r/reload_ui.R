@@ -95,7 +95,7 @@ reload_ui <- function(input,output,ui_list){
       'in_actual_unit_cost', input, config_dict)
   }
   if ('po_list_2load' %in% ui_list){  
-    output$po_list_2load <-  render_po_list('po_list_2load', config_dict)
+    output$po_list_2load <-  render_po_list(input,'po_list_2load', config_dict)
   }
   if ('in_vat_percent' %in% ui_list){ 
     output$in_vat_percent <-  render_vat_percent(
@@ -166,7 +166,7 @@ reload_ui <- function(input,output,ui_list){
       input, 'invoice_currency', allow_add = T)
   }
   if ('invoice_po_num' %in% ui_list){
-    output$invoice_po_num <- render_po_list(
+    output$invoice_po_num <- render_po_list(input,
       'invoice_po_num', config_dict,ui_label='po_name')
   }
   if ('invoice_amount' %in% ui_list){
@@ -196,7 +196,7 @@ reload_ui <- function(input,output,ui_list){
   
   # ----------------------- write_po_price ui ----------------------------------
   if ('po_man_po_list' %in% ui_list){
-    output$po_man_po_list <- render_po_list(
+    output$po_man_po_list <- render_po_list(input,
       'po_man_po_list', config_dict,ui_label='select_po')
   }
   if ('po_man_po_detail' %in% ui_list){

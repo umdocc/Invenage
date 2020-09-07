@@ -27,12 +27,23 @@ render_tender_list <- function(iid, config_dict, input){renderUI({
 
 
 # render_po_list
-render_po_list <- function(iid, config_dict,ui_label='select_po'){renderUI({
-  po_list_active <- po_info$po_name[po_info$completed==0] 
-  
+render_po_list <- function(input,iid, config_dict,ui_label='select_po'){renderUI({
+  po_list <- po_info$po_name[po_info$completed==0]
+  po_choice <- po_list[1]
+  # print(iid)
+  # if this is from update invoice tab, use a different set
+  if(iid=="invoice_po_num"){
+    po_list <- po_info$po_name
+    # print(input$vendor_invoice_num)
+    po_choice <- vendor_invoice$po_name[
+      vendor_invoice$invoice_num==input$vendor_invoice_num]
+    if (length(po_choice)==0){
+      po_choice <- NULL
+    }
+  }
   selectizeInput(
-    inputId = iid, label = ui_elem$actual[ui_elem$label==ui_label],
-    choices = po_list_active, selected =  po_list_active[1]
+    inputId = iid, label = get_actual(ui_label),
+    choices = po_list, selected =  po_choice
   )
 })}
 

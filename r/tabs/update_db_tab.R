@@ -130,10 +130,8 @@ if('invoice_update' %in% hidden_tab){
             htmlOutput('invoice_amount')),
         div(style="display: inline-block;vertical-align:top;width: 140px",
           htmlOutput('invoice_currency')),
-        div(style="display: inline-block;vertical-align:top;width: 140px",
-          htmlOutput('invoice_cd_num')),
-        div(style="display: inline-block;vertical-align:top;width: 140px",
-          htmlOutput('invoice_po_num')),
+          htmlOutput('invoice_cd_num'),
+          htmlOutput('invoice_po_num'),
         textInput('invoice_note',
                   ui_elem$actual[ui_elem$label=='note']),
         actionButton(
