@@ -99,6 +99,11 @@ append_tbl_rld <- function(config_dict,tbl_name,x){
 }
 
 # ----------------------- general operation functions --------------------------
+# get the actual value from the config_dict
+get_config <- function(config_name){
+  return(config_dict$value[config_dict$name==config_name])
+  
+}
 # this function translate a strring back into label by a single line ui_elem
 # if a table is provided, it will also translate back to the code/id
 uistr_to_label <- function(uistr,table_name=NULL){
