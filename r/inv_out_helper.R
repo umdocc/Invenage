@@ -245,7 +245,7 @@ render_selected_pxk <- function(selected_pxk_num,config_dict,localised=T){
 }
 
 # this function create an excel PXK from a given pxk_num
-create_pxk_file <- function(pxk_num){
+create_pxk_file <- function(pxk_num,open_file=T){
   # create new PXK file
   orig_path <- config_dict$value[config_dict$name=='pxk_form']
   dest_path <- file.path(config_dict$value[config_dict$name=='pxk_out_path'],
@@ -390,6 +390,11 @@ create_pxk_file <- function(pxk_num){
   # save the excel sheet
   saveWorkbook(wb,dest_path,overwrite = T)
   dbDisconnect(conn)
+  
+  #open the file if open_file=T
+  if(open_file){
+    system2('open',dest_path,timeout = 2)
+  }
   # return the filename
   return(dest_path)
 }

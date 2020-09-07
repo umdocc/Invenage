@@ -68,7 +68,7 @@ if ('inv_out' %in% hidden_tab){
   )# end inv_out fluidRow
 ) # end of ui object
 }
-# ---------------------------- render functions ----------------------------------  
+# ---------------------------- render functions --------------------------------  
 render_current_pxk_infostr <- function(config_dict){renderUI({
   pxk_num <- get_current_pxk(config_dict) # get the current pxk_num
   current_pxk_str <- get_pxk_info_str(pxk_num)
@@ -82,4 +82,31 @@ render_invout_pxktable <- function(){DT::renderDataTable({
   
   DT::datatable(output, options = list(pageLength = 10),rownames=F)
 })
+}
+
+# -------------------------------- button handler ------------------------------
+# inv_out complete_form button
+complete_current_pxk <- function(){
+  finalised_pxk_num <- get_current_pxk(config_dict)
+  
+  # update completed field in databse
+  conn <- db_open(config_dict)
+  query <- paste0("update pxk_info set completed = 1
+                    where pxk_num = ",finalised_pxk_num)
+  dbExecute(conn,query)
+  read_tbl(conn,'pxk_info')
+  dbDisconnect(conn)
+  
+  # create the excel for current pxk, (open file by defaut)
+  dest_path <- create_pxk_file(finalised_pxk_num, open_file=T)
+}
+
+del_ivo_stt <- function(input){ 
+  current_pxk <- get_current_pxk(config_dict)
+  current_stt_list <- get_pxk_entry_num(current_pxk,config_dict)
+  # if there is record in current pxk, allow delete
+  if (length(current_stt_list)>0){
+    stt_to_proc <- as.character(input$invout_stt_list)
+    delete_pxk(current_pxk,stt_to_proc,config_dict)
+  }
 }

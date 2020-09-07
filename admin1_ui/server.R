@@ -31,43 +31,21 @@ shinyServer(function(input, output,session) {
   })
   
   observeEvent(input$del_invout_stt,{
-    current_pxk <- get_current_pxk(config_dict)
-    current_stt_list <- get_pxk_entry_num(current_pxk,config_dict)
-    # if there is record in current pxk, allow delete
-    if (length(current_stt_list)>0){
-      stt_to_proc <- as.character(input$invout_stt_list)
-      delete_pxk(current_pxk,stt_to_proc,config_dict)
-    }
+    del_ivo_stt(input) #exec button
     # reload UI
     output <- reload_ui(input,output,
       c('invout_stt_list','current_pxk_tbl','prod_info_str'))
   })
   
   observeEvent(input$complete_form,{
-    
-    finalised_pxk_num <- get_current_pxk(config_dict)
-    
-    # update completed field in databse
-    conn <- db_open(config_dict)
-    query <- paste0("update pxk_info set completed = 1
-                    where pxk_num = ",finalised_pxk_num)
-    dbExecute(conn,query)
-    read_tbl(conn,'pxk_info')
-    dbDisconnect(conn)
-    
+    complete_current_pxk() # execute command to complete the pxk
     # UI refresh
-    output <- reload_ui(input,output,
+    output <- reload_ui(input,output, 
       c('customer_selector','prod_name_select','qty_selector','lot_select',
         'pxk_note','prod_info_str','current_pxk_info','current_pxk_tbl',
         'invout_stt_list','man_pxk_list'))
-    
-    # create the excel for current pxk
-    dest_path <- create_pxk_file(finalised_pxk_num)
-    # open the file
-    system2('open',dest_path,timeout = 2)
   })
 
-  
   # ------------------------------- inv_in UI ----------------------------------
 
   output <- reload_ui(input,output,
@@ -79,9 +57,7 @@ shinyServer(function(input, output,session) {
   # ----------- buttons
   # create and append import_log
   observeEvent(input$inv_in,{
-    # writing to database
-    process_inv_in_buttton(config_dict,input)
-  
+    process_inv_in_buttton(config_dict,input)     # writing to database
     # refresh the UI
     output$latest_import_tbl <- render_output_tbl('import_log')
   })
