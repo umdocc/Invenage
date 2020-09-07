@@ -14,6 +14,7 @@ render_vendor_list <- function(
       current_vendor <- vendor_info$vendor[vendor_info$local==0]
       selected_vendor <- current_vendor[1]
     }
+    
     if (tab=='inv_in'){
       current_vendor <- vendor_info$vendor
       current_prod_code <- product_info$prod_code[

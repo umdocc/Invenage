@@ -228,6 +228,16 @@ shinyServer(function(input, output,session) {
     output <- reload_ui(input,output,'customer_selector')
 
   })
+  
+  # piu upload pdf button, will copy to a destination file
+  observe({
+    file_ext <- tools::file_ext(input$bankslip_upload$datapath)
+    file_name <- paste0(get_config('bankslip_location'),"Bankslip.",file_ext)
+    file.copy(input$bankslip_upload$datapath, file_name,
+              overwrite = T)
+    })
+    
+  
   # ------------------------------- hr_log tab ---------------------------------
   output <- reload_ui(input,output,
     c('admin_name','hour_logged','task_desc','admin_activity_log',
@@ -256,7 +266,8 @@ shinyServer(function(input, output,session) {
   output <- reload_ui(input,output,
     c('invoice_vendor','vendor_invoice_num','invoice_currency',
       'invoice_amount','invoice_cd_num',
-      'invoice_po_num','vendor_invoice_tbl'))
+      'invoice_po_num','vendor_invoice_tbl','piu_bankslip_vendor',
+      'piu_bankslip_invoice_num'))
   observeEvent(input$update_invoice,{
     update_invoice_data(input)
     output <- reload_ui(

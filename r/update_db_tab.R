@@ -134,7 +134,11 @@ if('invoice_update' %in% hidden_tab){
                   ui_elem$actual[ui_elem$label=='note']),
         actionButton(
           'update_invoice',
-          ui_elem$actual[ui_elem$label=='invoice_update'])
+          ui_elem$actual[ui_elem$label=='invoice_update']),
+        h3(get_actual('bankslip_upload')),
+        htmlOutput('piu_bankslip_vendor'),
+        htmlOutput('piu_bankslip_invoice_num'),
+        fileInput('bankslip_upload',label = get_actual('file_select'))
       ),
       box(
         width=9, height = 800,

@@ -182,6 +182,18 @@ reload_ui <- function(input,output,ui_list){
     output$vendor_invoice_tbl <- render_output_tbl(input, 'vendor_invoice')
   }
   
+  if ('piu_bankslip_vendor' %in% ui_list){
+    output$piu_bankslip_vendor <- render_vendor_list(
+      input, 'piu_bankslip_vendor',
+      ui_label = get_actual('orig_vendor'),
+      allow_add = F, tab = 'invoice_update')
+  }
+  
+  if ('piu_bankslip_invoice_num' %in% ui_list){
+    output$piu_bankslip_invoice_num <- render_invoice_num(
+      input, 'piu_bankslip_invoice_num', allow_add = F)
+  }
+  
   # ----------------------- write_po_price ui ----------------------------------
   if ('po_man_po_list' %in% ui_list){
     output$po_man_po_list <- render_po_list(

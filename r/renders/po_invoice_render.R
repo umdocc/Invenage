@@ -2,12 +2,22 @@
 
 
 render_invoice_num <- function(input,iid,allow_add=T){renderUI({
-  current_venid <- vendor_info$vendor_id[
-    vendor_info$vendor==input$invoice_vendor]
-  invoice_choice <- vendor_invoice$invoice_num[
-    vendor_invoice$vendor_id==current_venid]
+  if(iid=='vendor_invoice_num'){
+    current_venid <- vendor_info$vendor_id[
+      vendor_info$vendor==input$invoice_vendor]
+    invoice_choice <- vendor_invoice$invoice_num[
+      vendor_invoice$vendor_id==current_venid]
+  }
+
+  if(iid=='piu_bankslip_invoice_num'){
+    current_venid <- vendor_info$vendor_id[
+      vendor_info$vendor==input$piu_bankslip_vendor]
+    invoice_choice <- vendor_invoice$invoice_num[
+      vendor_invoice$vendor_id==current_venid]
+  }
+  
   selectizeInput(
-    inputId = iid, label = ui_elem$actual[ui_elem$label=='invoice'],
+    inputId = iid, label = get_actual('invoice'),
     choices = invoice_choice, options = list(create = allow_add))
 })
 }
