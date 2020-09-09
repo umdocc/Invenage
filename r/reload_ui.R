@@ -82,7 +82,7 @@ reload_ui <- function(input,output,ui_list){
     output$in_vendor <- render_vendor_list(
       input, iid = 'in_vendor', 
       ui_label = ui_elem$actual[ui_elem$label=='vendor'],
-      allow_add = F, tab = 'inv_in')
+      allow_add = F)
   }
   if ('in_unit' %in% ui_list){    
     output$in_unit <- render_unit(input,'in_unit',type='inv_in')
@@ -123,8 +123,7 @@ reload_ui <- function(input,output,ui_list){
   if ('add_orig_vendor' %in% ui_list){
     output$add_orig_vendor <- render_vendor_list(
       input, iid = 'add_orig_vendor', 
-      ui_label = ui_elem$actual[ui_elem$label=='orig_vendor'],
-      tab = 'update_product_info')
+      ui_label = get_actual('orig_vendor'))
   }
   # ----------------------------- hr_log elements -------------------------------
   if ('admin_name' %in% ui_list){
@@ -155,7 +154,7 @@ reload_ui <- function(input,output,ui_list){
     output$invoice_vendor <- render_vendor_list(
       input, 'invoice_vendor', 
       ui_label = ui_elem$actual[ui_elem$label=='orig_vendor'],
-      allow_add = F, tab = 'invoice_update')
+      allow_add = F)
   }
   if ('vendor_invoice_num' %in% ui_list){
     output$vendor_invoice_num <- render_invoice_num(
@@ -186,7 +185,7 @@ reload_ui <- function(input,output,ui_list){
     output$piu_bankslip_vendor <- render_vendor_list(
       input, 'piu_bankslip_vendor',
       ui_label = get_actual('orig_vendor'),
-      allow_add = F, tab = 'invoice_update')
+      allow_add = F)
   }
   
   if ('piu_bankslip_invoice_num' %in% ui_list){
@@ -211,8 +210,7 @@ reload_ui <- function(input,output,ui_list){
   if ('uip_vendor' %in% ui_list){
     output$uip_vendor <- render_vendor_list(
       input, iid='uip_vendor', 
-      ui_label=ui_elem$actual[ui_elem$label=='vendor'], 
-      tab='update_import_price')
+      ui_label=ui_elem$actual[ui_elem$label=='vendor'])
   }
   if ('uip_import_price' %in% ui_list){
     output$uip_import_price <- render_import_price(
@@ -225,6 +223,16 @@ reload_ui <- function(input,output,ui_list){
   }
   if ('uip_min_order' %in% ui_list){
     output$uip_min_order <- render_min_order(input, iid = 'uip_min_order')
+  }
+  
+  if ('uv_vendor' %in% ui_list){
+    output$uv_vendor <- render_vendor_list(
+      input, iid='uv_vendor', 
+      ui_label=ui_elem$actual[ui_elem$label=='vendor'])
+  }
+  if ('vendor_info_tbl' %in% ui_list){
+    output$vendor_info_tbl <- render_dt(
+      input, tbl_name='vendor_info_tbl')
   }
   
   return(output)

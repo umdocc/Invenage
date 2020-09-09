@@ -149,6 +149,35 @@ if('invoice_update' %in% hidden_tab){
     )
   )
 }
+
+# ------------------------- update_vendor tab ----------------------------------
+if ('update_vendor' %in% hidden_tab){
+  update_vendor_tab <- tabPanel(get_actual('update_vendor'))
+}else{
+  update_vendor_tab <- tabPanel(get_actual('update_vendor'),
+    fluidRow(
+      useShinyalert(),  # Set up shinyalert
+      box(width = 3, height = 400, style = "background-color:#f5f5f5;",
+          h4(get_actual("add_vendor")),
+          htmlOutput('uv_vendor'),
+          radioButtons(
+            'uv_vendor_orig',label="",
+            choices = unlist(strsplit(config$orig_vendor_noyes_str,split=';')),
+            inline = T),
+          radioButtons(
+            'uv_vendor_local',label="",
+            choices = unlist(strsplit(config$local_noyes_str,split=';')),
+            inline = T),
+          actionButton("uv_update_vendor",get_actual('update_vendor'))
+      ),
+      box(
+        width=9, height = 800,
+        DT::dataTableOutput("vendor_info_tbl")
+      )
+    )
+  )
+}
+
 # ----------------------- button functions -------------------------------------
 # update_prod :: add product to db button
 add_prod_to_db <- function(input,output){
@@ -335,5 +364,43 @@ update_price_from_uip <- function(input,track_change=T){
     # print(append_import_price)
     append_tbl_rld(config_dict,'import_price',append_import_price)
     show_alert('success','abcd',msg_type='success')
+  }
+}
+
+update_vendor_from_uv <- function(input){
+  vendor_id <- vendor_info$vendor_id[vendor_info$vendor==input$uv_vendor]
+  
+
+  
+  
+  # if nothing found, create new vendor, otherwise update
+  if(length(vendor_id)==0){
+    
+    # translate orig_vendor and local
+    trans_str <- unlist(strsplit(config$orig_vendor_noyes_str,split=';'))
+    orig_vendor_noyes <- which(trans_str==input$uv_vendor_orig)-1
+    trans_str <- unlist(strsplit(config$local_noyes_str,split=';'))
+    local_noyes <- which(trans_str==input$uv_vendor_local)-1
+    
+    # append the new data
+    append_vendor_info <- data.frame(
+      vendor = input$uv_vendor,
+      local = local_noyes,
+      orig_vendor = orig_vendor_noyes
+    )
+    # print(append_vendor_info)
+    append_tbl_rld(config_dict,'vendor_info',append_vendor_info)
+    # build the vendor_code
+    if(config$add_vendor_code=='TRUE'){
+      vid_2update <- vendor_info$vendor_id[vendor_info$vendor==input$uv_vendor]
+      if(length(vid_2update)==1){
+        vendor_code <- sprintf("NCC%04d",vid_2update)
+        query <- paste0("update vendor_info set vendor_code='",vendor_code,
+        "' where vendor_id=",vid_2update)
+        db_exec_query(query)
+        reload_tbl(config_dict,'vendor_info')
+      }
+    }
+    show_alert("success","success","success")
   }
 }

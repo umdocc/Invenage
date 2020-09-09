@@ -1,21 +1,24 @@
 
-render_vendor_list <- function(
-  input, iid, ui_label, allow_add = T, tab='update_product_info'){renderUI({
-    
-    if (tab=='update_product_info'){
+render_vendor_list <- function(input, iid, ui_label, allow_add = T){renderUI({
+    if (iid=='uv_vendor'){
+      current_vendor <- vendor_info$vendor
+      selected_vendor <- current_vendor[1]
+    }
+    if (iid=='add_orig_vendor'){
       current_vendor <- product_info$vendor[
         product_info$prod_code == input$add_prod_code]
       if (length(current_vendor)==0){
         current_vendor <- vendor_info$vendor
       }
       selected_vendor <- current_vendor[1]
+      allow_add <- F
     }
-    if (tab=='invoice_update'){
+    if (iid=='invoice_vendor'|iid=='piu_bankslip_vendor'){
       current_vendor <- vendor_info$vendor[vendor_info$local==0]
       selected_vendor <- current_vendor[1]
     }
     
-    if (tab=='inv_in'){
+    if (iid=='in_vendor'){
       current_vendor <- vendor_info$vendor
       current_prod_code <- product_info$prod_code[
         product_info$search_str == input$in_prodname_select]
@@ -29,7 +32,7 @@ render_vendor_list <- function(
       }
       selected_vendor <- vendor_info$vendor[vendor_info$vendor_id==sel_vendor_id]
     }
-    if (tab=='update_import_price'){
+    if (iid=='uip_vendor'){
       sel_prod_code <- product_info$prod_code[
         product_info$search_str==input$uip_prod_name]
       avai_vendor_id <- import_price[

@@ -8,6 +8,23 @@ render_dt <- function(
       numofrow <- as.integer(config_dict$value[
         config_dict$name=='admin_activity_log_numofrow'][1])
     }
+    
+    if(tbl_name=='vendor_info_tbl'){
+      # out_table is just vendor_info, with some cosmetic fix
+      out_table <- vendor_info %>% arrange(desc(vendor_id))
+      numofrow <- as.integer(config$vendor_info_numofrow)
+      
+      # translate local table data
+      trans_str <- unlist(strsplit(config$local_noyes_str,split=';'))
+      out_table$local <- trans_str[out_table$local+1]
+      #translate orig_vendor data
+      trans_str <- unlist(strsplit(config$orig_vendor_noyes_str,split=';'))
+      out_table$orig_vendor <- trans_str[out_table$orig_vendor+1]
+      out_table$group_type <- paste(out_table$orig_vendor,out_table$local)
+      out_table <- out_table %>% select(vendor,vendor_code,group_type)
+      
+    }
+    
     out_table <- translate_tbl_column(out_table,ui_elem)
     DT::datatable(out_table, options = list(pageLength = numofrow),rownames=F,
                 editable = allow_edit)

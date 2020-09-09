@@ -16,7 +16,8 @@ navbarPage(
     update_customer_tab,
     update_product_tab,
     invoice_update_tab,
-    update_import_price_tab
+    update_import_price_tab,
+    update_vendor_tab
   ),
   navbarMenu(
     get_actual('tools'),
