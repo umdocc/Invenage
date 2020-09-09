@@ -1,8 +1,15 @@
 # once global.R fiigured ot the app_path, we use boot.R to handle the boot
 # ----------------------------------- init -------------------------------------
+
+# return to the old way of handling package
 required_package <- c('shinythemes','DBI','DT', 'shiny', 'shinydashboard', 
                       'scales', 'openxlsx', 'dplyr', 'data.table', 'lubridate',
-                      'emayili','shinyalert','ggplot2')
+                      'emayili','shinyalert','ggplot2','tidyr')
+new_packages <- required_package[
+  !(required_package %in% installed.packages()[,"Package"])]
+if(length(new_packages)) install.packages(new_packages,
+                                          repos = "https://cloud.r-project.org")
+
 lapply(required_package, require, character.only = TRUE)
 
 # source the base script, which provide functions for boot
@@ -36,7 +43,9 @@ if (config_dict$value[config_dict$name=='config_from_db']=='TRUE'){
   config_dict <- config_dict[!duplicated(config_dict$name),]
 }
 
-
+# create a wide format of config_dict for ease of use
+config <- config_dict %>% select(name,value)
+config <- spread(config,name,value)
 
 # database configuration
 db_type <- config_dict$value[config_dict$name=='db_type']
@@ -130,3 +139,8 @@ if (all(grepl('windows',os_name))){
     stop('Path to Browser not found or incorrect!!')
   }
 }
+
+# ---------------------------- update database ---------------------------------
+update_po_info(config_dict) # update po with new files from local source
+# po_info[duplicated(po_info$po_name),]
+

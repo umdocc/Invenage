@@ -1,5 +1,15 @@
 # clean data frame from common mistakes, defensive programming
 
+# add missing column in case we need
+add_missing_col <- function(data_df,colname_list){
+  for (colname in colname_list){
+    if (!(colname %in% names(data_df))){
+      data_df[[colname]] <- NA
+    }
+  }
+  return(data_df)
+}
+
 # generic clean for all data_df in invenage
 clean_data <- function(data_df){
   if('unit' %in% names(data_df)){

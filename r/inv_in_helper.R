@@ -50,24 +50,28 @@ get_po_filepath <- function(po_name,config_dict){
   return(full_path)
 }
 
-load_po_to_db <- function(po_name,config_dict){
+sync_po_to_db <- function(po_name){
   out_msg <- '' #init the output message
-  
+  print(po_name)
   # read the po data
   full_path <- get_po_filepath(po_name,config_dict)
   po_data <- read_excel_po(full_path)
+  
+
+  
   if(is.data.frame(po_data)){
     # add note columns if not presented in the po
-    if (!('note' %in% names(po_data))){
-      po_data$note <- ''
-    }
-    
+    po_data <- add_missing_col(po_data,'note')
+    # merge and trim po_data to required columns
     po_data <- merge(po_data,product_info %>% select(ref_smn,vendor,prod_code),
                      all.x=T)
     
+    # write  the EXW price for po
+    write_po_price(po_name,po_data)
+    
     #remove qty = 0 items and items with no lot
     po_data <- po_data[po_data$qty >0,]
-    po_data <- po_data[!is.na(po_data$lot) | po_data$lot=='',]
+    po_data <- po_data[(!is.na(po_data$lot)) & (po_data$lot!=''),]
     
     # remove the "'" in lot/date
     po_data$lot <- gsub("'","",po_data$lot)

@@ -177,26 +177,6 @@ get_local_po_list <-  function(config_dict){
   return(po_list)
 }
 
-# function to update po_info
-update_po_info <- function(config_dict){
-  # compare with remote database
-  local_po <- get_local_po_list(config_dict)
-  remote_po <- po_info
-  
-  # update with new local_po
-  new_po <- check_exist(local_po,remote_po,'po_name')
-  new_po <- new_po[!new_po$exist,]
-  # write new data to database
-  if (nrow(new_po)>0){
-    new_po$completed <- 0
-    new_po$finalised <- 0
-    new_po$note <- ''
-    new_po$exist <- NULL
-    append_po <- new_po %>% select(po_name,completed,finalised,note)
-    append_tbl_rld(config_dict,'po_info',append_po)
-  }
-}
-
 col_name_to_label <- function(config_dict,out_data){
   
   rename_dict <- guess_table[guess_table$guess_type == 'rename_dict',]

@@ -65,7 +65,7 @@ shinyServer(function(input, output,session) {
   # load the excel po
   observeEvent(input$load_excel_po,{
     po_name <- input$po_list_2load
-    load_po_to_db(po_name,config_dict)
+    sync_po_to_db(po_name)
 
     # refresh the UI
     output$latest_import_tbl <- render_output_tbl('import_log')

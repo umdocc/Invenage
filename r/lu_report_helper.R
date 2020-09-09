@@ -292,7 +292,7 @@ add_inv_report_info <- function(inventoryReport){
   #recover human-readble info
   inventoryReport <- merge(
     inventoryReport, product_info %>% select(
-      prod_code,name,vendor,ref_smn,warehouse_id))
+      prod_code,comm_name,vendor,ref_smn,warehouse_id))
   inventoryReport <- merge(
     inventoryReport,warehouse_info %>% select(warehouse_id,warehouse))
 
@@ -436,7 +436,7 @@ update_tender_id <- function(config_dict, exclude_code=5){
 create_inv_order_rp <- function(config_dict,tender_include=T,vendor_id=0){
   rp_data <- update_inventory(config_dict)
   rp_data <- rp_data %>% group_by(prod_code) %>%
-    summarise(remaining_qty = sum(remaining_qty)) %>% ungroup
+    summarise(remaining_qty = sum(remaining_qty),.groups='drop')
   
   # merge with prod_info so that we get zero items as well
   rp_data <- merge(rp_data,product_info %>% filter(active==T) %>%
