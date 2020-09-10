@@ -230,6 +230,16 @@ reload_ui <- function(input,output,ui_list){
       input, iid='uv_vendor', 
       ui_label=ui_elem$actual[ui_elem$label=='vendor'])
   }
+  
+  if ('uv_vendor_orig' %in% ui_list){
+    output$uv_vendor_orig <- render_radio_button(input,iid = "uv_vendor_orig")
+  }
+  
+  if ('uv_vendor_local' %in% ui_list){
+    output$uv_vendor_local <- render_radio_button(input,iid = "uv_vendor_local")
+  }
+  
+
   if ('vendor_info_tbl' %in% ui_list){
     output$vendor_info_tbl <- render_dt(
       input, tbl_name='vendor_info_tbl')

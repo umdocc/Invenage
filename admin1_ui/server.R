@@ -260,14 +260,15 @@ shinyServer(function(input, output,session) {
   })
   
   # ------------------------- update_vendor tab --------------------------------
-  output <- reload_ui(input,output,
-                      c('uv_vendor','vendor_info_tbl'))
+  output <- reload_ui(
+    input,output,
+    c('uv_vendor', 'uv_vendor_orig', 'uv_vendor_local', 'vendor_info_tbl'))
   observeEvent(input$uv_update_vendor,{
     update_vendor_from_uv(input)
-    output <- reload_ui(input,output,
-                        c('uv_vendor','vendor_info_tbl','piu_bankslip_vendor',
-                          'invoice_vendor','in_vendor','add_orig_vendor',
-                          'uip_vendor'))
+    output <- reload_ui(
+      input,output,
+      c('uv_vendor', 'vendor_info_tbl', 'piu_bankslip_vendor', 'invoice_vendor',
+        'in_vendor', 'add_orig_vendor', 'uip_vendor'))
   })
 
   

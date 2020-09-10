@@ -160,14 +160,8 @@ if ('update_vendor' %in% hidden_tab){
       box(width = 3, height = 400, style = "background-color:#f5f5f5;",
           h4(get_actual("add_vendor")),
           htmlOutput('uv_vendor'),
-          radioButtons(
-            'uv_vendor_orig',label="",
-            choices = unlist(strsplit(config$orig_vendor_noyes_str,split=';')),
-            inline = T),
-          radioButtons(
-            'uv_vendor_local',label="",
-            choices = unlist(strsplit(config$local_noyes_str,split=';')),
-            inline = T),
+          htmlOutput('uv_vendor_orig'),
+          htmlOutput('uv_vendor_local'),
           actionButton("uv_update_vendor",get_actual('update_vendor'))
       ),
       box(

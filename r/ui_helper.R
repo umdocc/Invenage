@@ -11,7 +11,7 @@ get_est_import_cost <- function(import_log, algorithm='weighted_average'){
       import_log$pack_import_cost*import_log$pack_qty
     tmp <- import_log %>% group_by(prod_code,lot) %>%
       summarise(total_pack = sum(pack_qty),
-                sum_import_cost = sum(total_import_cost)) %>%
+                sum_import_cost = sum(total_import_cost), .groups = 'drop') %>%
       ungroup
     tmp$ave_pack_import_cost <- tmp$sum_import_cost/tmp$total_pack
     tmp <- tmp %>% select(prod_code,lot,ave_pack_import_cost)
@@ -74,8 +74,8 @@ get_sales_summary <- function(config_dict,max_backdate=365){
   min_date <- Sys.time() - as.difftime(max_backdate, unit = "days")
   tmp <- tmp[tmp$sale_datetime>min_date,]
   tmp <- tmp %>% group_by(prod_code) %>% summarise(
-    oldest_sale_datetime = min(sale_datetime),total_sale_pack=sum(pack_qty)) %>%
-    ungroup
+    oldest_sale_datetime = min(sale_datetime),total_sale_pack=sum(pack_qty), 
+    .groups = 'drop')
   tmp$oldest_sale_datetime <- strptime(tmp$oldest_sale_datetime,
                                        "%Y-%m-%d %H:%M:%S")
   tmp$days_diff <- as.numeric(
