@@ -52,7 +52,7 @@ get_po_filepath <- function(po_name,config_dict){
 
 sync_po_to_db <- function(po_name){
   out_msg <- '' #init the output message
-  print(po_name)
+  # print(po_name)
   # read the po data
   full_path <- get_po_filepath(po_name,config_dict)
   po_data <- read_excel_po(full_path)
