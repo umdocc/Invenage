@@ -303,7 +303,7 @@ update_inventory <- function(config_dict, pos_item=TRUE, summarised = FALSE,
   tmp <- tmp[tmp$delivery_date<(as.Date(to_date,format='%Y-%m-%d')+1),]
   tmp <- convert_to_pack(tmp,packaging,'qty','importQty')
   tmp <- tmp %>% group_by(prod_code,unit,lot,warehouse_id) %>% 
-    summarise(totalImportQty = sum(importQty), .groups = 'drop') %>% ungroup()
+    summarise(totalImportQty = sum(importQty), .groups = 'drop')
   
   # process sale_log as tmp2
   tmp2 <- sale_log %>% select(prod_code,unit,qty,lot,warehouse_id,pxk_num)
@@ -313,7 +313,7 @@ update_inventory <- function(config_dict, pos_item=TRUE, summarised = FALSE,
   # for sale_log we need to merge with warehouse_id
   tmp2 <- convert_to_pack(tmp2,packaging,'qty','saleQty')
   tmp2 <- tmp2 %>% group_by(prod_code,unit,lot,warehouse_id) %>% 
-    summarise(totalSaleQty = sum(saleQty), .groups = 'drop') %>% ungroup()
+    summarise(totalSaleQty = sum(saleQty), .groups = 'drop')
   totalInventory <- merge(tmp,tmp2,all=T,
                           by=c('prod_code','unit','lot','warehouse_id'))
   totalInventory$totalSaleQty[is.na(totalInventory$totalSaleQty)] <- 0
