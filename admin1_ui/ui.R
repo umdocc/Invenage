@@ -21,6 +21,7 @@ navbarPage(
   ),
   navbarMenu(
     get_actual('tools'),
-    po_man_tab
+    po_man_tab,
+    tech_service_log_tab
   )
 ) # end navbarPage

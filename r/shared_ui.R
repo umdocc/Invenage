@@ -179,6 +179,11 @@ render_lot <- function(input,iid){renderUI({
   current_prod_code <- product_info[
     product_info$search_str==input$prod_name_select, "prod_code"]
   avaiLot <- get_avail_lot(current_prod_code,config_dict)
+  
+  # if(iid=='tsl_analyser_lot'){
+  #   
+  # }
+  
   selectizeInput(
     inputId = iid, label = "Lot",
     choices = unique(avaiLot), options = list(create = TRUE)

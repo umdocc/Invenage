@@ -245,5 +245,15 @@ reload_ui <- function(input,output,ui_list){
       input, tbl_name='vendor_info_tbl')
   }
   
+  if ('tsl_engineer_name' %in% ui_list){
+    output$tsl_engineer_name <- render_admin_name(
+      iid='tsl_engineer_name')
+  }
+  
+  if ('tsl_customer_name' %in% ui_list){
+    output$tsl_customer_name <- render_customer_list(
+      iid='tsl_customer_name')
+  }
+  
   return(output)
 }

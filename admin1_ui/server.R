@@ -275,4 +275,8 @@ shinyServer(function(input, output,session) {
   # ----------------------------- po_man tab ---------------------------------
   output <- reload_ui(input,output,
     c('po_man_po_list','po_man_po_detail'))
+
+  # ----------------------------- po_man tab ---------------------------------
+output <- reload_ui(input,output,
+                    c('tsl_engineer_name',"tsl_customer_name"))
 })
