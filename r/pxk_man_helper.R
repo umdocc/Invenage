@@ -11,9 +11,10 @@ edit_db_pxk <- function(cell,pxk_num){
   tmp <- dbGetQuery(
     conn,paste('select * from sale_log where pxk_num =',pxk_num))
   dbDisconnect(conn)
-  
-  print(cell) #debug
-  allow_edit_pxk_colnum <- c(3,4,5,7) # allow editing certain fields only
+
+  # allow editing certain fields only
+  allow_edit_pxk_colnum <- as.numeric(
+    unlist(strsplit(config$allow_pxk_edit_col,split=';'))) 
   if (cell$col %in% (allow_edit_pxk_colnum-1) ){ # dt cell has offset of 1
     tmp[tmp$stt==edited_stt,
         pxk_render_colnames[cell$col+1]] <- as.character(cell$value)
