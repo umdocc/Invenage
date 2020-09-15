@@ -65,7 +65,7 @@ sync_po_to_db <- function(po_name){
     # merge and trim po_data to required columns
     po_data <- merge(po_data,product_info %>% select(ref_smn,vendor,prod_code),
                      all.x=T)
-    
+
     # write  the EXW price for po
     write_po_price(po_name,po_data)
     

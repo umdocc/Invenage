@@ -71,16 +71,23 @@ add_import_price <- function(
   oldname <- stringQty
   names(po_data)[names(po_data)==stringQty] <- 'qty'
   
+  # if an item has NA qty, set it to 0
+  po_data$qty[is.na(po_data$qty)] <- 0
+  
   # load all import price
   po_data <- merge(
     po_data, import_price %>% 
       select(prod_code, import_price, vendor_id, currency_code, min_order),
     all.x=T)
+  
   # if an item has min_order = NA, set it to 1
   po_data$min_order[is.na(po_data$min_order)] <- 1
   
   #calculate qty/min_order ratio
   po_data$order_ratio <- po_data$qty/po_data$min_order
+  
+  # if an item has 0 qty, set it order_ratio to 1 to get default price
+  po_data$order_ratio[po_data$qty==0] <- 1
   
   # if detect_price_level = auto, choose price with 
   # order_ratio ratio >=1 and minimised
@@ -99,8 +106,10 @@ add_import_price <- function(
   }
   
   # check for prod_code duplications before returning results
+  # po_data <- po_data[!is.na(po_data$ref_smn),]
   if (nrow(po_data[duplicated(po_data %>% select(prod_code,qty)),])>0){
     stop('po_data contains duplicated line')
+    print(po_data[duplicated(po_data %>% select(prod_code,qty)),])
   }else{
     # restore the name
     names(po_data)[names(po_data)=='qty'] <- stringQty
