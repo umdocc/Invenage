@@ -142,5 +142,5 @@ if (all(grepl('windows',os_name))){
 
 # ---------------------------- update database ---------------------------------
 update_po_info(config_dict) # update po with new files from local source
-# po_info[duplicated(po_info$po_name),]
+
 

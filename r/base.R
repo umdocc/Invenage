@@ -160,23 +160,6 @@ get_tender_status <- function(config_dict, current_tender_id){
   
 }
 
-# create list of local po
-get_local_po_list <-  function(config_dict){
-  po_path <- config_dict$value[config_dict$name=='po_path']
-  po_search_str <- config_dict$value[config_dict$name=='po_file_include']
-  
-  # R regex fix, for scanning PO
-  po_search_str <- gsub('\\.','\\\\.',po_search_str)
-  po_list <- get_file_info(po_path)
-  po_list <- po_list[grepl(po_search_str,po_list$file_name),]
-  
-  # remove locked excel files, pdf files
-  po_list <- po_list[!grepl('\\$',po_list$file_name),]
-  po_list <- po_list[!grepl('pdf',po_list$file_name),]
-  po_list$po_name <- gsub('\\.xlsx|\\.xls','',po_list$file_name)
-  return(po_list)
-}
-
 col_name_to_label <- function(config_dict,out_data){
   
   rename_dict <- guess_table[guess_table$guess_type == 'rename_dict',]
@@ -257,23 +240,27 @@ check_exist <- function(current_df, existing_df, check_col = 'file_name'){
 
 # get a list of files in a given path
 get_file_info <- function(file_path){
-  file_info <- list.files(file_path,recursive=T)
-  # get list of locked files
-  lock_file_exist <- F
-  if (any(grepl('~\\$',file_info))){
-    lock_file_exist <- T
-    locked_file <- data.frame(
-      file_name = gsub('~\\$','',basename(file_info[grepl('~\\$',file_info)])), 
-      locked = T)}
-  
-  # compile the po_info data frame
-  file_info <- file_info[!grepl('~\\$',file_info)]
-  file_info <- data.frame(
-    file_name = basename(file_info), relative_path = dirname(file_info))
-  if (lock_file_exist){
-    file_info <- merge(file_info,locked_file,all.x=T)
+  if(file.exists(file_path)){
+    file_info <- list.files(file_path,recursive=T)
+    # get list of locked files
+    lock_file_exist <- F
+    if (any(grepl('~\\$',file_info))){
+      lock_file_exist <- T
+      locked_file <- data.frame(
+        file_name = gsub('~\\$','',basename(file_info[grepl('~\\$',file_info)])), 
+        locked = T)}
+    
+    # compile the po_info data frame
+    file_info <- file_info[!grepl('~\\$',file_info)]
+    file_info <- data.frame(
+      file_name = basename(file_info), relative_path = dirname(file_info))
+    if (lock_file_exist){
+      file_info <- merge(file_info,locked_file,all.x=T)
+    }else{
+      file_info$locked <- NA
+    }
   }else{
-    file_info$locked <- NA
+    file_info <- 'error no file found'
   }
   return(file_info)
 }
