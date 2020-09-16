@@ -338,7 +338,7 @@ create_tender_track <- function(sale_log,customer_id = 1){
   #remove null tender_id
   tmp <- tmp[!is.na(tmp$tender_id),]
   tmp <- tmp %>% group_by(prod_code,tender_id,customer_id,warehouse_id) %>% 
-    summarise(total_sale_pack = sum(pack_qty))
+    summarise(total_sale_pack = sum(pack_qty), .groups = 'drop')
   
   tmp <- merge(tmp2, tmp,
                by = c('prod_code','tender_id','customer_id','warehouse_id'),
