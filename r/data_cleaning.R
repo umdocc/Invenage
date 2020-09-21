@@ -107,9 +107,9 @@ add_import_price <- function(
   
   # check for prod_code duplications before returning results
   # po_data <- po_data[!is.na(po_data$ref_smn),]
-  if (nrow(po_data[duplicated(po_data %>% select(prod_code,qty)),])>0){
-    stop('po_data contains duplicated line')
+  if (nrow(po_data[duplicated(po_data %>% select(prod_code,qty,lot)),])>0){
     print(po_data[duplicated(po_data %>% select(prod_code,qty)),])
+    stop('po_data contains duplicated line')
   }else{
     # restore the name
     names(po_data)[names(po_data)=='qty'] <- stringQty
