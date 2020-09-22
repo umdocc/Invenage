@@ -65,10 +65,10 @@ if ('update_product' %in% hidden_tab){
             h4(ui_elem$actual[ui_elem$label=='add_pkg'])),
         htmlOutput('add_pkg_prod_name'),
         div(style="display: inline-block;vertical-align:top;width: 80px",
-            textInput('add_unitspp',label=ui_elem$actual[ui_elem$label=='qty'])
+            textInput('add_pkg_unit',label=ui_elem$actual[ui_elem$label=='unit'])
         ),
         div(style="display: inline-block;vertical-align:top;width: 80px",
-            textInput('add_pkg_unit',label=ui_elem$actual[ui_elem$label=='unit'])
+            textInput('add_unitspp',label=ui_elem$actual[ui_elem$label=='qty'])
         ),
         h4(ui_elem$actual[ui_elem$label=='explanation']),
         htmlOutput("add_pkg_str"),
@@ -244,8 +244,11 @@ add_pkg_to_db <- function(input,output){
     shinyalert(title = big_msg, text = small_msg, type = "error")
   }
   
-  # if units_per_pack is not a number, do nothing
-  if (is.na(as.numeric(input$add_unitspp))){error_free <- F}
+  # if units_per_pack is not a number, show alert then do nothing
+  if (is.na(as.numeric(input$add_unitspp))){
+    show_alert('error','units_per_pack_notnum',"error")
+    error_free <- F
+  }
   # if unit is blank, do nothing
   if (added_unit==''){error_free <- F}
   
