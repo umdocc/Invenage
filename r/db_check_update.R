@@ -3,14 +3,14 @@ update_po_info <- function(config_dict){
   
   result <- add_po_to_db() # add new po to db, result is logical for error_free
   
-  if(result){
-    # get a list of incomplete po and check their data
-    incomplete_po <- po_info$po_name[po_info$completed==0]
-    for (po_name in incomplete_po){
-      # print(po_name)
-      mark_po_complete(po_name)
-    }
-  }
+  # if(result){
+  #   # get a list of incomplete po and check their data
+  #   incomplete_po <- po_info$po_name[po_info$completed==0]
+  #   for (po_name in incomplete_po){
+  #     # print(po_name)
+  #     mark_po_complete(po_name)
+  #   }
+  # }
 }
 
 add_po_to_db <- function(){
