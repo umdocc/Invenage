@@ -251,8 +251,11 @@ reload_ui <- function(input,output,ui_list){
   }
   
   if ('tsl_customer_name' %in% ui_list){
-    output$tsl_customer_name <- render_customer_list(
-      iid='tsl_customer_name')
+    output$tsl_customer_name <- tsl_render_customer_name()
+  }
+  
+  if ('tsl_analyser_name' %in% ui_list){
+    output$tsl_analyser_name <- tsl_render_analyser_name(input,output)
   }
   
   return(output)
