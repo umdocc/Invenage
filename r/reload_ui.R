@@ -244,19 +244,6 @@ reload_ui <- function(input,output,ui_list){
     output$vendor_info_tbl <- render_dt(
       input, tbl_name='vendor_info_tbl')
   }
-  
-  if ('tsl_engineer_name' %in% ui_list){
-    output$tsl_engineer_name <- render_admin_name(
-      iid='tsl_engineer_name')
-  }
-  
-  if ('tsl_customer_name' %in% ui_list){
-    output$tsl_customer_name <- tsl_render_customer_name()
-  }
-  
-  if ('tsl_analyser_name' %in% ui_list){
-    output$tsl_analyser_name <- tsl_render_analyser_name(input,output)
-  }
-  
+    
   return(output)
 }

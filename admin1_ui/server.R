@@ -277,7 +277,13 @@ shinyServer(function(input, output,session) {
     c('po_man_po_list','po_man_po_detail'))
 
   # ------------------------ tech_service_log tab ------------------------------
-output <- reload_ui(input,output,
-                    c('tsl_engineer_name',"tsl_customer_name",
-                      "tsl_analyser_name"))
+  output <- tsl_load_ui(input,output,
+                      c('tsl_engineer_name',"tsl_customer_name",
+                        "tsl_analyser_name","tsl_analyser_lot",
+                        "tsl_service_type","tsl_service_log"))
+  
+  # button handler
+  observeEvent(input$tsl_add_entry,{
+    exec_tsl_add_entry(input,output)
+  })
 })
