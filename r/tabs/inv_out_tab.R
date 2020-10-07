@@ -101,7 +101,7 @@ complete_current_pxk <- function(){
   dest_path <- create_pxk_file(finalised_pxk_num, open_file=T)
 }
 
-del_ivo_stt <- function(input){ 
+io_del_inv_out_stt <- function(input,output){ 
   current_pxk <- get_current_pxk(config_dict)
   current_stt_list <- get_pxk_entry_num(current_pxk,config_dict)
   # if there is record in current pxk, allow delete
@@ -109,4 +109,8 @@ del_ivo_stt <- function(input){
     stt_to_proc <- as.character(input$invout_stt_list)
     delete_pxk(current_pxk,stt_to_proc,config_dict)
   }
+  
+  # reload the ui
+  output <- reload_ui(input,output,
+                      split_semi(config$io_del_inv_out_stt_ui_reload))
 }

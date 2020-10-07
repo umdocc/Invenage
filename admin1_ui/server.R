@@ -14,27 +14,15 @@ shinyServer(function(input, output,session) {
   }
   # ------------------------------- inv_out UI ---------------------------------
   # sidebar
-  output <- reload_ui(input,output,unlist(strsplit(config$io_ui_items,';')))
-    # c('customer_selector','prod_name_select','qty_selector','unit_selector',
-    #   'lot_select','warehouse_selector','unit_price','payment_selector',
-    #   'tender_name','pxk_note','prod_info_str','sys_msg','current_pxk_info',
-    #   'current_pxk_tbl','invout_stt_list'))
+  output <- reload_ui(input,output,split_semi(config$io_ui_items))
   
   # inv_out UI buttons handlers
   observeEvent(input$inventory_out, { # inv_out button
-    exec_inv_out(input,output) # write to database
-    # refresh the ui
-    output <- reload_ui(input,output,
-      c('customer_selector','prod_name_select','qty_selector','lot_select',
-        'pxk_note','prod_info_str','current_pxk_info','current_pxk_tbl',
-        'invout_stt_list','man_pxk_list'))
+    io_exec_inv_out(input,output) # write to database
   })
   
   observeEvent(input$del_invout_stt,{
-    del_ivo_stt(input) #exec button
-    # reload UI
-    output <- reload_ui(input,output,
-      c('invout_stt_list','current_pxk_tbl','prod_info_str'))
+    io_del_inv_out_stt(input,output) #exec button
   })
   
   observeEvent(input$complete_form,{
@@ -277,10 +265,7 @@ shinyServer(function(input, output,session) {
     c('po_man_po_list','po_man_po_detail'))
 
   # ------------------------ tech_service_log tab ------------------------------
-  output <- tsl_load_ui(input,output,
-                      c('tsl_engineer_name',"tsl_customer_name",
-                        "tsl_analyser_name","tsl_analyser_lot",
-                        "tsl_service_type","tsl_service_log"))
+  output <- tsl_load_ui(input,output,split_semi(config$tsl_ui_items))
   
   # button handler
   observeEvent(input$tsl_add_entry,{

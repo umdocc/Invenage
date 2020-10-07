@@ -116,7 +116,7 @@ get_current_pxk <- function(cofig_dict){
 }
 
 
-exec_inv_out <- function(input,output){
+io_exec_inv_out <- function(input,output){
   # custom display message
   output$sys_msg <- render_sys_message('please wait....')
   
@@ -204,6 +204,9 @@ exec_inv_out <- function(input,output){
     # update sys_msg
     output$sys_msg <- render_sys_message(
       ui_elem$actual[ui_elem$label=='inv_out_success'])
+    
+    # reload the ui
+    output <- reload_ui(input,output,split_semi(config$io_inv_out_ui_reload))
   }
 }
 
