@@ -14,11 +14,11 @@ shinyServer(function(input, output,session) {
   }
   # ------------------------------- inv_out UI ---------------------------------
   # sidebar
-  output <- reload_ui(input,output,
-    c('customer_selector','prod_name_select','qty_selector','unit_selector',
-      'lot_select','warehouse_selector','unit_price','payment_selector',
-      'tender_name','pxk_note','prod_info_str','sys_msg','current_pxk_info',
-      'current_pxk_tbl','invout_stt_list'))
+  output <- reload_ui(input,output,unlist(strsplit(config$io_ui_items,';')))
+    # c('customer_selector','prod_name_select','qty_selector','unit_selector',
+    #   'lot_select','warehouse_selector','unit_price','payment_selector',
+    #   'tender_name','pxk_note','prod_info_str','sys_msg','current_pxk_info',
+    #   'current_pxk_tbl','invout_stt_list'))
   
   # inv_out UI buttons handlers
   observeEvent(input$inventory_out, { # inv_out button
