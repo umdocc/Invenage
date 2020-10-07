@@ -1,4 +1,4 @@
-# once global.R fiigured ot the app_path, we use boot.R to handle the boot
+# once global.R figured ot the app_path, we use boot.R to handle the boot
 # ----------------------------------- init -------------------------------------
 
 # return to the old way of handling package
@@ -13,11 +13,17 @@ if(length(new_packages)) install.packages(new_packages,
 lapply(required_package, require, character.only = TRUE)
 
 # source the base script, which provide functions for boot
-source(file.path(app_path, 'r', paste0('base.R')))
+source(file.path(app_path, 'r','core','base.R'))
 
 # create config_dict
 config_dict <- create_config_dict(app_path,'home')
 config_dict$source <- 'local'
+
+# add comment column if not yet in config_dict, as db dict have comment
+if (!('comment' %in% names(config_dict))){
+  config_dict$comment <- ''
+}
+
 admin_id <- as.integer(
   config_dict$value[config_dict$name=='admin_id'])
 
@@ -37,8 +43,8 @@ if (config_dict$value[config_dict$name=='config_from_db']=='TRUE'){
   db_config$admin_id <- NULL
   db_config$source <- 'db'
   db_config <- build_config_dict_path(db_config)
-  # by rbind these two data frame and remove duplicates
-  # any config in db will be overwritten by local config
+  # by rbind these two data frame with db_config at bottom and 
+  # remove duplicates any config in db will be overwritten by local config
   config_dict <- rbind(config_dict,db_config)
   config_dict <- config_dict[!duplicated(config_dict$name),]
 }
@@ -63,8 +69,7 @@ lu_report_list <- merge(lu_report_list,ui_elem,all.x = T)
 lu_report_list <- lu_report_list$actual
 
 # load the list of tabs to hide
-hidden_tab <- unlist(
-  strsplit(config_dict$value[config_dict$name=='hidden_tab'],';'))
+hidden_tab <- split_semi(config$hidden_tab)
 
 # load the remaining function
 func_list <- list.files(file.path(app_path,'r'),full.names = T, recursive = T)
@@ -76,7 +81,7 @@ for (script_to_load in func_list){
 }
 
 # localisation information
-company_name <- config_dict$value[config_dict$name=='company_name']
+company_name <- config$company_name
 copyright_str <- paste(
   'Copyright (C) 2017-2019, Data built for:', company_name)
 
@@ -92,15 +97,9 @@ report_info <- output_info[output_info$type=='report_output',]
 
 
 # -------------------------- Start-up Data -------------------------------------
-col_name_label <- localisation$label[localisation$group=='col_rename']
-col_name_actual <- localisation$actual[localisation$group=='col_rename']
 
 # variables that should be read from config_dict
-date_format <- config_dict$value[config_dict$name=='date_format']
-date_range_tbl <- config_dict$value[config_dict$name=='date_range_tbl']
-
-#formatting variables
-date_range_tbl_local <- ui_elem$actual[ui_elem$label == date_range_tbl]
+date_format <- config$date_format
 
 date_format_alt <- gsub('%d','dd',date_format)
 date_format_alt <- gsub('%m','mm',date_format_alt)

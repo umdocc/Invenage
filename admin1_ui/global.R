@@ -3,7 +3,7 @@ rm(list=ls()) # boot clean-up
 options(warn=-1) # supress warnings
 app_path <- dirname(getwd()) # app_path is one level up from shiny folder
 # print(app_path)
-boot_path <- file.path(app_path,'r','boot.R')
+boot_path <- file.path(app_path,'r','core','boot.R')
 
 # point to local file as app_path will be invalid during dev
 if(!file.exists(boot_path)){
@@ -11,4 +11,4 @@ if(!file.exists(boot_path)){
 }
 
 # load boot
-source(file.path(app_path,'r','boot.R'))
+source(file.path(app_path,'r','core','boot.R'))

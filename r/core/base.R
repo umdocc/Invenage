@@ -47,6 +47,12 @@ get_actual <- function(label_str){
   return(actual_str)
 }
 
+# split a long string separated by ';' to recover the list of strings
+split_semi <- function(input_str){
+  output_str <- unlist(strsplit(input_str,';'))
+  return(output_str)
+}
+
 # --------------------------- database functions -------------------------------
 
 # db_open create a conn object that database call can use
