@@ -135,8 +135,8 @@ create_lu_report_list <- function(config_dict){
 
 # use shinyalert specify ony labels
 show_alert <- function(big_label,small_label,msg_type='error'){
-  shinyalert(title = ui_elem$actual[ui_elem$label==big_label],
-             text = ui_elem$actual[ui_elem$label==small_label], 
+  shinyalert(title = get_actual(big_label), 
+             text = get_actual(small_label), 
              type = msg_type)
 }
 
