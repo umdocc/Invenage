@@ -229,7 +229,8 @@ delete_pxk <- function(pxk_num,stt,config_dict){
 render_selected_pxk <- function(selected_pxk_num,config_dict,localised=T){
   
   # read the pxk
-  output_pxk <- sale_log[sale_log$pxk_num==as.integer(selected_pxk_num),]
+  output_pxk <- db_read_query(
+    paste0("select * from sale_log where pxk_num=",selected_pxk_num))
   output_pxk <- merge(output_pxk,product_info %>% select(prod_code,comm_name))
 
   output_pxk <- output_pxk %>% 
