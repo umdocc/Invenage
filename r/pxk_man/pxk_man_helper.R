@@ -1,22 +1,17 @@
 # function to edit pxk using pxk_num and 'cell' value
 edit_db_pxk <- function(cell,pxk_num){
-  # read config variables
+  
+  # read config variables: list of column in pxk and edit-allowed columns
   allowed_colname <- split_semi(config$pxkm_allow_edit_colname)
   render_colname <- split_semi(config$pxk_render_colnames)
-  # # build the col number allowed in editing
-  # allow_edit_pxk_colnum <- c()
-  # for (col_name in allowed_colname){
-  #   if (col_name %in% render_colname){
-  #     allow_edit_pxk_colnum <- c(allow_edit_pxk_colnum,
-  #                                which(col_name==render_colname))
-  #   }
-  # }
-  
-  #use render_selected_pxk maintain consistency with ui
+
+  # get the stt of edited row
+  #since shiny editable cell only display relative to current table
+  # we need to first rebuild the table
   updated_pxk <- render_selected_pxk(pxk_num,config_dict)
   # reverse the column name
   updated_pxk <- rev_trans_tbl_column(updated_pxk, ui_elem)
-  edited_stt <- updated_pxk$stt[cell$row] # get the edit row stt
+  edited_stt <- updated_pxk$stt[cell$row] # get the stt
   
   # read the edited row from database
   conn = db_open(config_dict)
@@ -26,7 +21,8 @@ edit_db_pxk <- function(cell,pxk_num){
   dbDisconnect(conn)
   current_unit_price <- as.numeric(tmp$unit_price)
   
-  
+  # if returned data has more than 1 row, it indicate a duplication
+  # unfortunately we need to stop the app and investigate the db
   if (nrow(tmp)>1){stop("duplicated stt found in db, shut down!")}
   
   # dt cell has offset 1, so cell$col=2 point to the 3rd col in the table
