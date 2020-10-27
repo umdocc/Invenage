@@ -260,7 +260,7 @@ shinyServer(function(input, output,session) {
   })
 
   
-  # ----------------------------- po_man tab ---------------------------------
+  # ------------------------------ po_man tab ----------------------------------
   output <- reload_ui(input,output,
     c('po_man_po_list','po_man_po_detail'))
 
@@ -271,4 +271,9 @@ shinyServer(function(input, output,session) {
   observeEvent(input$tsl_add_entry,{
     exec_tsl_add_entry(input,output)
   })
+  
+  # ------------------------ sync_excel_po tab ---------------------------------
+  output <- sep_load_ui(input,output,split_semi(config$sep_ui_items))
+  
+  
 })

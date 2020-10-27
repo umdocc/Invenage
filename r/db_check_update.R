@@ -1,43 +1,4 @@
-# function to update po_info
-update_po_info <- function(config_dict){
-  
-  result <- add_po_to_db() # add new po to db, result is logical for error_free
-  
-  # if(result){
-  #   # get a list of incomplete po and check their data
-  #   incomplete_po <- po_info$po_name[po_info$completed==0]
-  #   for (po_name in incomplete_po){
-  #     # print(po_name)
-  #     mark_po_complete(po_name)
-  #   }
-  # }
-}
 
-add_po_to_db <- function(){
-  error_free <- T
-  # compare with remote database
-  local_po <- get_local_po_list(config_dict)
-  if(is.data.frame(local_po)){
-    remote_po <- po_info
-    
-    # update with new local_po
-    new_po <- check_exist(local_po,remote_po,'po_name')
-    new_po <- new_po[!new_po$exist,]
-    # write new data to database
-    if (nrow(new_po)>0){
-      new_po$completed <- 0
-      new_po$finalised <- 0
-      new_po$note <- ''
-      new_po$exist <- NULL
-      append_po <- new_po %>% select(po_name,completed,finalised,note)
-      append_tbl_rld(config_dict,'po_info',append_po)
-    }
-  }else{
-    warning("path to local po not found! nothing will be updated")
-    error_free <- F
-  }
-  return(error_free)
-}
 
 # check a po for full data then mark it as completed
 mark_po_complete <- function(po_name){
@@ -64,7 +25,7 @@ mark_po_complete <- function(po_name){
 }
 
 # create list of local po
-get_local_po_list <-  function(config_dict){
+get_local_po_list <-  function(){
   po_path <- config_dict$value[config_dict$name=='po_path']
   po_search_str <- config_dict$value[config_dict$name=='po_file_include']
   

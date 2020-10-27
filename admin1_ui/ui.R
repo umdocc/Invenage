@@ -22,6 +22,7 @@ navbarPage(
   navbarMenu(
     get_actual('tools'),
     po_man_tab,
-    tech_service_log_tab
+    tech_service_log_tab,
+    sync_excel_po_tab
   )
 ) # end navbarPage
