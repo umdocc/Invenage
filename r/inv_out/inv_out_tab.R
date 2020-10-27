@@ -26,8 +26,9 @@ if ('inv_out' %in% hidden_tab){
                         width: 160px", htmlOutput("payment_selector")),
       div(style="display: inline-block;vertical-align:top; \
                         width: 110px", htmlOutput("unit_price")),
-      div(style="display: inline-block;vertical-align:top; \
-                        width: 160px", htmlOutput("tender_name")),
+      div(style="display: inline-block;vertical-align:-100%;width: 160px", 
+          checkboxInput("ivo_promo_price",label="KM")),
+      htmlOutput("tender_name"),
       textInput('pxk_note', ui_elem$actual[ui_elem$label=='note']),
       htmlOutput("prod_info_str"),
       actionButton("inventory_out",
