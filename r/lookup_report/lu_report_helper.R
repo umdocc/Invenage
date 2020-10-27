@@ -67,7 +67,7 @@ create_lookup_tbl <- function(
                                  select(prod_code,name,vendor,ref_smn))
     lookup_tbl_output <- merge(lookup_tbl_output,currency)
     lookup_tbl_output <- lookup_tbl_output %>% 
-      select(name,vendor,ref_smn,import_price,currency,min_order)
+      select(name,vendor,ref_smn,import_price,currency,min_order,source_name)
   }
   if (table_name=='sale_log'){
     lookup_tbl_output <- merge(sale_log, product_info %>% select(
