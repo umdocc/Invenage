@@ -42,12 +42,7 @@ inv_in_tab <- tabPanel(
       div(style="display: inline-block;vertical-align:top;width: 140px",
           htmlOutput('in_note')),
       actionButton("inv_in",
-                   ui_elem$actual[ui_elem$label=='inv_in']),
-      p(),
-      h3(ui_elem$actual[ui_elem$label=='load_excel_po']),
-      htmlOutput('po_list_2load'),
-      actionButton("load_excel_po",
-                   ui_elem$actual[ui_elem$label=='load_excel_po']),
+                   ui_elem$actual[ui_elem$label=='inv_in'])
     ),
     box(
       width=9, height = 800,
