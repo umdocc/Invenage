@@ -27,8 +27,8 @@ if ('inv_out' %in% hidden_tab){
       div(style="display: inline-block;vertical-align:top; \
                         width: 110px", htmlOutput("unit_price")),
       div(style="display: inline-block;vertical-align:-100%;width: 160px", 
-          checkboxInput("ivo_promo_price",label=get_actual("promotion_price"))),
-      htmlOutput("tender_name"),
+          htmlOutput("tender_name")),
+      checkboxInput("ivo_promo_price",label=get_actual("promotion_price")),
       textInput('pxk_note', ui_elem$actual[ui_elem$label=='note']),
       htmlOutput("prod_info_str"),
       actionButton("inventory_out",
