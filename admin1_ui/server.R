@@ -40,14 +40,13 @@ shinyServer(function(input, output,session) {
     c('in_invoice_num','in_prodname_select','in_vendor','in_unit','in_note',
       'in_actual_unit_cost','po_list_2load','in_vat_percent','in_warehouse'))
   # main table
-  output$latest_import_tbl <- render_output_tbl('import_log')
+  output <- ivi_load_ui(input,output,"latest_import_tbl")
   
   # ----------- buttons
   # create and append import_log
   observeEvent(input$inv_in,{
-    process_inv_in_buttton(config_dict,input)     # writing to database
-    # refresh the UI
-    output$latest_import_tbl <- render_output_tbl('import_log')
+    ivi_exec_inv_in(input,output)     # writing to database and refresh the ui
+    output <- ivi_load_ui(input,output,"latest_import_tbl")
   })
   
   # load the excel po
@@ -56,7 +55,7 @@ shinyServer(function(input, output,session) {
     sync_po_to_db(po_name)
 
     # refresh the UI
-    output$latest_import_tbl <- render_output_tbl('import_log')
+    output$latest_import_tbl <- render_import_log()
   })
   # --------------------------- lu_report UI -------------------------------
 
