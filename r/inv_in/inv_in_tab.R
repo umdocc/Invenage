@@ -111,9 +111,7 @@ render_vat_percent <- function(input,iid,ui_label,tab='inv_in'){renderUI({
     product_info$search_str==input$in_prodname_select]
   current_vendor_id <- vendor_info$vendor_id[
     vendor_info$vendor==input$in_vendor]
-  print(current_prod_code)
-  print(current_vendor_id)
-  
+
   # set up vat choices and the latest vat
   vat_choices <- c(0,5,7,10)
   last_vat <- import_log[import_log$prod_code==current_prod_code &
