@@ -172,9 +172,10 @@ io_exec_inv_out <- function(input,output){
     unit_price = as.integer(input$unit_price),
     qty = input$qty_selector,
     pxk_num = current_pxk,
-    note = input$pxk_note
+    note = input$pxk_note,
+    promotion_price = as.numeric(input$ivo_promo_price)
   )
-  print(append_sale_log)
+  # print(append_sale_log)
   
   # check and write append_sale_log to database
   inv_out_ok <- check_inv_out(append_sale_log, config_dict)
