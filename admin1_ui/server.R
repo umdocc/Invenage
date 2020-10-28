@@ -40,13 +40,14 @@ shinyServer(function(input, output,session) {
     c('in_invoice_num','in_prodname_select','in_vendor','in_unit','in_note',
       'in_actual_unit_cost','po_list_2load','in_vat_percent','in_warehouse'))
   # main table
-  output <- ivi_load_ui(input,output,"latest_import_tbl")
+  output$latest_import_tbl <- render_output_tbl('import_log')
   
   # ----------- buttons
   # create and append import_log
   observeEvent(input$inv_in,{
-    ivi_exec_inv_in(input,output)     # writing to database and refresh the ui
-    output <- ivi_load_ui(input,output,"latest_import_tbl")
+    process_inv_in_buttton(config_dict,input)     # writing to database
+    # refresh the UI
+    output$latest_import_tbl <- render_output_tbl('import_log')
   })
   
   # load the excel po
@@ -55,7 +56,7 @@ shinyServer(function(input, output,session) {
     sync_po_to_db(po_name)
 
     # refresh the UI
-    output$latest_import_tbl <- render_import_log()
+    output$latest_import_tbl <- render_output_tbl('import_log')
   })
   # --------------------------- lu_report UI -------------------------------
 
@@ -259,7 +260,7 @@ shinyServer(function(input, output,session) {
   })
 
   
-  # ------------------------------ po_man tab ----------------------------------
+  # ----------------------------- po_man tab ---------------------------------
   output <- reload_ui(input,output,
     c('po_man_po_list','po_man_po_detail'))
 
@@ -270,9 +271,4 @@ shinyServer(function(input, output,session) {
   observeEvent(input$tsl_add_entry,{
     exec_tsl_add_entry(input,output)
   })
-  
-  # ------------------------ sync_excel_po tab ---------------------------------
-  output <- sep_load_ui(input,output,split_semi(config$sep_ui_items))
-  
-  
 })
