@@ -86,7 +86,7 @@ render_invout_pxktable <- function(){DT::renderDataTable({
 
 # -------------------------------- button handler ------------------------------
 # inv_out complete_form button
-complete_current_pxk <- function(){
+complete_current_pxk <- function(input,output){
   finalised_pxk_num <- get_current_pxk(config_dict)
   
   # update completed field in databse
@@ -99,6 +99,11 @@ complete_current_pxk <- function(){
   
   # create the excel for current pxk, (open file by defaut)
   dest_path <- create_pxk_file(finalised_pxk_num, open_file=T)
+  
+  # reload the ui
+  output <- reload_ui(
+    input,output, split_semi(config$io_complete_form_ui_reload))
+  
 }
 
 io_del_inv_out_stt <- function(input,output){ 

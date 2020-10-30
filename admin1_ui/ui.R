@@ -21,7 +21,11 @@ navbarPage(
   ),
   navbarMenu(
     get_actual('tools'),
-    po_man_tab,
-    tech_service_log_tab
+    po_man_tab
+  ),
+  navbarMenu(
+    get_actual('service_and_warranty'),
+    tech_service_log_tab,
+    tech_service_warranty_tab
   )
 ) # end navbarPage
