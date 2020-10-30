@@ -8,8 +8,7 @@ reload_ui <- function(input,output,ui_list){
   }
   #inv_out prod_name selector
   if ('prod_name_select' %in% ui_list){
-    output$prod_name_select <- render_prod_name_list(
-      input,product_info,'prod_name_select') # prod_name
+    output$prod_name_select <- render_product_list('prod_name_select')
   }
   # inv_out qty selector
   if ('qty_selector' %in% ui_list){
@@ -75,8 +74,7 @@ reload_ui <- function(input,output,ui_list){
       'in_invoice_num',ui_elem$actual[ui_elem$label=='invoice_num']) # in_unit
   }
   if ('in_prodname_select' %in% ui_list){  
-    output$in_prodname_select <- render_prod_name_list(
-      input,config_dict,'in_prodname_select') # prod_name
+    output$in_prodname_select <- render_product_list('in_prodname_select')
   }
   if ('in_vendor' %in% ui_list){    
     output$in_vendor <- render_vendor_list(
@@ -204,8 +202,7 @@ reload_ui <- function(input,output,ui_list){
   
   # --------------------- update_import_price ui -------------------------------
   if ('uip_prod_name' %in% ui_list){
-    output$uip_prod_name <- render_prod_name_list(
-      input,product_info,'uip_prod_name') # prod_name
+    output$uip_prod_name <- render_product_list('uip_prod_name') # prod_name
   }
   if ('uip_vendor' %in% ui_list){
     output$uip_vendor <- render_vendor_list(
