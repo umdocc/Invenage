@@ -5,7 +5,7 @@ require(DT)
 shinyServer(function(input, output,session) {
   session$onSessionEnded( function(){
     stopApp()
-  }) # quit on session end 
+  }) # quit on session end
   
   # ---------------------------- ui configuration ------------------------------
   # hide ui tab by using logic
@@ -26,12 +26,7 @@ shinyServer(function(input, output,session) {
   })
   
   observeEvent(input$complete_form,{
-    complete_current_pxk() # execute command to complete the pxk
-    # UI refresh
-    output <- reload_ui(input,output, 
-      c('customer_selector','prod_name_select','qty_selector','lot_select',
-        'pxk_note','prod_info_str','current_pxk_info','current_pxk_tbl',
-        'invout_stt_list','man_pxk_list'))
+    complete_current_pxk(input,output) # execute command to complete the pxk
   })
 
   # ------------------------------- inv_in UI ----------------------------------
@@ -156,8 +151,7 @@ shinyServer(function(input, output,session) {
   output$add_prod_type <- render_add_prod_type(input, 'add_prod_type')
   
   # add packaging box
-  output$add_pkg_prod_name <- render_prod_name_list(
-    input,config_dict,'add_pkg_prod_name')
+  output$add_pkg_prod_name <- render_product_list('add_pkg_prod_name')
   output$add_pkg_str <- render_add_pkg_str(input)
   
   # add customer box
@@ -169,14 +163,11 @@ shinyServer(function(input, output,session) {
     add_prod_to_db(input,output) # add to database
     
     # reload UI
-    output$prod_name_select <- render_prod_name_list(
-      input, product_info, 'prod_name_select') # prod_name
-    output$in_prodname_select <- render_prod_name_list(
-      input,product_info,'in_prodname_select') # prod_name
+    output$prod_name_select <- render_product_list('prod_name_select')
+    output$in_prodname_select <- render_product_list('in_prodname_select')
     output$in_unit <- render_unit(input,'in_unit',type='inv_in') # in_unit
     output$unit_selector <- render_unit(input,iid='unit_selector') #out_unit
-    output$add_pkg_prod_name <- render_prod_name_list(
-      input,product_info,'add_pkg_prod_name') # refresh add_pkg_prod_list
+    output$add_pkg_prod_name <- render_product_list('add_pkg_prod_name')
     output$add_pkg_str <- render_add_pkg_str(input)
     })
   # add_pkg button
@@ -264,11 +255,15 @@ shinyServer(function(input, output,session) {
   output <- reload_ui(input,output,
     c('po_man_po_list','po_man_po_detail'))
 
-  # ------------------------ tech_service_log tab ------------------------------
+  # ---------------------- service_and_warranty menu ---------------------------
+  #            -------------- tech_service_log tab -------------
   output <- tsl_load_ui(input,output,split_semi(config$tsl_ui_items))
   
   # button handler
   observeEvent(input$tsl_add_entry,{
     exec_tsl_add_entry(input,output)
   })
+  #            ------------ tech_service_warranty tab ------------
+  output <- tsw_load_ui(input,output,split_semi(config$tsw_ui_items))
+  
 })
