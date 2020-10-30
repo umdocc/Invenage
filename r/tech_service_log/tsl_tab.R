@@ -14,8 +14,9 @@ if ('tech_service_log' %in% hidden_tab){
           htmlOutput("tsl_analyser_name"),
           htmlOutput("tsl_analyser_lot"),
           htmlOutput("tsl_service_type"),
-          textInput("tsl_service_detail",
-                    label=get_actual("detail")),
+          textAreaInput("tsl_service_detail", label=get_actual("detail"), 
+                        rows = 10, 
+                        placeholder =  get_actual("tsl_service_detail_guide")),
           actionButton("tsl_add_entry",
                        label=get_actual("enter_data"))
       ),
