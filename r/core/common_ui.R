@@ -92,10 +92,11 @@ render_man_pxk_info <- function(input){renderUI({
 
 
 # render a list of active product
-render_prod_name_list <- function(input,config_dict,iid){renderUI({
-  active_prod <- product_info$search_str[product_info$active==1]
+render_product_list <- function(iid, active_product=T){renderUI({
+  active_prod <- product_info$search_str[
+    product_info$active==as.numeric(active_product)]
   selectizeInput(inputId = iid,
-                 label = ui_elem$actual[ui_elem$label=='prod_name'],
+                 label = get_actual('prod_name'),
                  choices=active_prod)
 }) }
 
