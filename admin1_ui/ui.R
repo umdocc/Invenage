@@ -5,11 +5,13 @@ navbarPage(
   theme = shinytheme("united"), title = company_name, id = 'main',
   # actual ui object construction for each tab is located 
   # in <tabname>_tab.R file
-  inv_out_tab,
+  navbarMenu(
+    get_actual('inv_out'),
+    inv_out_tab,
+    pxk_man_tab
+  ),
   inv_in_tab,
   lu_report_tab,
-  pxk_man_tab,
-  # update_db_tab,
   hr_log_tab,
   navbarMenu(
     get_actual('update_db'),
@@ -21,7 +23,7 @@ navbarPage(
   ),
   navbarMenu(
     get_actual('tools'),
-    po_man_tab
+    sync_excel_po_tab
   ),
   navbarMenu(
     get_actual('service_and_warranty'),

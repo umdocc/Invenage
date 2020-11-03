@@ -2,10 +2,10 @@
 # if hidden, create blank, otherwise create the tab
 if ('inv_out' %in% hidden_tab){
   inv_out_tab <- tabPanel(
-    theme = shinytheme("united"), ui_elem$actual[ui_elem$label=='inv_out'])
+    theme = shinytheme("united"), get_actual('create_delivery_note'))
 }else{
   inv_out_tab <- tabPanel(
-  theme = shinytheme("united"), ui_elem$actual[ui_elem$label=='inv_out'],
+  theme = shinytheme("united"), get_actual('create_delivery_note'),
   fluidRow(
     box(
       width=3, height = 800,
