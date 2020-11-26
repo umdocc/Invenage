@@ -9,3 +9,17 @@ sep_load_ui <- function(input,output,ui_list){
   }
   return(output)
 }
+
+# sep_add_po_import_price(input,output){
+#   # po_name <- input$sep_po_list
+#   # po_data <- read_po_data(po_name)
+#   # vendor_id <- guess_vendor_id(po_name,mode='filepath')
+#   # if (length(vendor_id)==1){
+#   #   po_data$vendor_id <- vendor_id
+#   #   po_data <- add_import_price(po_data)
+#   #   
+#   # }else{
+#   #   show_alert("error","unknown_vendor","error")
+#   # }
+#   # 
+# }

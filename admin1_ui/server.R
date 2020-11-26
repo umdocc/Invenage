@@ -45,14 +45,6 @@ shinyServer(function(input, output,session) {
     output$latest_import_tbl <- render_output_tbl('import_log')
   })
   
-  # load the excel po
-  observeEvent(input$load_excel_po,{
-    po_name <- input$po_list_2load
-    sync_po_to_db(po_name)
-
-    # refresh the UI
-    output$latest_import_tbl <- render_output_tbl('import_log')
-  })
   # --------------------------- lu_report UI -------------------------------
 
   reload_ui(input,output,'lu_report_tbl_selector')
@@ -254,6 +246,20 @@ shinyServer(function(input, output,session) {
   # ----------------------------- sync_excel_po tab ----------------------------
   output <- sep_load_ui(input,output,
     c('sep_po_list','sep_po_data_tbl'))
+  # button handler
+  observeEvent(input$sep_write_import_price,{
+    # sep_add_po_import_price(input,output)
+  })
+  
+  # load the excel po
+  observeEvent(input$sep_sync_excel_po,{
+    po_name <- input$sep_po_list
+    sync_po_to_db(po_name)
+    
+    # refresh the UI
+    output$latest_import_tbl <- render_output_tbl('import_log')
+  })
+  
 
   # ---------------------- service_and_warranty menu ---------------------------
   #            -------------- tech_service_log tab -------------

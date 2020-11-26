@@ -11,8 +11,11 @@ if('sync_excel_po' %in% hidden_tab){
         width=3, height = 800,
         p(), # space
         htmlOutput('sep_po_list'),
+        htmlOutput('sep_po_status'),
         actionButton("sep_sync_excel_po",
                      get_actual('sync_excel_po')),
+        actionButton("sep_write_import_price",
+                     get_actual('add_import_price')),
         p()
       ),
       box(
