@@ -289,7 +289,7 @@ get_ui_elem <- function(config_dict){
 # if summarised = T, all lot data will be summarised, leaving only total for
 # a prod_code, this should only be used with pos_items = T
 update_inventory <- function(config_dict, pos_item=TRUE, summarised = FALSE,
-                             to_date = Sys.Date()){
+                             to_date = Sys.Date(), from_date="1990-01-01"){
   # pre-process import_log as tmp
   tmp <- import_log %>% 
     select(prod_code,unit,qty,lot,exp_date,warehouse_id,delivery_date)
