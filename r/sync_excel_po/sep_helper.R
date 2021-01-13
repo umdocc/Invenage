@@ -14,7 +14,7 @@ sync_po_to_db <- function(po_name){
   out_msg <- '' #init the output message
   # read the po data
   full_path <- get_po_filepath(po_name,config_dict)
-  if(length(full_path)>0){ # if file exist, proceed
+  if(length(full_path)==1){ # if file exist, proceed
     po_data <- read_excel_po(full_path)
     
     if(is.data.frame(po_data)){
@@ -119,7 +119,10 @@ sync_po_to_db <- function(po_name){
     }
   }
   else{
-    show_alert("error","po_file_not_found","error")
+    if(length(full_path)==0){
+      show_alert("error","po_file_not_found","error")}
+    if(length(full_path)>1){
+      show_alert("error","multiple_po_file_found","error")}
   }
 }
 
