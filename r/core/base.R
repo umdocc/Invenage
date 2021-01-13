@@ -293,7 +293,9 @@ update_inventory <- function(config_dict, pos_item=TRUE, summarised = FALSE,
   # pre-process import_log as tmp
   tmp <- import_log %>% 
     select(prod_code,unit,qty,lot,exp_date,warehouse_id,delivery_date)
+  # need to add 1 to to_date as it start at 00:00:00, use >= for from_date
   tmp <- tmp[tmp$delivery_date<(as.Date(to_date,format='%Y-%m-%d')+1),]
+  tmp <- tmp[tmp$delivery_date>=(as.Date(from_date,format='%Y-%m-%d')),]
   tmp <- convert_to_pack(tmp,packaging,'qty','importQty')
   tmp <- tmp %>% group_by(prod_code,unit,lot,warehouse_id) %>% 
     summarise(totalImportQty = sum(importQty), .groups = 'drop')
@@ -302,7 +304,7 @@ update_inventory <- function(config_dict, pos_item=TRUE, summarised = FALSE,
   tmp2 <- sale_log %>% select(prod_code,unit,qty,lot,warehouse_id,pxk_num)
   tmp2 <- merge(tmp2,pxk_info %>% select(pxk_num,sale_datetime),all.x=T)
   tmp2 <- tmp2[tmp2$sale_datetime<(as.Date(to_date,format='%Y-%m-%d')+1),]
-  
+  tmp2 <- tmp2[tmp2$sale_datetime>=(as.Date(from_date,format='%Y-%m-%d')),]
   # for sale_log we need to merge with warehouse_id
   tmp2 <- convert_to_pack(tmp2,packaging,'qty','saleQty')
   tmp2 <- tmp2 %>% group_by(prod_code,unit,lot,warehouse_id) %>% 
