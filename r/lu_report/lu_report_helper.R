@@ -3,7 +3,7 @@
 
 # create shelf_life statistics does not require any user input as it does
 # statistics on import_log table
-create_sl_stats <- function(){
+create_sl_stats_rp <- function(){
   po_import <-import_log[grepl("PO",import_log$po_name),]
   po_import$exp_date <- gsub(" .*$","",po_import$exp_date)
   
@@ -32,11 +32,31 @@ create_sl_stats <- function(){
   return(shelf_life_stats)
 }
 
+create_import_log_rp <- function(lu_from_date,lu_to_date){
+  
+  # merge information
+  import_log_rp <- merge(import_log, product_info%>% select(
+    prod_code,name)) %>% 
+    select(name,unit,qty,lot,exp_date,po_name,actual_unit_cost,delivery_date)
+  
+  # filter from_date and to_date
+  import_log_rp <- import_log_rp[
+    import_log_rp$delivery_date<=as.Date(lu_to_date,format='%Y-%m-%d'),]
+  import_log_rp <- import_log_rp[
+    import_log_rp$delivery_date>=as.Date(lu_from_date,format='%Y-%m-%d'),]
+  
+  return(import_log_rp)
+}
+
 create_lookup_tbl <- function(
   input,table_name,config_dict,translate_colname=TRUE){
-  lu_to_date=input$lur_to_date
+  
+  # get from_date and to_date
+  lu_from_date <- input$lur_from_date 
+  lu_to_date <- input$lur_to_date
+  
   if (table_name == 'shelf_life_stats'){
-    lookup_tbl_output <- create_sl_stats()
+    lookup_tbl_output <- create_sl_stats_rp()
     lookup_tbl_output <- round_df(lookup_tbl_output,digits = 2)
   }
   if (table_name == 'sale_profit_report'){
@@ -125,11 +145,7 @@ create_lookup_tbl <- function(
              lot, note)
   }
   if (table_name=='import_log'){
-    lookup_tbl_output <- merge(import_log, product_info%>% select(
-      prod_code,name)) %>% 
-      select(name,unit,qty,lot,exp_date,po_name,actual_unit_cost,delivery_date)
-    lookup_tbl_output <- lookup_tbl_output[
-      lookup_tbl_output$delivery_date<=as.Date(lu_to_date,format='%Y-%m-%d'),]
+    lookup_tbl_output <- create_import_log_rp(lu_from_date,lu_to_date)
   }
   # format the table
   if (translate_colname){
