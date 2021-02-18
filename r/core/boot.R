@@ -49,6 +49,13 @@ if (config_dict$value[config_dict$name=='config_from_db']=='TRUE'){
   config_dict <- config_dict[!duplicated(config_dict$name),]
 }
 
+# load external config  script if available
+ext_config_path <- file.path(
+  path.expand("~"),'invenage_data','ext_config.R')
+if(file.exists(ext_config_path)){
+  source(ext_config_path)
+}
+
 # create a wide format of config_dict for ease of use
 config <- config_dict %>% select(name,value)
 config <- spread(config,name,value)
