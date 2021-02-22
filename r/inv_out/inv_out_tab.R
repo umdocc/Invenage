@@ -28,10 +28,11 @@ if ('inv_out' %in% hidden_tab){
                         width: 110px", htmlOutput("unit_price")),
       div(style="display: inline-block;vertical-align:top; \
                         width: 160px", htmlOutput("tender_name")),
+      div(style="display: inline-block;vertical-align:top;width: 60px",
+          checkboxInput("promo_price",label = get_actual("promo_price"))),
       textInput('pxk_note', ui_elem$actual[ui_elem$label=='note']),
       htmlOutput("prod_info_str"),
-      actionButton("inventory_out",
-                   ui_elem$actual[ui_elem$label=='inv_out']),
+      actionButton("inventory_out", label = get_actual('inv_out')),
       htmlOutput("sys_msg")
     ),
     box(
