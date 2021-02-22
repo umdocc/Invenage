@@ -14,21 +14,19 @@ if ('inv_out' %in% hidden_tab){
       htmlOutput('prod_name_select'),
       div(style="display: inline-block;vertical-align:top;width: 90px",
           htmlOutput("qty_selector")),
-      div(style="display: inline-block;vertical-align:top; \
-                        width: 90px",
+      div(style="display: inline-block;vertical-align:top;width: 90px",
           htmlOutput("unit_selector")),
-      div(style="display: inline-block;vertical-align:top; \
-                        width: 90px",
+      div(style="display: inline-block;vertical-align:top;width: 90px",
           htmlOutput("warehouse_selector")),
-      div(style="display: inline-block;vertical-align:top; \
-                        width: 110px",htmlOutput("lot_select")),
-      div(style="display: inline-block;vertical-align:top; \
-                        width: 160px", htmlOutput("payment_selector")),
-      div(style="display: inline-block;vertical-align:top; \
-                        width: 110px", htmlOutput("unit_price")),
-      div(style="display: inline-block;vertical-align:top; \
-                        width: 160px", htmlOutput("tender_name")),
-      div(style="display: inline-block;vertical-align:top;width: 60px",
+      div(style="display: inline-block;vertical-align:top;width: 110px",
+          htmlOutput("lot_select")),
+      div(style="display: inline-block;vertical-align:top;width: 160px",
+          htmlOutput("payment_selector")),
+      div(style="display: inline-block;vertical-align:top;width: 110px",
+          htmlOutput("unit_price")),
+      div(style="display: inline-block;vertical-align:top;width: 160px",
+          htmlOutput("tender_name")),
+      div(style="display: inline-block;vertical-align:top;width: 160px",
           checkboxInput("promo_price",label = get_actual("promo_price"))),
       textInput('pxk_note', ui_elem$actual[ui_elem$label=='note']),
       htmlOutput("prod_info_str"),
