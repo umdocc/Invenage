@@ -22,7 +22,8 @@ get_est_import_cost <- function(import_log, algorithm='weighted_average'){
 
 
 # get_latest_price is a function to get the last price sold to a customer
-get_latest_price <- function(customer_id, prod_code, unit, pxk_info){
+get_latest_price <- function(
+  customer_id, prod_code, unit, pxk_info,promo_include=FALSE){
   sale_lookup <- merge(sale_log,pxk_info,on='pxk_num',all.x=T)
   latest_price <- -9999
   # filter through sale_lookup to find price
@@ -30,6 +31,12 @@ get_latest_price <- function(customer_id, prod_code, unit, pxk_info){
                        sale_lookup$customer_id == customer_id &
                        sale_lookup$unit == unit,]
   tmp <- tmp[!is.na(tmp$unit_price),]
+  
+  # normally we want to exclude promotion price
+  if (!promo_include){
+    tmp <- tmp[tmp$promotion_price==0,]
+  }
+  
   # if we can find something, update latest price
   if (nrow(tmp)>0){
     tmp <- merge(tmp,pxk_info %>% select(pxk_num,sale_datetime))
