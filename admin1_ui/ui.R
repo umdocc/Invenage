@@ -29,5 +29,9 @@ navbarPage(
     get_actual('service_and_warranty'),
     tech_service_log_tab,
     tech_service_warranty_tab
+  ),
+  navbarMenu(
+    get_actual('ceo'),
+    vendor_import_performance_tab
   )
 ) # end navbarPage
