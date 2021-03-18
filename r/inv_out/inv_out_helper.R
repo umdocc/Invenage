@@ -199,6 +199,8 @@ io_exec_inv_out <- function(input,output){
     }
     append_sale_log$tender_id <- current_tender_id
     
+    append_sale_log$promotion_price <- as.numeric(input$promo_price)
+    
     # writing to database
     append_tbl_rld(config_dict,'sale_log',append_sale_log)
     # update sys_msg

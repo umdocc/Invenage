@@ -8,7 +8,7 @@ if ('inv_out' %in% hidden_tab){
   theme = shinytheme("united"), get_actual('create_delivery_note'),
   fluidRow(
     box(
-      width=3, height = 800,
+      width=3,
       p(), #space
       htmlOutput('customer_selector'),
       htmlOutput('prod_name_select'),
@@ -22,19 +22,19 @@ if ('inv_out' %in% hidden_tab){
           htmlOutput("lot_select")),
       div(style="display: inline-block;vertical-align:top;width: 160px",
           htmlOutput("payment_selector")),
-      div(style="display: inline-block;vertical-align:top;width: 110px",
+      div(style="display: inline-block;vertical-align:top;width: 130px",
           htmlOutput("unit_price")),
-      div(style="display: inline-block;vertical-align:top;width: 160px",
-          htmlOutput("tender_name")),
-      div(style="display: inline-block;vertical-align:top;width: 160px",
+      div(style="display: inline-block;vertical-align:top;
+          padding-top:20px;padding-left:10px;width: 140px",
           checkboxInput("promo_price",label = get_actual("promo_price"))),
+      htmlOutput("tender_name"),
       textInput('pxk_note', ui_elem$actual[ui_elem$label=='note']),
       htmlOutput("prod_info_str"),
       actionButton("inventory_out", label = get_actual('inv_out')),
       htmlOutput("sys_msg")
     ),
     box(
-      width = 9, height = 800,
+      width = 9,
       # style = "background-color:#c2e6ff;",
       p(),
       htmlOutput("current_pxk_info"),
