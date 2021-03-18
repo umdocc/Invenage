@@ -404,3 +404,31 @@ create_pxk_file <- function(pxk_num,open_file=T){
   # return the filename
   return(dest_path)
 }
+
+# get_latest_price is a function to get the last price sold to a customer
+get_latest_price <- function(
+  customer_id, prod_code, unit, pxk_info,promo_include=FALSE){
+  sale_lookup <- merge(sale_log,pxk_info,on='pxk_num',all.x=T)
+  latest_price <- -9999
+  # filter through sale_lookup to find price
+  tmp <- sale_lookup[sale_lookup$prod_code == prod_code & 
+                       sale_lookup$customer_id == customer_id &
+                       sale_lookup$unit == unit,]
+  tmp <- tmp[!is.na(tmp$unit_price),]
+  
+  # normally we want to exclude promotion price
+  if (!promo_include){
+    tmp <- tmp[tmp$promotion_price==0,]
+  }
+  
+  # if we can find something, update latest price
+  if (nrow(tmp)>0){
+    tmp <- merge(tmp,pxk_info %>% select(pxk_num,sale_datetime))
+    if (class(tmp$sale_datetime) == "character"){
+      tmp$sale_datetime <- strptime(tmp$sale_datetime,'%Y-%m-%d %H:%M:%S')
+    }
+    latest_price <- tmp$unit_price[
+      tmp$sale_datetime == max(tmp$sale_datetime)]
+  }
+  return(latest_price)
+}
