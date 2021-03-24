@@ -5,8 +5,11 @@
 # and prioritise local config in case of duplicates
 create_config_dict <- function(app_path,location='home'){
   home_path <- path.expand('~')
-  home_path <- gsub('\\\\','/',home_path) #windows fix
+  
+  #windows fix for ~
+  home_path <- gsub('\\\\','/',home_path)
   home_path <- gsub('/Documents','',home_path)
+  
   config_path <- file.path(home_path,'invenage_data','invenage_conf.csv')
   
   if (file.exists(config_path)){
