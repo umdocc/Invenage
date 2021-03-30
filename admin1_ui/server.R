@@ -248,7 +248,7 @@ shinyServer(function(input, output,session) {
     c('sep_po_list','sep_po_data_tbl'))
   # button handler
   observeEvent(input$sep_write_import_price,{
-    # sep_add_po_import_price(input,output)
+    sep_add_po_import_price(input,output)
   })
   
   # load the excel po

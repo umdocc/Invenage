@@ -126,16 +126,13 @@ sync_po_to_db <- function(po_name){
   }
 }
 
-# sep_add_po_import_price(input,output){
-#   # po_name <- input$sep_po_list
-#   # po_data <- read_po_data(po_name)
-#   # vendor_id <- guess_vendor_id(po_name,mode='filepath')
-#   # if (length(vendor_id)==1){
-#   #   po_data$vendor_id <- vendor_id
-#   #   po_data <- add_import_price(po_data)
-#   #   
-#   # }else{
-#   #   show_alert("error","unknown_vendor","error")
-#   # }
-#   # 
-# }
+sep_add_po_import_price <- function(input,output){
+  po_name <- input$sep_po_list
+  vendor_id <- guess_vendor_id(po_name,mode='filepath')
+  if (length(vendor_id)==1){
+    write_po_price(po_name)
+    show_alert("success","add_import_price_success","success")
+  }else{
+    show_alert("error","unknown_vendor","error")
+  }
+}

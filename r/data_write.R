@@ -1,5 +1,8 @@
 # this function write the po_data price back to the po
-write_po_price <- function(po_name,po_data){
+write_po_price <- function(po_name){
+  
+  # get the po data
+  po_data <- read_po_data(po_name)
   po_data$vendor_id <- guess_vendor_id(po_name,mode = 'filepath')
   po_data <- add_import_price(po_data)
   
