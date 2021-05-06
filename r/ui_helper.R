@@ -39,28 +39,7 @@ get_current_pricelist <- function(
   return(tmp)
 }
 
-# a function to get the sales summary by prod_code
-get_sales_summary <- function(config_dict,max_backdate=365){
-  conn <- db_open(config_dict)
-  tmp <- dbReadTable(conn,'sale_log')
-  packaging <- dbReadTable(conn,'packaging')
-  pxk_info <- dbReadTable(conn,'pxk_info')
-  dbDisconnect(conn)
-  tmp <- convert_to_pack(tmp,packaging,'qty','pack_qty')
-  tmp <- merge(tmp, pxk_info %>% select(pxk_num,sale_datetime))
-  min_date <- Sys.time() - as.difftime(max_backdate, unit = "days")
-  tmp <- tmp[tmp$sale_datetime>min_date,]
-  tmp <- tmp %>% group_by(prod_code) %>% summarise(
-    oldest_sale_datetime = min(sale_datetime),total_sale_pack=sum(pack_qty), 
-    .groups = 'drop')
-  tmp$oldest_sale_datetime <- strptime(tmp$oldest_sale_datetime,
-                                       "%Y-%m-%d %H:%M:%S")
-  tmp$days_diff <- as.numeric(
-    difftime(Sys.time(),tmp$oldest_sale_datetime,units = 'days'))
-  tmp$mths_diff <- ceiling(tmp$days_diff/(365.25/12)) # round to month
-  tmp$ave_mth_sale <- (tmp$total_sale_pack/tmp$mths_diff)
-  return(tmp)
-}
+
 
 # a function to replace duplicated line with NA
 clean_duplicates <- function(
