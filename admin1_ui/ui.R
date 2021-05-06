@@ -11,7 +11,11 @@ navbarPage(
     pxk_man_tab
   ),
   inv_in_tab,
-  lu_report_tab,
+  navbarMenu(
+    get_actual('lu_report'),
+    lu_report_tab,
+    po_report_tab
+  ),
   hr_log_tab,
   navbarMenu(
     get_actual('update_db'),
