@@ -14,6 +14,9 @@ if('po_report' %in% hidden_tab){
         choices = db_read_query(
           "select vendor from vendor_info where import_from=1")$vendor
         ),
+      actionButton(
+        "print_po_report", get_actual('printReport')
+        ),
       p()
     ),
     box(

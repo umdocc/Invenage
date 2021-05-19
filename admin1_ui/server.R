@@ -57,7 +57,11 @@ shinyServer(function(input, output,session) {
     # similar to the above but made it into excel format
     create_full_report(input)
   })
-
+  observeEvent(input$print_po_report,{
+    # similar to the above but made it into excel format
+    create_po_report(input)
+  })
+  
   # ---------------------------- pxk_man UI ------------------------------------
   # sidebar
   output$man_pxk_list <- render_pxk_list(
