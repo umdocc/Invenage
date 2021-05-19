@@ -134,7 +134,7 @@ shinyServer(function(input, output,session) {
     dest_path <- create_pxk_file(man_pxk_num) # create the pxk
     system2('open',dest_path,timeout = 2) #open the file
   })
-  # -------------------------- update_db UI -----------------------------------
+  # -------------------------- udb UI -----------------------------------
   # add prod box
   output$add_prod_code <- render_prod_code_list('add_prod_code', allow_add = T)
   output$add_name <- render_name_list(input, 'add_name', allow_add = T)
@@ -213,10 +213,10 @@ shinyServer(function(input, output,session) {
     
   })
   
-  # ------------------------- invoice_update tab -------------------------------
+  # ---------------------------- uvi tab ------------------------------------
   output <- reload_ui(input,output,
     c('invoice_vendor','vendor_invoice_num','invoice_currency',
-      'invoice_amount','invoice_cd_num',
+      'invoice_amount','invoice_cd_num','uvi_invoice_date',
       'invoice_po_num','vendor_invoice_tbl','piu_bankslip_vendor',
       'piu_bankslip_invoice_num'))
   observeEvent(input$update_invoice,{

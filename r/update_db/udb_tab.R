@@ -111,45 +111,6 @@ if ('update_import_price' %in% hidden_tab){
   )
 }
 
-
-# ---------------------------- invoice_update_tab ------------------------------
-if('invoice_update' %in% hidden_tab){
-  invoice_update_tab <- tabPanel(get_actual('invoice_update'))
-}else{
-  invoice_update_tab <- tabPanel(
-    theme = shinytheme("united"), 
-    get_actual('invoice_update'),
-    fluidRow(
-      box(
-        width=3, height = 800,
-        div(style="display: inline-block;vertical-align:top;width: 140px",
-          htmlOutput('invoice_vendor')),
-        div(style="display: inline-block;vertical-align:top;width: 150px",
-          htmlOutput('vendor_invoice_num')),
-        div(style="display: inline-block;vertical-align:top;width: 140px",
-            htmlOutput('invoice_amount')),
-        div(style="display: inline-block;vertical-align:top;width: 140px",
-          htmlOutput('invoice_currency')),
-          htmlOutput('invoice_cd_num'),
-          htmlOutput('invoice_po_num'),
-        textInput('invoice_note',
-                  ui_elem$actual[ui_elem$label=='note']),
-        actionButton(
-          'update_invoice',
-          ui_elem$actual[ui_elem$label=='invoice_update']),
-        h3(get_actual('bankslip_upload')),
-        htmlOutput('piu_bankslip_vendor'),
-        htmlOutput('piu_bankslip_invoice_num'),
-        fileInput('bankslip_upload',label = get_actual('file_select'))
-      ),
-      box(
-        width=9, height = 800,
-        DT::dataTableOutput("vendor_invoice_tbl")
-      )
-    )
-  )
-}
-
 # ------------------------- update_vendor tab ----------------------------------
 if ('update_vendor' %in% hidden_tab){
   update_vendor_tab <- tabPanel(get_actual('update_vendor'))
