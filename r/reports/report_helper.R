@@ -1,16 +1,3 @@
-create_po_report <- function(input){
-  vendor_name <- input$por_vendor_select
-  
-  #debug var
-  vendor_name <- 'Biolabo-Phap';to_date<-Sys.Date()
-  from_date <- Sys.Date()-365
-  
-  vendor_id <- vendor_info$vendor_id[vendor_info$vendor==vendor_name]
-  total_sales <- get_total_sales(
-    vendor_id, from_date=(Sys.Date()-365),to_date=Sys.Date())
-}
-
-
 # get_total_sales summarise the total sales by pack, input:
 # vendor_id: default to 0 to summarise all vendor
 # from_date to_date: filtering data based on sale date range

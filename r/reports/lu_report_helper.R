@@ -1,37 +1,6 @@
 # first stage in reporting is to get everything into single table format
 # using create_lookup_tbl
 
-# create shelf_life statistics does not require any user input as it does
-# statistics on import_log table
-create_sl_stats_rp <- function(){
-  po_import <-import_log[grepl("PO",import_log$po_name),]
-  po_import$exp_date <- gsub(" .*$","",po_import$exp_date)
-  
-  po_import$exp_date_full <- parse_date_time(
-    po_import$exp_date, orders = c('y-m-d','d-m-y','y-m','m-y'))
-  
-  po_import <- po_import[!is.na(po_import$exp_date_full),]
-  po_import$useful_life <- difftime(po_import$exp_date_full,po_import$delivery_date,
-                                    units = "days")
-  
-  shelf_life_stats <- po_import %>% group_by(prod_code) %>% 
-    summarise(median_sl_mth = as.numeric(median(useful_life))/365*12,
-              min_sl_mth = as.numeric(min(useful_life))/365*12,
-              max_sl_mth = as.numeric(max(useful_life))/365*12)
-  
-  shelf_life_stats <- merge(
-    shelf_life_stats,
-    product_info %>% select(prod_code,comm_name,ref_smn,vendor),
-    all.x=T)
-  
-  # organise the column
-  shelf_life_stats <- shelf_life_stats %>%
-    select(prod_code,comm_name,vendor,ref_smn,median_sl_mth,
-           max_sl_mth,min_sl_mth)
-  
-  return(shelf_life_stats)
-}
-
 create_import_log_rp <- function(lu_from_date,lu_to_date){
   
   # merge information
@@ -238,38 +207,38 @@ write_inv_value_rp <- function(lu_report_output,rp_filename){
 
 
 # a report comprise of report_name, from_date, to_date and rp_data
-write_report_data <- function(
-  report_type,rp_data,from_date,to_date){
-  
-  # read report configuration from database
-  conn <- db_open(config_dict)
-  report_info <- dbReadTable(conn,"output_info")
-  report_info <- report_info[report_info$type=='report_output',]
-  dbDisconnect(conn)
-  # get the input,output file, report name
-  rp_filename <- get_rp_filename(report_type, config_dict)
-  report_name <- ui_elem$actual[ui_elem$label==report_type]
-  rp_form <- config_dict$value[config_dict$name=='report_form_path']
-  
-  wb <- loadWorkbook(rp_form)
-  #writing data
-  writeData( # report name
-    wb,sheet=1,report_name, 
-    startRow = report_info$value[report_info$name=='report_name_r'], 
-    startCol = report_info$value[report_info$name=='report_name_c'])
-  writeData( # from_date
-    wb,sheet=1,from_date, 
-    startRow = report_info$value[report_info$name=='from_date_r'], 
-    startCol = report_info$value[report_info$name=='from_date_c'])
-  writeData( # to_date
-    wb,sheet=1,to_date, 
-    startRow = report_info$value[report_info$name=='to_date_r'], 
-    startCol = report_info$value[report_info$name=='to_date_c'])
-  # actual data
-  writeData(wb,sheet=1,rp_data, startRow = 5)
-  saveWorkbook(wb,rp_filename,overwrite = T) #save the workbook
-  return(rp_filename)
-}
+# write_report_data <- function(
+#   report_type,rp_data,from_date,to_date){
+#   
+#   # read report configuration from database
+#   conn <- db_open(config_dict)
+#   report_info <- dbReadTable(conn,"output_info")
+#   report_info <- report_info[report_info$type=='report_output',]
+#   dbDisconnect(conn)
+#   # get the input,output file, report name
+#   rp_filename <- get_rp_filename(report_type, config_dict)
+#   report_name <- ui_elem$actual[ui_elem$label==report_type]
+#   rp_form <- config_dict$value[config_dict$name=='report_form_path']
+#   
+#   wb <- loadWorkbook(rp_form)
+#   #writing data
+#   writeData( # report name
+#     wb,sheet=1,report_name, 
+#     startRow = report_info$value[report_info$name=='report_name_r'], 
+#     startCol = report_info$value[report_info$name=='report_name_c'])
+#   writeData( # from_date
+#     wb,sheet=1,from_date, 
+#     startRow = report_info$value[report_info$name=='from_date_r'], 
+#     startCol = report_info$value[report_info$name=='from_date_c'])
+#   writeData( # to_date
+#     wb,sheet=1,to_date, 
+#     startRow = report_info$value[report_info$name=='to_date_r'], 
+#     startCol = report_info$value[report_info$name=='to_date_c'])
+#   # actual data
+#   writeData(wb,sheet=1,rp_data, startRow = 5)
+#   saveWorkbook(wb,rp_filename,overwrite = T) #save the workbook
+#   return(rp_filename)
+# }
 
 build_rp_data <- function(report_type, input, translate=TRUE, prodcode.rm=TRUE){
 
