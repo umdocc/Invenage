@@ -12,9 +12,9 @@ navbarPage(
   ),
   inv_in_tab,
   navbarMenu(
-    get_actual('lu_report'),
+    get_actual('reports'),
     lu_report_tab,
-    po_report_tab
+    po_inventory_tab
   ),
   hr_log_tab,
   navbarMenu(

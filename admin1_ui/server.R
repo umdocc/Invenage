@@ -7,16 +7,18 @@ shinyServer(function(input, output,session) {
     stopApp()
   }) # quit on session end
   
-  # ---------------------------- ui configuration ------------------------------
+# ---------------------------- ui configuration ------------------------------
   # hide ui tab by using logic
   for (tab_label in hidden_tab){
   hideTab(inputId = "main", target = ui_elem$actual[ui_elem$label==tab_label])
   }
-  # ------------------------------- inv_out UI ---------------------------------
-  # sidebar
+  
+# ------------------------- inventory_out menu ------------------------------- 
+  # --------------------------- create_pxk UI ----------------------------------
+  # UI
   output <- reload_ui(input,output,split_semi(config$io_ui_items))
   
-  # inv_out UI buttons handlers
+  # buttons handlers
   observeEvent(input$inventory_out, { # inv_out button
     io_exec_inv_out(input,output) # write to database
   })
@@ -29,38 +31,6 @@ shinyServer(function(input, output,session) {
     complete_current_pxk(input,output) # execute command to complete the pxk
   })
 
-  # ------------------------------- inv_in UI ----------------------------------
-
-  output <- reload_ui(input,output,
-    c('in_invoice_num','in_prodname_select','in_vendor','in_unit','in_note',
-      'in_actual_unit_cost','po_list_2load','in_vat_percent','in_warehouse'))
-  # main table
-  output$latest_import_tbl <- render_output_tbl('import_log')
-  
-  # ----------- buttons
-  # create and append import_log
-  observeEvent(input$inv_in,{
-    process_inv_in_buttton(config_dict,input)     # writing to database
-    # refresh the UI
-    output$latest_import_tbl <- render_output_tbl('import_log')
-  })
-  
-  # --------------------------- lu_report UI -------------------------------
-
-  reload_ui(input,output,'lu_report_tbl_selector')
-  output$lu_report_tbl <- DT::renderDataTable({
-    table_name <- ui_elem$label[
-      ui_elem$actual==input$lu_report_tbl_selector]
-    create_lookup_tbl(input,table_name,config_dict)
-  },rownames=F)
-  observeEvent(input$print_lu_report,{
-    # similar to the above but made it into excel format
-    create_full_report(input)
-  })
-  observeEvent(input$print_po_report,{
-    # similar to the above but made it into excel format
-    create_po_report(input)
-  })
   
   # ---------------------------- pxk_man UI ------------------------------------
   # sidebar
@@ -69,7 +39,7 @@ shinyServer(function(input, output,session) {
   output$man_pxk_cust_select <- render_customer_list(
     'customer_change',type='customer_change', input)
   output$manpxk_pay_change <- render_payment_type(input, # payment change
-    iid = 'manpxk_pay_change',ui_type = 'man_pxk') 
+                                                  iid = 'manpxk_pay_change',ui_type = 'man_pxk') 
   
   #main
   output$man_pxk_info <- render_man_pxk_info(input)
@@ -84,16 +54,16 @@ shinyServer(function(input, output,session) {
       get_pxk_entry_num(selected_pxk_num,config_dict))
     trans_list <- data.frame(label=c(full_stt_list,'all'),
                              localised=c(full_stt_list,
-                                 ui_elem$actual[ui_elem$label=='all']))
+                                         ui_elem$actual[ui_elem$label=='all']))
     stt_to_proc <- as.character(
       trans_list$label[
-      as.character(trans_list$localised)==as.character(input$stt_select)]
+        as.character(trans_list$localised)==as.character(input$stt_select)]
     )
     delete_pxk(selected_pxk_num,stt_to_proc,config_dict)
     # refresh the UI
     output$pxk_detail <- render_man_pxktable(input) # reload the pxk_man table
     output$stt_select <- render_pxkman_stt_list(
-    input,config_dict, iid='stt_select')
+      input,config_dict, iid='stt_select')
   })
   
   observeEvent(input$edit_pxk_info,{
@@ -134,6 +104,46 @@ shinyServer(function(input, output,session) {
     dest_path <- create_pxk_file(man_pxk_num) # create the pxk
     system2('open',dest_path,timeout = 2) #open the file
   })
+  
+  # ------------------------------- inv_in UI ----------------------------------
+
+  output <- reload_ui(input,output,
+    c('in_invoice_num','in_prodname_select','in_vendor','in_unit','in_note',
+      'in_actual_unit_cost','po_list_2load','in_vat_percent','in_warehouse'))
+  # main table
+  output$latest_import_tbl <- render_output_tbl('import_log')
+  
+  # ----------- buttons
+  # create and append import_log
+  observeEvent(input$inv_in,{
+    process_inv_in_buttton(config_dict,input)     # writing to database
+    # refresh the UI
+    output$latest_import_tbl <- render_output_tbl('import_log')
+  })
+  
+# ---------------------------- reports menu ------------------------------------
+  # ----------------------------- po_report tab --------------------------------
+  observeEvent(input$print_po_report,{
+    # similar to the above but made it into excel format
+    create_po_report(input)
+  })
+  
+  reload_ui(input,output,'lu_report_tbl_selector')
+  output$lu_report_tbl <- DT::renderDataTable({
+    table_name <- ui_elem$label[
+      ui_elem$actual==input$lu_report_tbl_selector]
+    create_lookup_tbl(input,table_name,config_dict)
+  },rownames=F)
+  observeEvent(input$print_lu_report,{
+    # similar to the above but made it into excel format
+    create_full_report(input)
+  })
+  observeEvent(input$print_po_report,{
+    # similar to the above but made it into excel format
+    create_po_report(input)
+  })
+  
+
   # -------------------------- udb UI -----------------------------------
   # add prod box
   output$add_prod_code <- render_prod_code_list('add_prod_code', allow_add = T)
@@ -226,6 +236,7 @@ shinyServer(function(input, output,session) {
       c('vendor_invoice_num', 'invoice_amount', 'vendor_invoice_tbl',
         'piu_bankslip_vendor', 'piu_bankslip_invoice_num'))
   })
+  
   # ------------------------- update_import_price tab --------------------------
   output <- reload_ui(input,output,
               c('uip_prod_name', 'uip_vendor', 'uip_import_price',
