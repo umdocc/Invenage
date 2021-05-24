@@ -340,7 +340,7 @@ update_inventory <- function(config_dict, pos_item=TRUE, summarised = FALSE,
     inventory$exp_date,c('%Y-%m','%m-%Y','%d-%m-%Y','%Y-%m-%d'))
   
   # recover static information
-  product_info <- product_info %>% select(prod_code,comm_name,ref_smn,vendor)
+  product_info <- product_info %>% select(prod_code,comm_name,ref_smn,vendor_id)
   inventory <- merge(inventory,product_info,all.x=T)
   ave_import_cost <- get_est_import_cost(
     import_log, algorithm='weighted_average')
