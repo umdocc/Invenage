@@ -19,5 +19,7 @@ get_actual_unit_price <- function(po_filter_str, method='latest',
   return(import_data)
 }
 
-latest_unit_price <- get_actual_unit_price(po_filter_str='.PO.')
-latest_unit_price <- merge(latest_unit_price,product_info, by='prod_code')
+# latest_unit_price <- get_actual_unit_price(po_filter_str='.PO.')
+# latest_unit_price <- merge(latest_unit_price,product_info, by='prod_code')
+# 
+# write.xlsx(latest_unit_price,"~/Downloads/report_data.xlsx")
