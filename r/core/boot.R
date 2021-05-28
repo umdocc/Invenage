@@ -67,6 +67,7 @@ if (db_type == 'MariaDB'){require(RMariaDB)}
 
 # load basic tables: ui_elem
 ui_elem <- create_ui_elem()
+uielem <- spread(ui_elem %>% select(label,actual),label,actual)
 
 # create the list of tables included in lu_report, localised name
 reload_tbl(config_dict,'report_type')
