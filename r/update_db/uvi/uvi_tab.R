@@ -97,12 +97,12 @@ add_prod_to_db <- function(input,output){
     append_prod <- data.frame( 
       prod_code = input$add_prod_code, name = input$add_name, 
       comm_name = input$add_name,
-      vendor = input$add_orig_vendor, ref_smn = input$add_ref,
+      vendor_id = prod_vendor_id, ref_smn = input$add_ref,
       type = product_type$prod_type[product_type$actual == input$add_prod_type],
       packaging_str = '', updated_date = format(Sys.Date()), prod_group = '',
       warehouse_id = warehouse_info$warehouse_id[
         warehouse_info$warehouse==input$add_warehouse],
-      active = 1, vendor_id = prod_vendor_id)
+      active = 1)
     # compose line to be added to packaging
     append_pkg <- data.frame(
       prod_code = input$add_prod_code, unit = tolower(input$add_ordering_unit),
