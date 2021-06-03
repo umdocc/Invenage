@@ -127,7 +127,9 @@ io_exec_inv_out <- function(input,output){
   if (nrow(pxk_info[pxk_info$pxk_num==current_pxk,])==0){
     appendPXKInfo <- data.frame(
       pxk_num = current_pxk,
-      sale_datetime = format(Sys.time(),'%Y-%m-%d %H:%M:%S'),
+      # time variable needs to be in UTC
+      sale_datetime = format(as.POSIXlt(Sys.time(),tz="UTC"),
+                             '%Y-%m-%d %H:%M:%S'),
       customer_id = customer_info[
         customer_info$customer_name==input$customer_name,'customer_id'],
       payment_code = payment_type$payment_code[
