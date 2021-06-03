@@ -11,12 +11,10 @@ navbarPage(
     pxk_man_tab
   ),
   inv_in_tab,
-  navbarMenu(
-    get_actual('reports'),
-    lu_report_tab,
-    po_inventory_tab
-  ),
-  hr_log_tab,
+  navbarMenu(title = get_actual('reports')
+             # po_inventory_tab
+             ),
+  # hr_log_tab,
   navbarMenu(
     get_actual('update_db'),
     update_customer_tab,
