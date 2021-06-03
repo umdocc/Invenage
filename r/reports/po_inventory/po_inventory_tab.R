@@ -1,13 +1,12 @@
 # functions to create the ui for po_report tab (por)
 if('po_inventory' %in% hidden_tab){
-  po_inventory_tab <- tabPanel(ui_elem$actual[ui_elem$label=='po_inventory'])
+  po_inventory_tab <- tabPanel(uielem$po_inventory)
 }else{
-  po_inventory_tab <- tabPanel(
-  ui_elem$actual[ui_elem$label=='po_inventory'],
+  po_inventory_tab <- tabPanel(uielem$po_inventory,
   fluidRow(
     box(
-      width=3, height = 800, style = "background-color:#f5f5f5;",
-      verbatimTextOutput("\n"),
+      width=3, height = 800,
+      p(),
       h3(get_actual('po_report')),
       selectInput(
         inputId = 'por_vendor',
@@ -18,11 +17,11 @@ if('po_inventory' %in% hidden_tab){
       actionButton(
         "print_po_report", get_actual('printReport')
         ),
-      verbatimTextOutput("\n\n")
+      p()
     ),
     box(
-      width=3, height = 800, style = "background-color:#f5f5f5;",
-      verbatimTextOutput("\n"),
+      width=3, height = 800,
+      p(),
       h3(get_actual('current_inventory_report')),
       selectInput(
         inputId = 'cir_vendor',
@@ -42,19 +41,19 @@ if('po_inventory' %in% hidden_tab){
       actionButton(
         "print_inventory_report", get_actual('printReport')
       ),
-      verbatimTextOutput("\n\n")
+      p()
     ),
     box(
-      width=3, height = 800, style = "background-color:#f5f5f5;",
+      width=3, height = 800, style = 
       verbatimTextOutput("\n"),
       h3(get_actual('sale_log')),
-      verbatimTextOutput("\n\n")
+      p()
     ),
     box(
-      width=3, height = 800, style = "background-color:#f5f5f5;",
+      width=3, height = 800, 
       verbatimTextOutput("\n"),
       h3(get_actual('import_log')),
-      verbatimTextOutput("\n\n")
+      p()
     )
   )
 )
