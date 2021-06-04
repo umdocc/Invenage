@@ -294,20 +294,20 @@ get_ui_elem <- function(config_dict){
 update_inventory <- function(config_dict, pos_item=TRUE, summarised = FALSE,
                              to_date = Sys.Date(), from_date="1900-01-01"){
   # pre-process import_log as tmp
-  tmp <- import_log %>% 
-    select(prod_code,unit,qty,lot,exp_date,warehouse_id,delivery_date)
-  # need to add 1 to to_date as it start at 00:00:00, use >= for from_date
-  tmp <- tmp[tmp$delivery_date<(as.Date(to_date,format='%Y-%m-%d')+1),]
-  tmp <- tmp[tmp$delivery_date>=(as.Date(from_date,format='%Y-%m-%d')),]
+  tmp <- db_read_query(paste0(
+    "select * from import_log where delivery_date between '",from_date,
+    "' and '",to_date,"';"
+  ))
   tmp <- convert_to_pack(tmp,packaging,'qty','importQty')
   tmp <- tmp %>% group_by(prod_code,unit,lot,warehouse_id) %>% 
     summarise(totalImportQty = sum(importQty), .groups = 'drop')
   
   # process sale_log as tmp2
-  tmp2 <- sale_log %>% select(prod_code,unit,qty,lot,warehouse_id,pxk_num)
-  tmp2 <- merge(tmp2,pxk_info %>% select(pxk_num,sale_datetime),all.x=T)
-  tmp2 <- tmp2[tmp2$sale_datetime<(as.Date(to_date,format='%Y-%m-%d')+1),]
-  tmp2 <- tmp2[tmp2$sale_datetime>=(as.Date(from_date,format='%Y-%m-%d')),]
+  tmp2 <- db_read_query(paste0(
+    "select * from sale_log inner join pxk_info 
+    on sale_log.pxk_num = pxk_info.pxk_num 
+    where pxk_info.sale_datetime between '",from_date,"' and '",
+    to_date+1,"'"))
   # for sale_log we need to merge with warehouse_id
   tmp2 <- convert_to_pack(tmp2,packaging,'qty','saleQty')
   tmp2 <- tmp2 %>% group_by(prod_code,unit,lot,warehouse_id) %>% 
@@ -338,27 +338,12 @@ update_inventory <- function(config_dict, pos_item=TRUE, summarised = FALSE,
   inventory$exp_date <- gsub(' .*$','',inventory$exp_date)
   inventory$intexp_date <- parse_date_time(
     inventory$exp_date,c('%Y-%m','%m-%Y','%d-%m-%Y','%Y-%m-%d'))
-  
-  # recover static information
-  product_info <- product_info %>% select(prod_code,comm_name,ref_smn,vendor_id)
-  inventory <- merge(inventory,product_info,all.x=T)
-  ave_import_cost <- get_est_import_cost(
-    import_log, algorithm='weighted_average')
-  inventory <- merge(inventory,ave_import_cost,all.x=T)
-  inventory$total_inv_value <-
-    inventory$ave_pack_import_cost*inventory$remaining_qty
-  
+
   # cleaning
   inventory <- inventory[!is.na(inventory$prod_code),] #remove NA
+  
   # we will no longer need the unit, as everything should be in ordering_unit
   inventory$unit <- NULL
-  
-  if (summarised){
-    inventory <- inventory %>% 
-      group_by(prod_code, comm_name, vendor, ref_smn) %>% 
-      summarise(total_remain_qty = sum(remaining_qty), 
-                total_inv_value = sum(total_inv_value), .groups = 'drop')
-  }
   
   return(inventory)
 }
