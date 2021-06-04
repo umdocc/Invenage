@@ -1,24 +1,5 @@
 
 
-# function to build estimated import cost from import_log
-get_est_import_cost <- function(import_log, algorithm='weighted_average'){
-  if (algorithm=='weighted_average'){
-    import_log <- convert_to_pack(import_log,packaging,stringSL='qty',
-                               packString = 'pack_qty')
-    import_log$pack_import_cost <-
-      import_log$actual_unit_cost*import_log$units_per_pack
-    import_log$total_import_cost <-
-      import_log$pack_import_cost*import_log$pack_qty
-    tmp <- import_log %>% group_by(prod_code,lot) %>%
-      summarise(total_pack = sum(pack_qty),
-                sum_import_cost = sum(total_import_cost), .groups = 'drop') %>%
-      ungroup
-    tmp$ave_pack_import_cost <- tmp$sum_import_cost/tmp$total_pack
-    tmp <- tmp %>% select(prod_code,lot,ave_pack_import_cost)
-    return(tmp)
-  }
-}
-
 get_current_pricelist <- function(
   sale_log, pxk_info, customer_info, product_info){
   tmp <- sale_log[!is.na(sale_log$unit_price),]
