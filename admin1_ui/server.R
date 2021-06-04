@@ -127,21 +127,14 @@ shinyServer(function(input, output,session) {
     # similar to the above but made it into excel format
     create_po_report(input)
   })
+
+  observeEvent(input$print_curent_inventory_report,{
+    # similar to the above but made it into excel format
+    create_inventory_report(input)
+  })
   
-  reload_ui(input,output,'lu_report_tbl_selector')
-  output$lu_report_tbl <- DT::renderDataTable({
-    table_name <- ui_elem$label[
-      ui_elem$actual==input$lu_report_tbl_selector]
-    create_lookup_tbl(input,table_name,config_dict)
-  },rownames=F)
-  observeEvent(input$print_lu_report,{
-    # similar to the above but made it into excel format
-    create_full_report(input)
-  })
-  observeEvent(input$print_po_report,{
-    # similar to the above but made it into excel format
-    create_po_report(input)
-  })
+  # sale_log_report
+  reload_slr_ui(input,output,'slr_product')
   
 
   # -------------------------- udb UI -----------------------------------
