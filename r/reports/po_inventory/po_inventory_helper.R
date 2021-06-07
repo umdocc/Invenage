@@ -137,45 +137,30 @@ print_inventory_report <- function(input){
   expiry_first <- input$cir_expiry_first
   
   # create the report
-  inventory_report <- create_inventory_report(value_report,
-                                             current_vendor_id,
-                                             separate_lot,expiry_first)
+  # inventory_report <- create_inventory_report(value_report,
+  #                                            current_vendor_id,
+  #                                            separate_lot,expiry_first)
   # translate the column for printing
-  inventory_report <- translate_tbl_column(inventory_report,ui_elem)
+  # inventory_report <- translate_tbl_column(inventory_report,ui_elem)
   
-  #writing output
-  output_path <- file.path(config$report_out_path,
-                           paste0(config$report_name_default,'.xlsx'))
-  print(paste('writing report to',output_path,"(simple excel)"))
-  write.xlsx(inventory_report,output_path)
+  # #writing output
+  # output_path <- file.path(config$report_out_path,
+  #                          paste0(config$report_name_default,'.xlsx'))
+  # print(paste('writing report to',output_path,"(simple excel)"))
+  # write.xlsx(inventory_report,output_path)
+  
+  if(value_report){
+    knitr_path <- file.path(config$knitr_path,"inventory_report.Rmd")
+    output_path <- file.path(config$report_out_path,
+                             paste0(config$report_name_default,".docx"))
+    rmarkdown::render(knitr_path, output_format = "word_document",
+                      output_file = output_path)
+  }
+  
+  system2('open',output_path,timeout = 2)
 }
 
-#create the inventory report, including value/current inventory etc
-create_inventory_report<- function(value_report=F,current_vendor_id=0,
-                                   separate_lot=T,expiry_first=T){
-  
-  current_inventory <- update_inventory(config_dict)
-  
-  #filter on vendor_id if not 0
-  if(current_vendor_id!=0){
-    current_inventory[current_inventory$vendor_id==current_vendor_id,]
-  }
-  
-  if(separate_lot | expiry_first){
-    inventory_report <- current_inventory
-  }else{
-    inventory_report <- current_inventory %>% 
-      group_by(prod_code) %>%
-      summarise(total_remain_qty = sum(remaining_qty))
-    
-    if(value_report){
-      inventory_report <- convert_to_value_report(inventory_report)
-      inventory_report <- inventory_report %>%
-        select(vendor,comm_name,total_remain_qty,mean_unit_cost,total_value)
-    }
-  }
-  return(inventory_report)
-}
+
 
 #convert to value report
 convert_to_value_report <- function(inventory_report){
@@ -187,7 +172,7 @@ convert_to_value_report <- function(inventory_report){
       po_filter_str=config$po_file_include)
     inventory_report <- merge(inventory_report,actual_unit_price,
                               by='prod_code',all.x=T)
-    tmp <- db_read_query("select prod_code, vendor_id,comm_name 
+    tmp <- db_read_query("select prod_code, vendor_id,comm_name, ref_smn
                            from product_info")
     inventory_report <- merge(inventory_report, tmp,by='prod_code',all.x=T)
     inventory_report$total_value <- 
@@ -206,7 +191,8 @@ convert_to_value_report <- function(inventory_report){
     inventory_report_sum <- inventory_report_sum %>% 
       rename(total_value = total_value_sum)
     inventory_report_sum <- inventory_report_sum %>% 
-      mutate( total_remain_qty = NA, mean_unit_cost = NA, prod_code = NA)
+      mutate( total_remain_qty = NA, mean_unit_cost = NA, prod_code = NA,
+              ref_smn = NA)
     
     inventory_report <- merge(inventory_report,tmp,by='vendor_id')
     inventory_report_sum <- merge(inventory_report_sum,tmp,by='vendor_id')
@@ -219,12 +205,12 @@ convert_to_value_report <- function(inventory_report){
   }
 }
 
-# when we want to rbind and need a spacing df it should be here
-create_spacing_df <- function(data_df,nrow_space = 2){
-  spacing_df <- data_df[1:nrow_space,]
-  spacing_df[T,] <- NA
-  return(spacing_df)
-}
+# # when we want to rbind and need a spacing df it should be here
+# create_spacing_df <- function(data_df,nrow_space = 2){
+#   spacing_df <- data_df[1:nrow_space,]
+#   spacing_df[T,] <- NA
+#   return(spacing_df)
+# }
 
 # if method='latest_import' the program will calculate actual_unit_price from
 # the latest import first, then use latest local import price for remainin items
