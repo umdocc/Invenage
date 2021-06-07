@@ -32,6 +32,12 @@ if('po_inventory' %in% hidden_tab){
       checkboxInput(inputId = 'cir_separate_lot',
                     label = uielem$cir_separate_lot,
                     value = F),
+      checkboxInput(inputId = 'cir_expiry_first',
+                    label = uielem$cir_expiry_first,
+                    value = F),
+      checkboxInput(inputId = 'cir_value_report',
+                    label = uielem$cir_value_report,
+                    value = F),
       actionButton(inputId = "print_inventory_report", 
                    label = uielem$printReport),
       p()

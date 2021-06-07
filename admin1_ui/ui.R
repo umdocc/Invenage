@@ -11,8 +11,8 @@ navbarPage(
     pxk_man_tab
   ),
   inv_in_tab,
-  navbarMenu(title = get_actual('reports')
-             # po_inventory_tab
+  navbarMenu(title = uielem$reports,
+             po_inventory_tab
              ),
   # hr_log_tab,
   navbarMenu(

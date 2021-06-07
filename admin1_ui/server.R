@@ -128,9 +128,9 @@ shinyServer(function(input, output,session) {
     create_po_report(input)
   })
 
-  observeEvent(input$print_curent_inventory_report,{
+  observeEvent(input$print_inventory_report,{
     # similar to the above but made it into excel format
-    create_inventory_report(input)
+    print_inventory_report(input)
   })
   
   # sale_log_report
