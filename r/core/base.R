@@ -373,3 +373,15 @@ round_df <- function(df, digits) {
   
   (df)
 }
+
+write_and_open_report <- function(input_df,format='.xlsx'){
+  file_path <- file.path(config$report_out_path,
+                         paste0(config$report_name_default,format))
+  write.xlsx(input_df,file_path)
+  system2("open",file_path,timeout = 2)
+}
+
+
+
+
+

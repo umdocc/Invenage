@@ -122,7 +122,7 @@ shinyServer(function(input, output,session) {
   })
   
 # ---------------------------- reports menu ------------------------------------
-  # ----------------------------- po_report tab --------------------------------
+  # ----------------------------- po_inventory tab --------------------------------
   observeEvent(input$print_po_report,{
     # similar to the above but made it into excel format
     create_po_report(input)
@@ -131,6 +131,12 @@ shinyServer(function(input, output,session) {
   observeEvent(input$print_inventory_report,{
     # similar to the above but made it into excel format
     print_inventory_report(input)
+  })
+  # ---------------------- sale_log_report tab ------------------------------
+  output$sale_log_report_tbl <- render_sale_log_report_tbl(input)
+  observeEvent(input$print_sale_log_report,{
+    # similar to the above but made it into excel format
+    create_sale_log_report(input,print_report = T)
   })
 
   # -------------------------- udb UI -----------------------------------
