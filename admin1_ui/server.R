@@ -132,10 +132,6 @@ shinyServer(function(input, output,session) {
     # similar to the above but made it into excel format
     print_inventory_report(input)
   })
-  
-  # sale_log_report
-  reload_slr_ui(input,output,'slr_product')
-  
 
   # -------------------------- udb UI -----------------------------------
   # add prod box

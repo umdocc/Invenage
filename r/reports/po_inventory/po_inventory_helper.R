@@ -111,22 +111,22 @@ get_sl_report <- function(input_vendor_id){
 
 
 
-render_slr_product <- function(input){renderUI({
-  # get list of products currently sold to a customer
-  current_customer_name <- input$slr_customer
-  current_customer_id <- db_read_query(paste0(
-    "select customer_id from customer_info where customer_name='",
-    current_customer_name,"'"))
-  product_list <- db_read_query(paste0(
-    "select distinct prod_code from sale_log inner join pxk_info
-    on sale_log.pxk_num = pxk_info.pxk_num 
-    where pxk_info.customer_id =",current_customer_id))
-  
-  # render the UI
-  selectizeInput(
-    inputId = "slr_product", label=uielem$comm_name,
-    choices = product_list, selected = product_list[1])
-})}
+# render_slr_product <- function(input){renderUI({
+#   # get list of products currently sold to a customer
+#   current_customer_name <- input$slr_customer
+#   current_customer_id <- db_read_query(paste0(
+#     "select customer_id from customer_info where customer_name='",
+#     current_customer_name,"'"))
+#   product_list <- db_read_query(paste0(
+#     "select distinct prod_code from sale_log inner join pxk_info
+#     on sale_log.pxk_num = pxk_info.pxk_num 
+#     where pxk_info.customer_id =",current_customer_id))
+#   
+#   # render the UI
+#   selectizeInput(
+#     inputId = "slr_product", label=uielem$comm_name,
+#     choices = product_list, selected = product_list[1])
+# })}
 
 print_inventory_report <- function(input){
   value_report <- input$cir_value_report
@@ -135,19 +135,6 @@ print_inventory_report <- function(input){
   where vendor='",input$cir_vendor,"'"))$vendor_id
   separate_lot <- input$cir_separate_lot
   expiry_first <- input$cir_expiry_first
-  
-  # create the report
-  # inventory_report <- create_inventory_report(value_report,
-  #                                            current_vendor_id,
-  #                                            separate_lot,expiry_first)
-  # translate the column for printing
-  # inventory_report <- translate_tbl_column(inventory_report,ui_elem)
-  
-  # #writing output
-  # output_path <- file.path(config$report_out_path,
-  #                          paste0(config$report_name_default,'.xlsx'))
-  # print(paste('writing report to',output_path,"(simple excel)"))
-  # write.xlsx(inventory_report,output_path)
   
   if(value_report){
     knitr_path <- file.path(config$knitr_path,"inventory_report.Rmd")
@@ -205,13 +192,6 @@ convert_to_value_report <- function(inventory_report){
   }
 }
 
-# # when we want to rbind and need a spacing df it should be here
-# create_spacing_df <- function(data_df,nrow_space = 2){
-#   spacing_df <- data_df[1:nrow_space,]
-#   spacing_df[T,] <- NA
-#   return(spacing_df)
-# }
-
 # if method='latest_import' the program will calculate actual_unit_price from
 # the latest import first, then use latest local import price for remainin items
 get_actual_unit_price <- function(po_filter_str, method='latest_import', 
@@ -261,8 +241,8 @@ get_unit_price_from_import_data <- function(import_data, remove_null,
   return(import_data)
 }
 
-reload_slr_ui <- function(input,output,ui_list){
-  if ('slr_product' %in% ui_list){
-    output$slr_product <- render_slr_product(input)
-  }
-}
+# reload_slr_ui <- function(input,output,ui_list){
+#   if ('slr_product' %in% ui_list){
+#     output$slr_product <- render_slr_product(input)
+#   }
+# }
