@@ -1,10 +1,3 @@
-# sls_load_ui <- function(input,output,ui_list){
-#   if ("tsw_product_name" %in% ui_list){
-#     output$tsw_product_name <- render_product_list('tsw_product_name')
-#   }
-#   return(output)
-# }
-
 # the create function get the raw report and do all the formatting
 # if print_report=T an excel/word report will be generated 
 create_sale_log_report <- function(input,print_report=F,trans_col=T){
