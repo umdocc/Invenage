@@ -1,11 +1,11 @@
 # ------------------------------ ui object -------------------------------------
 # if hidden, create blank, otherwise create the tab
-if ('inv_out' %in% hidden_tab){
-  inv_out_tab <- tabPanel(
-    theme = shinytheme("united"), get_actual('create_delivery_note'))
+if ('cdn' %in% hidden_tab){
+  cdn_tab <- tabPanel(
+    theme = shinytheme("united"), uielem$create_delivery_note)
 }else{
-  inv_out_tab <- tabPanel(
-  theme = shinytheme("united"), get_actual('create_delivery_note'),
+  cdn_tab <- tabPanel(
+  theme = shinytheme("united"), uielem$create_delivery_note,
   fluidRow(
     box(
       width=3,

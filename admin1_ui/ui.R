@@ -7,7 +7,7 @@ navbarPage(
   # in <tabname>_tab.R file
   navbarMenu(
     get_actual('inv_out'),
-    inv_out_tab,
+    cdn_tab,
     pxk_man_tab
   ),
   inv_in_tab,
