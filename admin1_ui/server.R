@@ -14,7 +14,7 @@ shinyServer(function(input, output,session) {
   }
   
 # ------------------------- inventory_out menu ------------------------------- 
-  # --------------------------- create_pxk UI ----------------------------------
+  # --------------------- create_delivery_note UI ---------------------------
   # UI
   output <- reload_ui(input,output,split_semi(config$io_ui_items))
   
