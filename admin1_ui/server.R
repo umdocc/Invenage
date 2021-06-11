@@ -16,11 +16,11 @@ shinyServer(function(input, output,session) {
 # ------------------------- inventory_out menu ------------------------------- 
   # --------------------- create_delivery_note UI ---------------------------
   # UI
-  output <- reload_ui(input,output,split_semi(config$io_ui_items))
+  output <- reload_ui(input,output,split_semi(config$cdn_ui_items))
   
   # buttons handlers
   observeEvent(input$inventory_out, { # inv_out button
-    io_exec_inv_out(input,output) # write to database
+    cdn_add_entry(input,output) # write to database
   })
   
   observeEvent(input$del_invout_stt,{
@@ -32,7 +32,7 @@ shinyServer(function(input, output,session) {
   })
 
   
-  # ---------------------------- pxk_man UI ------------------------------------
+  # --------------------- manage_delivery_note UI ---------------------------
   # sidebar
   output$man_pxk_list <- render_pxk_list(
     input,config_dict,'man_pxk_list') #pxk_list

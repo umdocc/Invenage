@@ -116,7 +116,7 @@ get_current_pxk <- function(cofig_dict){
 }
 
 
-io_exec_inv_out <- function(input,output){
+cdn_add_entry <- function(input,output){
   # custom display message
   output$sys_msg <- render_sys_message('please wait....')
   
