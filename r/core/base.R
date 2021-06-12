@@ -65,7 +65,8 @@ db_open <- function(config_dict){
       username = config_dict$value[config_dict$name=='sql_usr'],
       password = config_dict$value[config_dict$name=='sql_pswd'], 
       host = config_dict$value[config_dict$name=='sql_host'],
-      port = 3306, dbname = 'invenage')
+      port = 3306, dbname = config_dict$value[
+        config_dict$name=='sql_db_name'])
   }
   return(conn)
 }

@@ -12,7 +12,7 @@ if(!file.exists(boot_path)){
 
 # path for reading the local config data
 home_path <- path.expand('~')
-local_config_path <- file.path(home_path,'invenage','config.csv')
+local_config_path <- file.path(home_path,'invenage','config_v02.csv')
 
 
 # load boot
