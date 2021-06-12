@@ -16,7 +16,7 @@ lapply(required_package, require, character.only = TRUE)
 source(file.path(app_path, 'r','core','base.R'))
 
 # create config_dict
-config_dict <- create_config_dict(app_path,'home')
+config_dict <- create_config_dict(local_config_path)
 config_dict$source <- 'local'
 
 # add comment column if not yet in config_dict, as db dict have comment

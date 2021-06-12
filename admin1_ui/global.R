@@ -10,5 +10,10 @@ if(!file.exists(boot_path)){
   app_path <- '~/Documents/GitHub/Invenage/'
 }
 
+# path for reading the local config data
+home_path <- path.expand('~')
+local_config_path <- file.path(home_path,'invenage','config.csv')
+
+
 # load boot
 source(file.path(app_path,'r','core','boot.R'))
