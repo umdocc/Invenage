@@ -13,7 +13,8 @@ navbarPage(
   inv_in_tab,
   navbarMenu(title = uielem$reports,
              po_inventory_tab,
-             sale_log_report_tab
+             sale_log_report_tab,
+             import_log_report_tab
              ),
   # hr_log_tab,
   navbarMenu(

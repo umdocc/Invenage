@@ -139,6 +139,14 @@ shinyServer(function(input, output,session) {
     create_sale_log_report(input,print_report = T)
   })
 
+  # ---------------------- import_log_report tab ----------------------------
+  output$import_log_report_tbl <- render_import_log_report_tbl(input)
+  observeEvent(input$print_import_log_report,{
+    # similar to the above but made it into excel format
+    create_import_log_report(input,print_report = T)
+  })
+  
+  
   # -------------------------- udb UI -----------------------------------
   # add prod box
   output$add_prod_code <- render_prod_code_list('add_prod_code', allow_add = T)
