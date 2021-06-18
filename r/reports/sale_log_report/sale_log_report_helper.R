@@ -5,6 +5,10 @@ create_sale_log_report <- function(input,print_report=F,trans_col=T){
   to_date <- input$slr_to_date
   sale_log_report <- get_sale_log_report(from_date,to_date)
   
+  if(!as.numeric(config$slr_show_price)){
+    sale_log_report$unit_price <- NULL
+    }
+  
   if(trans_col){
     sale_log_report <- translate_tbl_column(sale_log_report, ui_elem)
   }
@@ -20,7 +24,7 @@ create_sale_log_report <- function(input,print_report=F,trans_col=T){
 get_sale_log_report <- function(from_date,to_date){
   sale_log_report <- db_read_query(paste0(
     "SELECT sale_log.stt, product_info.comm_name, sale_log.pxk_num, 
-    sale_log.unit_price, sale_log.qty,
+    sale_log.unit_price, sale_log.qty, sale_log.lot,
     customer_info.customer_name
     FROM sale_log inner join pxk_info
     on sale_log.pxk_num = pxk_info.pxk_num
