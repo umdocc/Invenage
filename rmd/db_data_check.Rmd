@@ -1,0 +1,36 @@
+---
+title: "Invenage boot check"
+author: "Cuong Do"
+date: "6/20/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Boot check
+
+Eventually Invenage will have a tab that user can execute rmd on demand.
+
+Rmd ran inside shinyUI will assume all variables in workspace
+
+This rmd check the database upon boot.
+
+We first check for data type inconsistency.
+
+```{r data_type_check}
+conn <- db_open(config_dict)
+tmp <- dbGetQuery(conn,'SELECT * FROM INFORMATION_SCHEMA.COLUMNS')
+dbDisconnect(conn)
+tmp <- tmp[tmp$TABLE_SCHEMA=='invenage',]
+tmp <- tmp %>% select(TABLE_NAME,COLUMN_NAME,COLUMN_TYPE)
+
+# check for columns that are not consistent in database
+# tmp[!duplicated(tmp %>% select(COLUMN_NAME, COLUMN_TYPE)),]
+tmp <- tmp[!duplicated(tmp %>% select(COLUMN_NAME, COLUMN_TYPE)),]
+
+# list the table fields with inconsistencies, we can then search tmp in Rstudio
+# for the exact problem
+tmp[duplicated(tmp$COLUMN_NAME),]
+```
