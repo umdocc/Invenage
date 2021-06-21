@@ -46,3 +46,11 @@ private/update_import_license.R
 admin1_ui/inventory_report.md
 rmd/inventory_report.Rmd
 *.py
+python/update_db_from_excel.py
+python/python_func.py
+python/process_local_purchase.py
+python/process_excel_po.py
+python/po_tools.py
+python/open_error_log.py
+python/fill_missing_actual_cost.py
+python/db_check.py
