@@ -167,8 +167,11 @@ shinyServer(function(input, output,session) {
   output$add_customer_name <- render_customer_list(
     iid = 'add_customer_name',type = 'add_customer',input)
   
+  # ----------------------------- update_product ----------------------------
+  udp_load_ui(input,output,"udp_add_product_vendor")
+  
   # add_prod button
-  observeEvent(input$add_product,{
+  observeEvent(input$udp_add_product,{
     add_prod_to_db(input,output) # add to database
     
     # reload UI
