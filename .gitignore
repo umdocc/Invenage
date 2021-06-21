@@ -45,3 +45,4 @@ private/update_import_license.R
 .DS_Store
 admin1_ui/inventory_report.md
 rmd/inventory_report.Rmd
+*.py
