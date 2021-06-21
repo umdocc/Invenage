@@ -23,7 +23,8 @@ sync_po_to_db <- function(po_name){
       
       # merge and trim po_data to required columns
       po_data$ref_smn <- trimws(po_data$ref_smn) #trim ws first
-      po_data <- merge(po_data,product_info %>% select(ref_smn,vendor,prod_code),
+      po_data <- merge(po_data,product_info %>% 
+                         select(ref_smn,vendor_id,prod_code),
                        all.x=T)
       
       # check the po for invalid prod_code and notify the user
