@@ -13,11 +13,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Eventually Invenage will have a tab that user can execute rmd on demand.
 
-Rmd ran inside shinyUI will assume all variables in workspace
+Rmd ran inside shinyUI are "live" rmd. to run these independently we need to run the app once from Rstudio so that the workspace gets loaded.
 
 This rmd check the database upon boot.
 
-We first check for data type inconsistency.
+We first check for data type inconsistency, if a column name has different data types in different table it will be listed here.
 
 ```{r data_type_check}
 conn <- db_open(config_dict)
@@ -27,10 +27,36 @@ tmp <- tmp[tmp$TABLE_SCHEMA=='invenage',]
 tmp <- tmp %>% select(TABLE_NAME,COLUMN_NAME,COLUMN_TYPE)
 
 # check for columns that are not consistent in database
-# tmp[!duplicated(tmp %>% select(COLUMN_NAME, COLUMN_TYPE)),]
-tmp <- tmp[!duplicated(tmp %>% select(COLUMN_NAME, COLUMN_TYPE)),]
+# first generate a dataframe containing unique combination of column name and type
+tmp2 <- tmp[!duplicated(tmp %>% select(COLUMN_NAME, COLUMN_TYPE)),]
 
-# list the table fields with inconsistencies, we can then search tmp in Rstudio
-# for the exact problem
-tmp[duplicated(tmp$COLUMN_NAME),]
+# in this data frame, if a column name is duplicated, it indicate that this 
+# column name has multiple type
+if(nrow(tmp2[duplicated(tmp2$COLUMN_NAME),])){
+  print(tmp2[duplicated(tmp2$COLUMN_NAME),])
+}
+```
+
+Packaging table:
+
+- Entries with null or blank unit
+
+```{r packaging_check}
+packaging <- db_read_query("select * from packaging")
+test <- packaging[is.na(packaging$unit)|packaging$unit=='',]
+if(nrow(test)>0){
+  print(test)
+}
+```
+
+# inconsistency in sale_log unit
+
+```{r packaging_check}
+test <- merge(sale_log,packaging,all.x=T)
+test[is.na(test$units_per_pack),]
+
+test2 <- merge(import_log,packaging,all.x=T)
+test[is.na(test$units_per_pack),]
+
+
 ```
