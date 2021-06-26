@@ -41,45 +41,44 @@ add_prod_to_db <- function(input,output){
     small_msg <- ui_elem$actual[ui_elem$label=='prod_exist']
     shinyalert(title = big_msg, text = small_msg, type = "error")
   }
-  
-  # check if ordering unit is null or blank
-  input_ordering_unit <- input$udp_add_prod_ordering_unit
-  if(is.na(input_ordering_unit)|input_ordering_unit==''){
+
+  # compile the line to be added to product_info
+  append_prod <- data.frame( 
+    prod_code = input$udp_add_prod_code, 
+    name = input$udp_add_comm_name, 
+    comm_name = input$udp_add_comm_name,
+    vendor_id = prod_vendor_id, 
+    ref_smn = input_ref_smn,
+    type = product_type$prod_type[product_type$actual == input$add_prod_type],
+    updated_date = format(Sys.Date()),
+    warehouse_id = warehouse_info$warehouse_id[
+      warehouse_info$warehouse==input$add_warehouse],
+    active = 1)
+    
+  # compose line to be added to packaging
+  append_pkg <- data.frame(
+    prod_code = input$udp_add_prod_code, 
+    unit = tolower(input$udp_add_prod_ordering_unit),
+    units_per_pack = 1, 
+    last_updated = format(Sys.Date())
+  )
+
+  # check if anything missing
+  if(any(append_prod=='') | any(append_pkg=='')){
     error_free <- F
     big_msg <- uielem$input_error
-    small_msg <- uielem$invalid_unit
+    small_msg <- uielem$missing_fields
     shinyalert(title = big_msg, text = small_msg, type = "error")
   }
   
   # write to database if error_free
   if (error_free){
-    # compile the line to be added to product_info
-    append_prod <- data.frame( 
-      prod_code = input$udp_add_prod_code, 
-      name = input$udp_add_comm_name, 
-      comm_name = input$udp_add_comm_name,
-      vendor_id = prod_vendor_id, 
-      ref_smn = input_ref_smn,
-      type = product_type$prod_type[product_type$actual == input$add_prod_type],
-      packaging_str = '', 
-      updated_date = format(Sys.Date()), prod_group = '',
-      warehouse_id = warehouse_info$warehouse_id[
-        warehouse_info$warehouse==input$add_warehouse],
-      active = 1)
-    
-    # compose line to be added to packaging
-    append_pkg <- data.frame(
-      prod_code = input$udp_add_prod_code, 
-      unit = tolower(input$udp_add_prod_ordering_unit),
-      units_per_pack = 1, 
-      last_updated = format(Sys.Date())
-    )
-    append_tbl_rld(config_dict, 'product_info',append_prod)
-    append_tbl_rld(config_dict, 'packaging',append_pkg)
-    
-    big_msg <- ui_elem$actual[ui_elem$label=='done']
-    small_msg <- ui_elem$actual[ui_elem$label=='add_prod_success']
-    shinyalert(title = big_msg, text = small_msg, type = "success")
+  # append_tbl_rld(config_dict, 'product_info',append_prod)
+  # append_tbl_rld(config_dict, 'packaging',append_pkg)
+  # 
+  big_msg <- ui_elem$actual[ui_elem$label=='done']
+  small_msg <- ui_elem$actual[ui_elem$label=='add_prod_success']
+  shinyalert(title = big_msg, text = small_msg, type = "success")
   }
 }
 
@@ -95,13 +94,16 @@ add_vendor_with_product <- function(input_vendor_name){
       local=0,
       orig_vendor = 1)
     append_tbl_rld(config_dict,'vendor_info',append_vendor_info)
-    if(config$add_vendor_code){
-      # new_vendor_id <- db_read_query(paste0(
-      #   "select vendor_id from vendor_info where vendor='",
-      #   input_vendor_name,"'"))$vendor_id
-      # db_exec_query(paste0(
-      #   "update vendor info set vendor_code='",
-      #   config$vendor_code_prefix,))
+    if(as.integer(config$add_vendor_code)){
+      new_vendor_id <- db_read_query(paste0(
+        "select vendor_id from vendor_info where vendor='",
+        input_vendor_name,"'"))$vendor_id
+      new_vendor_code <- paste0(config$vendor_code_prefix,
+                                formatC(as.integer(new_vendor_id), 
+                                        width=4, flag="0"))
+      db_exec_query(paste0(
+        "update vendor_info info set vendor_code='",
+        new_vendor_code,"' where vendor_id=",new_vendor_id))
     }
   }
   

@@ -375,7 +375,12 @@ write_and_open_report <- function(input_df,format='.xlsx'){
   system2("open",file_path,timeout = 2)
 }
 
-
+# simple function to get r display human number
+format_num <- function(input_vector){
+  input_vector <- formatC(input_vector, 
+          format='f',big.mark = ',',digits = 2)
+  return(input_vector)
+}
 
 
 

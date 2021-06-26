@@ -3,7 +3,7 @@
 required_package <- c('shinythemes','DBI','DT', 'shiny', 'shinydashboard',
                       'ggplot2', 'scales', 'RMariaDB', 'RSQLite',
                       'openxlsx', 'dplyr', 'data.table', 'lubridate',
-                      'shinyalert','emayili')
+                      'shinyalert','emayili','pandoc')
 new.packages <- required_package[
   !(required_package %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(
