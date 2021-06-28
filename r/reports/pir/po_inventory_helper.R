@@ -4,18 +4,16 @@ create_inventory_report <- function(input){
                            paste0(config$report_name_default,".xlsx"))
   
   # config variables
-  value_report <- input$pir_value_report
+  report_type <- input$pir_report_type
   current_vendor_id <- db_read_query(paste0("select vendor_id from vendor_info
     where vendor='",input$pir_vendor,"'"))$vendor_id
-  separate_lot <- input$pir_separate_lot
-  expiry_first <- input$pir_expiry_first
-  po_report <- input$pir_po_report
+
 
   # if value report is selected
-  if(value_report){
+  if(report_type==uielem$value_report){
 
-    inventory_report <- get_inventory_report(value_report,current_vendor_id)
-    inventory_report_sum <- get_inventory_report_sum(inventory_report)
+    inventory_report <- get_value_report(current_vendor_id)
+    inventory_report_sum <- get_value_report_sum(inventory_report)
     
     # translate and write
     inventory_report <- translate_tbl_column(inventory_report,ui_elem)
@@ -29,16 +27,18 @@ create_inventory_report <- function(input){
                overwrite = T)
   }
   
-  if(separate_lot){
-    print('reserver for report with separated lot')
+  if(report_type==uielem$separate_lot){
+    output_data <- get_separate_lot_report(current_vendor_id)
+    output_data <- translate_tbl_column(output_data,ui_elem)
+    write.xlsx(output_data, file=output_path,overwrite = T)
   }
   
-  if(expiry_first){
+  if(report_type==uielem$expiry_first){
     print('reserver for report with expiry first')
   }
   
   # if po_report is selected
-  if(po_report){
+  if(report_type==uielem$po_report){
     # generate data
     output_data <- get_po_report(current_vendor_id)
     
@@ -46,18 +46,28 @@ create_inventory_report <- function(input){
     output_data <- translate_tbl_column(output_data,ui_elem)
     write.xlsx(output_data, file=output_path,overwrite = T)
   }
-  
-  # if nothing is selected, print the inventory summary
-  if(!any(value_report,po_report,expiry_first,separate_lot)){
-    print('reserver for normal report')
-  }
-  
 
   system2('open',output_path,timeout = 2)
 }
 
+get_separate_lot_report <- function(vendor_id){
+  inventory_report <- update_inventory(config_dict)
+  tmp <- db_read_query("select product_info.prod_code, product_info.ref_smn,
+                      product_info.comm_name, vendor_info.vendor_id, 
+                      vendor_info.vendor 
+                      from product_info inner join vendor_info
+                      on product_info.vendor_id = vendor_info.vendor_id")
+  inventory_report <- merge(inventory_report,tmp,by='prod_code',all.x=T)
+  if(vendor_id!=0){
+    inventory_report <- inventory_report[inventory_report$vendor_id==vendor_id,]
+  }
+  col_names <- split_semi(config$pir_separate_lot_report_col)
+  inventory_report <- inventory_report %>% select(col_names)
+  return(inventory_report)
+}
+
 # generate the inventory report as data_frame
-get_inventory_report <- function(value_report,vendor_id=0){
+get_value_report <- function(vendor_id=0){
   inventory_report <- update_inventory(config_dict) %>%
     group_by(prod_code) %>%
     summarise(total_remain_qty = sum(remaining_qty))
@@ -78,7 +88,7 @@ get_inventory_report <- function(value_report,vendor_id=0){
 
 }
 
-get_inventory_report_sum <- function(inventory_report){
+get_value_report_sum <- function(inventory_report){
   inventory_report_sum <- inventory_report %>% 
     group_by(vendor,vendor_id) %>%
     summarise(total_value_sum = sum(total_value,na.rm=T))
