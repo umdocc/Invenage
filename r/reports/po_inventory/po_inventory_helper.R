@@ -130,14 +130,17 @@ get_sl_report <- function(input_vendor_id){
 
 print_inventory_report <- function(input){
   value_report <- input$cir_value_report
+
   current_vendor_id <- db_read_query(paste0(
     "select vendor_id from vendor_info
   where vendor='",input$cir_vendor,"'"))$vendor_id
+
   separate_lot <- input$cir_separate_lot
   expiry_first <- input$cir_expiry_first
   
   if(value_report){
-    knitr_path <- file.path(config$knitr_path,"inventory_report.Rmd")
+
+    knitr_path <- file.path(config$rmd_path,"inventory_report.Rmd")
     output_path <- file.path(config$report_out_path,
                              paste0(config$report_name_default,".docx"))
     rmarkdown::render(knitr_path, output_format = "word_document",
