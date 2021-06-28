@@ -7,49 +7,29 @@ if('po_inventory' %in% hidden_tab){
     box(
       width=3, height = 800,
       p(),
-      h3(uielem$po_report),
-      selectInput(inputId = 'por_vendor',
-                  label = get_actual('vendor'),
-                  choices = db_read_query(
-                    "select vendor from vendor_info 
-                    where import_from=1")$vendor),
-      actionButton(inputId = "print_po_report", 
-                   label = uielem$printReport),
-      p()
-    ),
-    box(
-      width=3, height = 800,
-      p(),
-      h3(uielem$current_inventory_report),
-      selectInput(inputId = 'cir_vendor',
-                  label = get_actual('vendor'),
+      h3(uielem$po_inventory),
+      selectInput(inputId = 'pir_vendor',
+                  label = uielem$vendor,
                   choices = db_read_query(
                     "select vendor from vendor_info")$vendor),
-      dateInput(inputId = "cir_to_date",
+      dateInput(inputId = "pir_to_date",
                 label = uielem$to_date,
                 value = Sys.Date(),
                 format = config$display_date_format),
-      checkboxInput(inputId = 'cir_separate_lot',
+      checkboxInput(inputId = 'pir_po_report',
+                    label = uielem$po_report,
+                    value = F),
+      checkboxInput(inputId = 'pir_separate_lot',
                     label = uielem$cir_separate_lot,
                     value = F),
-      checkboxInput(inputId = 'cir_expiry_first',
+      checkboxInput(inputId = 'pir_expiry_first',
                     label = uielem$cir_expiry_first,
                     value = F),
-      checkboxInput(inputId = 'cir_value_report',
+      checkboxInput(inputId = 'pir_value_report',
                     label = uielem$cir_value_report,
                     value = F),
       actionButton(inputId = "print_inventory_report", 
                    label = uielem$printReport),
-      p()
-    ),
-    box(
-      width=3, height = 800, 
-      h3(uielem$sale_log),
-      p()
-    ),
-    box(
-      width=3, height = 800, 
-      h3(uielem$import_log),
       p()
     )
   )

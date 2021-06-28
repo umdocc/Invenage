@@ -4,17 +4,17 @@ create_inventory_report <- function(input){
                            paste0(config$report_name_default,".xlsx"))
   
   # config variables
-  value_report <- input$cir_value_report
-  current_vendor_id <- db_read_query(paste0(
-    "select vendor_id from vendor_info
-  where vendor='",input$cir_vendor,"'"))$vendor_id
+  value_report <- input$pir_value_report
+  current_vendor_id <- db_read_query(paste0("select vendor_id from vendor_info
+    where vendor='",input$pir_vendor,"'"))$vendor_id
+  separate_lot <- input$pir_separate_lot
+  expiry_first <- input$pir_expiry_first
+  po_report <- input$pir_po_report
 
-  separate_lot <- input$cir_separate_lot
-  expiry_first <- input$cir_expiry_first
-
+  # if value report is selected
   if(value_report){
 
-    inventory_report <- get_inventory_report(value_report)
+    inventory_report <- get_inventory_report(value_report,current_vendor_id)
     inventory_report_sum <- get_inventory_report_sum(inventory_report)
     
     # translate and write
@@ -28,12 +28,36 @@ create_inventory_report <- function(input){
     write.xlsx(list_of_sheets, file=output_path,
                overwrite = T)
   }
+  
+  if(separate_lot){
+    print('reserver for report with separated lot')
+  }
+  
+  if(expiry_first){
+    print('reserver for report with expiry first')
+  }
+  
+  # if po_report is selected
+  if(po_report){
+    # generate data
+    output_data <- get_po_report(current_vendor_id)
+    
+    # translate and write
+    output_data <- translate_tbl_column(output_data,ui_elem)
+    write.xlsx(output_data, file=output_path,overwrite = T)
+  }
+  
+  # if nothing is selected, print the inventory summary
+  if(!any(value_report,po_report,expiry_first,separate_lot)){
+    print('reserver for normal report')
+  }
+  
 
   system2('open',output_path,timeout = 2)
 }
 
 # generate the inventory report as data_frame
-get_inventory_report <- function(value_report){
+get_inventory_report <- function(value_report,vendor_id=0){
   inventory_report <- update_inventory(config_dict) %>%
     group_by(prod_code) %>%
     summarise(total_remain_qty = sum(remaining_qty))
@@ -65,42 +89,35 @@ get_inventory_report_sum <- function(inventory_report){
   return(inventory_report_sum)
 }
 
-# generate the po_report used for placing a po
-create_po_report <- function(input,open_file=T){
+# # generate the po_report used for placing a po
+get_po_report <- function(vendor_id){
 
-  input_vendor <- input$por_vendor
   lookback_yr <- as.numeric(config$stats_lookback_yr)
-  input_vendor_id <- db_read_query(paste0(
-    "select vendor_id from vendor_info where vendor='",input_vendor,"'"))$vendor_id
+
   query <- paste0(
-    "select product_info.prod_code, product_info.comm_name, product_info.ref_smn 
-    from product_info where vendor_id=", input_vendor_id," and active=1")
+    "select product_info.prod_code, product_info.comm_name, product_info.ref_smn
+    from product_info where vendor_id=", vendor_id," and active=1")
   product_list <- db_read_query(query)
   to_date <- Sys.Date()
   from_date <- to_date - ceiling(365*lookback_yr)
-
-  sales_report <- get_sales_report(input_vendor_id,from_date,to_date)
+ 
+  sales_report <- get_sales_report(vendor_id,from_date,to_date)
   sales_report$ave_mth_sale <- sales_report$total_sale_pack/(12*lookback_yr)
-  
-  sl_report <- get_sl_report(input_vendor_id)
+
+  sl_report <- get_sl_report(vendor_id)
   po_report <- gen_suggested_order(product_list, sales_report, sl_report)
-  
-  po_report <- round_report_col(po_report, 'suggested_order', decimal = 0)
-  
+
+  po_report$suggested_order <- round(po_report$suggested_order,digits = 0)
+
   #clean up and translate
   po_report <- po_report %>% select(comm_name,ref_smn,total_remain_qty,
                                     ave_mth_sale,median_sl_mth,
                                     max_sl_mth,suggested_mth_stock,
                                     suggested_order,note)
   po_report <- translate_tbl_column(po_report,ui_elem)
-  
-  dest_path <- file.path(
-    config$report_out_path,paste0(config$report_name_default,".xlsx"))
-  write.xlsx(po_report,dest_path)
-  if(open_file){
-    system2('open',dest_path,timeout = 2)
+
+  return(po_report)
   }
-}
 
 gen_suggested_order <- function(product_list, sales_report, sl_report){
   # merge all reports and generate suggested stock requirements
