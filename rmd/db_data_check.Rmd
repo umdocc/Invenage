@@ -49,7 +49,7 @@ if(nrow(test)>0){
 }
 ```
 
-# inconsistency in sale_log unit
+### inconsistency in sale_log unit
 
 ```{r packaging_check}
 test <- merge(sale_log,packaging,all.x=T)
@@ -58,5 +58,12 @@ test[is.na(test$units_per_pack),]
 test2 <- merge(import_log,packaging,all.x=T)
 test[is.na(test$units_per_pack),]
 
+
+```
+
+### product_info with vendor_id=0
+
+```{r prod_vendor_id_check}
+kable(db_read_query("select * from product_info where vendor_id = 0"))
 
 ```

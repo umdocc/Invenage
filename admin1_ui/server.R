@@ -130,7 +130,7 @@ shinyServer(function(input, output,session) {
 
   observeEvent(input$print_inventory_report,{
     # similar to the above but made it into excel format
-    print_inventory_report(input)
+    create_inventory_report(input)
   })
   # ---------------------- sale_log_report tab ------------------------------
   output$sale_log_report_tbl <- render_sale_log_report_tbl(input)

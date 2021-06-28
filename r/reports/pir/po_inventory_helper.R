@@ -1,4 +1,69 @@
-# create 
+create_inventory_report <- function(input){
+  # configure the output path
+  output_path <- file.path(config$report_out_path,
+                           paste0(config$report_name_default,".xlsx"))
+  
+  # config variables
+  value_report <- input$cir_value_report
+  current_vendor_id <- db_read_query(paste0(
+    "select vendor_id from vendor_info
+  where vendor='",input$cir_vendor,"'"))$vendor_id
+
+  separate_lot <- input$cir_separate_lot
+  expiry_first <- input$cir_expiry_first
+
+  if(value_report){
+
+    inventory_report <- get_inventory_report(value_report)
+    inventory_report_sum <- get_inventory_report_sum(inventory_report)
+    
+    # translate and write
+    inventory_report <- translate_tbl_column(inventory_report,ui_elem)
+    inventory_report_sum <- translate_tbl_column(inventory_report_sum, ui_elem)
+    
+    list_of_sheets <- list()
+    list_of_sheets[[uielem$summary]] <- inventory_report_sum
+    list_of_sheets[[uielem$detail]] <- inventory_report
+
+    write.xlsx(list_of_sheets, file=output_path,
+               overwrite = T)
+  }
+
+  system2('open',output_path,timeout = 2)
+}
+
+# generate the inventory report as data_frame
+get_inventory_report <- function(value_report){
+  inventory_report <- update_inventory(config_dict) %>%
+    group_by(prod_code) %>%
+    summarise(total_remain_qty = sum(remaining_qty))
+  tmp <- db_read_query("select product_info.prod_code, product_info.ref_smn,
+                      product_info.comm_name, vendor_info.vendor_id, 
+                      vendor_info.vendor 
+                      from product_info inner join vendor_info
+                      on product_info.vendor_id = vendor_info.vendor_id")
+  inventory_report <- merge(inventory_report,tmp,by='prod_code',all.x=T)
+  actual_unit_price <- get_actual_unit_price(
+    po_filter_str=config$po_file_include)
+  inventory_report <- merge(inventory_report,actual_unit_price,
+                            by='prod_code',all.x=T)
+  inventory_report$total_value <- 
+    inventory_report$total_remain_qty*inventory_report$mean_unit_cost
+  
+  return(inventory_report)
+
+}
+
+get_inventory_report_sum <- function(inventory_report){
+  inventory_report_sum <- inventory_report %>% 
+    group_by(vendor,vendor_id) %>%
+    summarise(total_value_sum = sum(total_value,na.rm=T))
+  all_sum <- sum(inventory_report_sum$total_value_sum)
+  inventory_report_sum$total_value_sum[inventory_report_sum$vendor_id==0] <- 
+    all_sum
+  
+  return(inventory_report_sum)
+}
 
 # generate the po_report used for placing a po
 create_po_report <- function(input,open_file=T){
@@ -111,89 +176,50 @@ get_sl_report <- function(input_vendor_id){
 
 
 
-# render_slr_product <- function(input){renderUI({
-#   # get list of products currently sold to a customer
-#   current_customer_name <- input$slr_customer
-#   current_customer_id <- db_read_query(paste0(
-#     "select customer_id from customer_info where customer_name='",
-#     current_customer_name,"'"))
-#   product_list <- db_read_query(paste0(
-#     "select distinct prod_code from sale_log inner join pxk_info
-#     on sale_log.pxk_num = pxk_info.pxk_num 
-#     where pxk_info.customer_id =",current_customer_id))
-#   
-#   # render the UI
-#   selectizeInput(
-#     inputId = "slr_product", label=uielem$comm_name,
-#     choices = product_list, selected = product_list[1])
-# })}
-
-print_inventory_report <- function(input){
-  value_report <- input$cir_value_report
-
-  current_vendor_id <- db_read_query(paste0(
-    "select vendor_id from vendor_info
-  where vendor='",input$cir_vendor,"'"))$vendor_id
-
-  separate_lot <- input$cir_separate_lot
-  expiry_first <- input$cir_expiry_first
-  
-  if(value_report){
-
-    knitr_path <- file.path(config$rmd_path,"inventory_report.Rmd")
-    output_path <- file.path(config$report_out_path,
-                             paste0(config$report_name_default,".docx"))
-    rmarkdown::render(knitr_path, output_format = "word_document",
-                      output_file = output_path)
-  }
-  
-  system2('open',output_path,timeout = 2)
-}
 
 
-
-#convert to value report
-convert_to_value_report <- function(inventory_report){
-  if(length(inventory_report$prod_code[
-    duplicated(inventory_report$prod_code)])>0){
-      stop('inventory report not summarised')
-  }else{
-    actual_unit_price <- get_actual_unit_price(
-      po_filter_str=config$po_file_include)
-    inventory_report <- merge(inventory_report,actual_unit_price,
-                              by='prod_code',all.x=T)
-    tmp <- db_read_query("select prod_code, vendor_id,comm_name, ref_smn
-                           from product_info")
-    inventory_report <- merge(inventory_report, tmp,by='prod_code',all.x=T)
-    inventory_report$total_value <- 
-      inventory_report$total_remain_qty*inventory_report$mean_unit_cost
-    
-    # create summary table
-    tmp <- db_read_query("select vendor_id, vendor from vendor_info")
-    inventory_report_sum <- inventory_report %>% 
-      group_by(vendor_id) %>%
-      summarise(total_value_sum = sum(total_value,na.rm=T))
-    
-
-    inventory_report_sum$comm_name <- uielem$total_inv_value
-    
-    #rename for consistency before rbind
-    inventory_report_sum <- inventory_report_sum %>% 
-      rename(total_value = total_value_sum)
-    inventory_report_sum <- inventory_report_sum %>% 
-      mutate( total_remain_qty = NA, mean_unit_cost = NA, prod_code = NA,
-              ref_smn = NA)
-    
-    inventory_report <- merge(inventory_report,tmp,by='vendor_id')
-    inventory_report_sum <- merge(inventory_report_sum,tmp,by='vendor_id')
-    spacing_df <- create_spacing_df(inventory_report)
-    
-    inventory_report <- rbind(inventory_report_sum,spacing_df,
-                              inventory_report)
-    
-    return(inventory_report)
-  }
-}
+# #convert to value report
+# convert_to_value_report <- function(inventory_report){
+#   if(length(inventory_report$prod_code[
+#     duplicated(inventory_report$prod_code)])>0){
+#       stop('inventory report not summarised')
+#   }else{
+#     actual_unit_price <- get_actual_unit_price(
+#       po_filter_str=config$po_file_include)
+#     inventory_report <- merge(inventory_report,actual_unit_price,
+#                               by='prod_code',all.x=T)
+#     tmp <- db_read_query("select prod_code, vendor_id,comm_name, ref_smn
+#                            from product_info")
+#     inventory_report <- merge(inventory_report, tmp,by='prod_code',all.x=T)
+#     inventory_report$total_value <- 
+#       inventory_report$total_remain_qty*inventory_report$mean_unit_cost
+#     
+#     # create summary table
+#     tmp <- db_read_query("select vendor_id, vendor from vendor_info")
+#     inventory_report_sum <- inventory_report %>% 
+#       group_by(vendor_id) %>%
+#       summarise(total_value_sum = sum(total_value,na.rm=T))
+#     
+# 
+#     inventory_report_sum$comm_name <- uielem$total_inv_value
+#     
+#     #rename for consistency before rbind
+#     inventory_report_sum <- inventory_report_sum %>% 
+#       rename(total_value = total_value_sum)
+#     inventory_report_sum <- inventory_report_sum %>% 
+#       mutate( total_remain_qty = NA, mean_unit_cost = NA, prod_code = NA,
+#               ref_smn = NA)
+#     
+#     inventory_report <- merge(inventory_report,tmp,by='vendor_id')
+#     inventory_report_sum <- merge(inventory_report_sum,tmp,by='vendor_id')
+#     spacing_df <- create_spacing_df(inventory_report)
+#     
+#     inventory_report <- rbind(inventory_report_sum,spacing_df,
+#                               inventory_report)
+#     
+#     return(inventory_report)
+#   }
+# }
 
 # if method='latest_import' the program will calculate actual_unit_price from
 # the latest import first, then use latest local import price for remainin items
@@ -244,8 +270,3 @@ get_unit_price_from_import_data <- function(import_data, remove_null,
   return(import_data)
 }
 
-# reload_slr_ui <- function(input,output,ui_list){
-#   if ('slr_product' %in% ui_list){
-#     output$slr_product <- render_slr_product(input)
-#   }
-# }
