@@ -382,5 +382,9 @@ format_num <- function(input_vector){
   return(input_vector)
 }
 
+gen_empty_df <- function(){
+  output_df <- data.frame(message = 'this is an empty data frame')
+  return(output_df)
+}
 
 
