@@ -5,17 +5,14 @@ date: "6/20/2021"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, echo=T}
 knitr::opts_chunk$set(echo = TRUE)
+config_dict <- read.csv(file.path(path.expand("~"),'invenage','config.csv'))
+app_path <- gsub(';','/',config_dict$value[config_dict$name=='app_path'])
+source(file.path(app_path,'admin1_ui','global.R'))
 ```
 
 ### Boot check
-
-Eventually Invenage will have a tab that user can execute rmd on demand.
-
-Rmd ran inside shinyUI are "live" rmd. to run these independently we need to run the app once from Rstudio so that the workspace gets loaded.
-
-This rmd check the database upon boot.
 
 We first check for data type inconsistency, if a column name has different data types in different table it will be listed here.
 
@@ -37,27 +34,48 @@ if(nrow(tmp2[duplicated(tmp2$COLUMN_NAME),])){
 }
 ```
 
-Packaging table:
+### Packaging
 
 - Entries with null or blank unit
 
-```{r packaging_check}
+```{r packaging_check1,echo=F,message=F,warning=F}
 packaging <- db_read_query("select * from packaging")
+test <- packaging[is.na(packaging$unit)|packaging$unit=='',]
+if(nrow(test)>0){
+  print(test)
+}else{print('check ok')}
+```
+
+- packaging that does not have linked product
+
+```{r packaging_check2,echo=F,message=F,warning=F}
+test <- db_read_query("select * from packaging left join product_info 
+                      on packaging.prod_code = product_info.prod_code
+                      where product_info.comm_name is null")
 test <- packaging[is.na(packaging$unit)|packaging$unit=='',]
 if(nrow(test)>0){
   print(test)
 }
 ```
 
-### inconsistency in sale_log unit
 
-```{r packaging_check}
-test <- merge(sale_log,packaging,all.x=T)
-test[is.na(test$units_per_pack),]
+### sale_log check
 
+- sale that does not have valid packaging
+
+```{r sale_log_check1}
+test <- db_read_query("select * from sale_log left join packaging 
+                      on sale_log.prod_code = packaging.prod_code
+                      where packaging.units_per_pack is null")
+```
+
+```{r sale_log_check2}
 test2 <- merge(import_log,packaging,all.x=T)
 test[is.na(test$units_per_pack),]
 
+test <- db_read_query("select * from sale_log left join product_info 
+                      on sale_log.prod_code = product_info.prod_code
+                      where product_info.comm_name is null")
 
 ```
 
