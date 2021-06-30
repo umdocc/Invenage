@@ -122,13 +122,6 @@ if (length(admin_id)!=1){
   stop('admin_id not set or corrupted!')
 }
 
-# temporary fix for null comm_name
-conn <- db_open(config_dict)
-dbExecute(conn,
-          'update product_info set comm_name = name where comm_name is null')
-dbDisconnect(conn)
-
-
 # the list of colnames of pxk when rendered
 pxk_render_colnames <- unlist(
   strsplit(config_dict$value[config_dict$name=='pxk_render_colnames'],';'))
