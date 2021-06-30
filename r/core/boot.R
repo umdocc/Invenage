@@ -2,13 +2,15 @@
 # ----------------------------------- init -------------------------------------
 
 # return to the old way of handling package
-required_package <- c('shinythemes','DBI','DT', 'shiny', 'shinydashboard', 
-                      'scales', 'openxlsx', 'dplyr', 'data.table', 'lubridate',
-                      'emayili','shinyalert','ggplot2','tidyr')
-new_packages <- required_package[
+# install all required packages
+required_package <- c('shinythemes','DBI','DT', 'shiny', 'shinydashboard',
+                      'ggplot2', 'scales', 'RMariaDB', 'RSQLite',
+                      'openxlsx', 'dplyr', 'data.table', 'lubridate',
+                      'shinyalert','emayili','pandoc')
+new.packages <- required_package[
   !(required_package %in% installed.packages()[,"Package"])]
-if(length(new_packages)) install.packages(new_packages,
-                                          repos = "https://cloud.r-project.org")
+if(length(new.packages)) install.packages(
+  new.packages, repos = 'https://cloud.r-project.org')
 
 lapply(required_package, require, character.only = TRUE)
 
