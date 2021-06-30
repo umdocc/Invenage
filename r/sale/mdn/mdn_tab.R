@@ -1,8 +1,8 @@
 # ---------------------------- shiny ui object -----------------------------------
-if ('pxk_man' %in% hidden_tab){
-  pxk_man_tab <- tabPanel(ui_elem$actual[ui_elem$label=='pxk_man'])
+if ('mdn' %in% hidden_tab){
+  mdn_tab <- tabPanel(ui_elem$actual[ui_elem$label=='pxk_man'])
 }else{
-  pxk_man_tab <- tabPanel(
+  mdn_tab <- tabPanel(
     ui_elem$actual[ui_elem$label=='pxk_man'],
     fluidRow(
       style = "background-color:#f5f5f5;",

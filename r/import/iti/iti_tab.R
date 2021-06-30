@@ -1,9 +1,9 @@
 # inv_out tab ui and functions
 # ---------------------------- shiny ui object --------------------------------
-if('inv_in' %in% hidden_tab){
-  inv_in_tab <- tabPanel(ui_elem$actual[ui_elem$label=='inv_in'])
+if('iti' %in% hidden_tab){
+  iti_tab <- tabPanel(ui_elem$actual[ui_elem$label=='inv_in'])
 }else{
-inv_in_tab <- tabPanel(
+iti_tab <- tabPanel(
   theme = shinytheme("united"), ui_elem$actual[ui_elem$label=='inv_in'],
   fluidRow(
     box(

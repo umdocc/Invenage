@@ -1,10 +1,10 @@
 # inv_out tab ui and functions
 # ---------------------------- shiny ui object --------------------------------
-if('import_log_report' %in% hidden_tab){
-  import_log_report_tab <- tabPanel(uielem$import_log)
+if('ilr' %in% hidden_tab){
+  ilr_tab <- tabPanel(uielem$import_log)
 }else{
-  import_log_report_tab <- tabPanel(
-  theme = shinytheme("united"), uielem$import_log,
+  ilr_tab <- tabPanel(
+  theme = shinytheme("united"), uielem$import_log_report,
   fluidRow(
     box(
       width=3, height = 800,

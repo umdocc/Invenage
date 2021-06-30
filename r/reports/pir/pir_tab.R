@@ -1,8 +1,8 @@
 # functions to create the ui for po_report tab (por)
-if('po_inventory' %in% hidden_tab){
-  po_inventory_tab <- tabPanel(uielem$po_inventory)
+if('pir' %in% hidden_tab){
+  pir_tab <- tabPanel(uielem$po_inventory_report)
 }else{
-  po_inventory_tab <- tabPanel(uielem$po_inventory,
+  pir_tab <- tabPanel(uielem$po_inventory_report,
   fluidRow(
     box(
       width=3, height = 800,

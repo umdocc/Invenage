@@ -7,20 +7,19 @@ navbarPage(
   # in <tabname>_tab.R file
   
   # sale menu
-  navbarMenu(
-    get_actual('inv_out'),
+  navbarMenu(title = uielem$inv_out,
     cdn_tab,
-    pxk_man_tab
+    mdn_tab
   ),
   
   # import menu
-  inv_in_tab,
+  iti_tab,
   
   # reports menu
   navbarMenu(title = uielem$reports,
-             po_inventory_tab,
-             sale_log_report_tab,
-             import_log_report_tab
+             pir_tab,
+             slr_tab,
+             ilr_tab
              ),
   
   # update_db menu

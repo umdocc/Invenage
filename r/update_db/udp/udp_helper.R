@@ -1,17 +1,17 @@
 # -------------------------------- UI Loader -----------------------------------
 # function to reload additional ui
 udp_load_ui <- function(input,output,ui_list){
-  if ("udp_add_product_vendor" %in% ui_list){
-    output$udp_add_product_vendor <- udp_render_add_product_vendor()
+  if ("udp_vendor" %in% ui_list){
+    output$udp_vendor <- udp_render_vendor()
   }
   return(output)
 }
 
-udp_render_add_product_vendor <- function(){renderUI({
+udp_render_vendor <- function(){renderUI({
   vendor_list <- db_read_query("select * from vendor_info")$vendor
   
   selectizeInput(
-    inputId = "udp_add_product_vendor", 
+    inputId = "udp_vendor", 
     label = uielem$orig_vendor,
     choices = vendor_list, 
     selected = vendor_list[1], 
@@ -19,10 +19,11 @@ udp_render_add_product_vendor <- function(){renderUI({
 })}
 
 # add product button handler
-add_prod_to_db <- function(input,output){
+udp_add_product <- function(input,output){
   # collect variables
-  input_vendor_name <- input$udp_add_product_vendor
-  input_ref_smn <- input$udp_add_prod_ref_smn
+  error_free <- T
+  input_vendor_name <- input$udp_vendor
+  input_ref_smn <- input$udp_ref_smn
   
   add_vendor_with_product(input_vendor_name)
   
@@ -31,9 +32,8 @@ add_prod_to_db <- function(input,output){
     vendor_info$vendor==input_vendor_name]
   
   # check if the added product exist
-  error_free <- T
   test_df <- product_info[
-    product_info$vendor==input_vendor_name & 
+    product_info$vendor_id==prod_vendor_id &
       product_info$ref_smn==input_ref_smn,]
   if (nrow(test_df)>0){
     error_free <- F
@@ -41,12 +41,20 @@ add_prod_to_db <- function(input,output){
     small_msg <- ui_elem$actual[ui_elem$label=='prod_exist']
     shinyalert(title = big_msg, text = small_msg, type = "error")
   }
+  
+  # check if the prod_code exist
+  test_df <- product_info[product_info$prod_code==input$udp_prod_code,]
+  if (nrow(test_df)>0){
+    error_free <- F
+    big_msg <- ui_elem$actual[ui_elem$label=='error']
+    small_msg <- ui_elem$actual[ui_elem$label=='prod_code_exist']
+    shinyalert(title = big_msg, text = small_msg, type = "error")
+  }
 
   # compile the line to be added to product_info
   append_prod <- data.frame( 
-    prod_code = input$udp_add_prod_code, 
-    name = input$udp_add_comm_name, 
-    comm_name = input$udp_add_comm_name,
+    prod_code = input$udp_prod_code,
+    comm_name = input$udp_comm_name,
     vendor_id = prod_vendor_id, 
     ref_smn = input_ref_smn,
     type = product_type$prod_type[product_type$actual == input$add_prod_type],
@@ -55,13 +63,15 @@ add_prod_to_db <- function(input,output){
       warehouse_info$warehouse==input$add_warehouse],
     active = 1)
     
+
   # compose line to be added to packaging
   append_pkg <- data.frame(
-    prod_code = input$udp_add_prod_code, 
-    unit = tolower(input$udp_add_prod_ordering_unit),
+    prod_code = input$udp_prod_code, 
+    unit = tolower(input$udp_ordering_unit),
     units_per_pack = 1, 
     last_updated = format(Sys.Date())
   )
+
 
   # check if anything missing
   if(any(append_prod=='') | any(append_pkg=='')){
@@ -73,9 +83,9 @@ add_prod_to_db <- function(input,output){
   
   # write to database if error_free
   if (error_free){
-  # append_tbl_rld(config_dict, 'product_info',append_prod)
-  # append_tbl_rld(config_dict, 'packaging',append_pkg)
-  # 
+  append_tbl_rld(config_dict, 'product_info',append_prod)
+  append_tbl_rld(config_dict, 'packaging',append_pkg)
+
   big_msg <- ui_elem$actual[ui_elem$label=='done']
   small_msg <- ui_elem$actual[ui_elem$label=='add_prod_success']
   shinyalert(title = big_msg, text = small_msg, type = "success")
