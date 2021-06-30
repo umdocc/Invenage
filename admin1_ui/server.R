@@ -122,13 +122,13 @@ shinyServer(function(input, output,session) {
   })
   
 # ---------------------------- reports menu ------------------------------------
-  # ----------------------------- po_inventory tab --------------------------------
-
+  # ----------------------------- po_inventory tab -----------------------------
+  output <- pir_load_ui(input,output,"pir_out_tbl")
   observeEvent(input$print_inventory_report,{
     # similar to the above but made it into excel format
     create_inventory_report(input)
   })
-  # ---------------------- sale_log_report tab ------------------------------
+  # ---------------------- sale_log_report tab ---------------------------------
   output$sale_log_report_tbl <- render_sale_log_report_tbl(input)
   observeEvent(input$print_sale_log_report,{
     # similar to the above but made it into excel format

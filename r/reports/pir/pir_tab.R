@@ -25,7 +25,12 @@ if('pir' %in% hidden_tab){
                   ),
       actionButton(inputId = "print_inventory_report", 
                    label = uielem$printReport),
-      p()
+      p(),
+    ),
+    box(
+      width=9, height = 800,
+      DT::dataTableOutput("pir_out_tbl"),
+      p() #space
     )
   )
 )
