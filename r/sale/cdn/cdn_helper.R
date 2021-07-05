@@ -259,6 +259,8 @@ create_pxk_file <- function(pxk_num,open_file=T){
   dest_path <- file.path(config$pxk_out_path,
                          paste0(company_name,".PXK.",
                                 pxk_num,".xlsx"))
+  error_free <- check_print_pxk(input)
+  if(error_free){
   wb <- loadWorkbook(orig_path)
   
   # get the expDate, if a Lot has 2 expDate, select only the 1st
@@ -404,8 +406,7 @@ create_pxk_file <- function(pxk_num,open_file=T){
   if(open_file){
     system2('open',dest_path,timeout = 2)
   }
-  # return the filename
-  return(dest_path)
+}
 }
 
 # get_latest_price is a function to get the last price sold to a customer
