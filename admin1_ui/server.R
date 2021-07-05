@@ -101,8 +101,7 @@ shinyServer(function(input, output,session) {
   
   observeEvent(input$print_pxk_man,{
     man_pxk_num <- input$man_pxk_list
-    dest_path <- create_pxk_file(man_pxk_num) # create the pxk
-    system2('open',dest_path,timeout = 2) #open the file
+    create_pxk_file(man_pxk_num) # create the pxk
   })
   
   # ------------------------------- inv_in UI ----------------------------------
