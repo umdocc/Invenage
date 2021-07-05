@@ -255,7 +255,7 @@ render_selected_pxk <- function(selected_pxk_num,config_dict,localised=T){
 # this function create an excel PXK from a given pxk_num
 create_pxk_file <- function(pxk_num,open_file=T){
   # create new PXK file
-  orig_path <- config_dict$value[config_dict$name=='pxk_form']
+  orig_path <- file.path(config$form_path,'pxk_form.xlsx')
   dest_path <- file.path(config_dict$value[config_dict$name=='pxk_out_path'],
                          paste0(company_name,".PXK.",
                                 pxk_num,".xlsx"))
@@ -335,7 +335,8 @@ create_pxk_file <- function(pxk_num,open_file=T){
   # writing current date
   date_row <- as.numeric(output_info$value[output_info$name=='date_row'])
   date_col <- as.numeric(output_info$value[output_info$name=='date_col'])
-  writeData(wb, sheet=1, Sys.Date(), startRow=date_row, startCol=date_col, 
+  writeData(wb, sheet=1, format(Sys.Date(),config$date_format), 
+            startRow=date_row, startCol=date_col, 
             colNames = F)
   
   # writing payment type
