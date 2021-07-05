@@ -256,7 +256,7 @@ render_selected_pxk <- function(selected_pxk_num,config_dict,localised=T){
 create_pxk_file <- function(pxk_num,open_file=T){
   # create new PXK file
   orig_path <- file.path(config$form_path,'pxk_form.xlsx')
-  dest_path <- file.path(config_dict$value[config_dict$name=='pxk_out_path'],
+  dest_path <- file.path(config$pxk_out_path,
                          paste0(company_name,".PXK.",
                                 pxk_num,".xlsx"))
   wb <- loadWorkbook(orig_path)
