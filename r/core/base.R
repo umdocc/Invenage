@@ -387,4 +387,19 @@ gen_empty_df <- function(){
   return(output_df)
 }
 
+# ------------------- file operation functions ---------------------------------
 
+# check file and display a custom message based on label
+check_file_exist <- function(file_path,notfound_label){
+  if(!file.exists(file_path)){
+    show_alert("error",notfound_label,"error")
+    file_exist <- F
+  }else{
+    file_exist <- T}
+  return(file_exist)
+}
+
+# open a file using default app with timeout so shiny will not hang
+open_file_wtimeout <- function(file_path){
+  system2('open',file_path,timeout = 2)
+}

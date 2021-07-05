@@ -404,7 +404,7 @@ create_pxk_file <- function(pxk_num,open_file=T){
   
   #open the file if open_file=T
   if(open_file){
-    system2('open',dest_path,timeout = 2)
+    open_file_wtimeout(dest_path)
   }
 }
 }
