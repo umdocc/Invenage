@@ -56,6 +56,9 @@ create_inventory_report <- function(input){
     inventory_report_sum <- get_value_report_sum(inventory_report)
     
     # translate and write
+    inventory_report <- inventory_report %>% 
+      select(vendor,comm_name,ref_smn,total_remain_qty,mean_unit_cost,
+             total_value)
     inventory_report <- translate_tbl_column(inventory_report,ui_elem)
     inventory_report_sum <- translate_tbl_column(inventory_report_sum, ui_elem)
     
