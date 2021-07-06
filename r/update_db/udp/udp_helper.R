@@ -21,7 +21,6 @@ udp_render_vendor <- function(){renderUI({
 # add product button handler
 udp_add_product <- function(input,output){
   # collect variables
-  error_free <- T
   input_vendor_name <- input$udp_vendor
   input_ref_smn <- input$udp_ref_smn
   input_prod_code <- input$udp_prod_code
@@ -65,15 +64,11 @@ udp_add_product <- function(input,output){
       
       
       # check if anything missing
-      if(any(append_prod=='') | any(append_pkg=='')){
-        error_free <- F
+      if(check_blank(append_prod) | check_blank(append_pkg)){
         big_msg <- uielem$input_error
         small_msg <- uielem$missing_fields
         shinyalert(title = big_msg, text = small_msg, type = "error")
-      }
-      
-      # write to database if error_free
-      if (error_free){
+      }else{
         append_tbl_rld(config_dict, 'product_info',append_prod)
         append_tbl_rld(config_dict, 'packaging',append_pkg)
         

@@ -56,3 +56,12 @@ check_prod_code_exist <- function(input_prod_code){
   
   return(prod_code_exist)
 }
+
+# check a single-row data frame for blank cell, and 
+check_blank <- function(df1){
+  df_with_blank <- F
+  if(any(df1=='')|any(is.na(df1))){
+    df_with_blank <- T
+  }
+  return(df_with_blank)
+}
