@@ -251,7 +251,7 @@ shinyServer(function(input, output,session) {
     input,output,
     c('uv_vendor', 'uv_vendor_orig', 'uv_vendor_local', 'vendor_info_tbl'))
   observeEvent(input$uv_update_vendor,{
-    update_vendor_from_uv(input)
+    update_vendor_from_udv(input)
     output <- reload_ui(
       input,output,
       c('uv_vendor', 'vendor_info_tbl', 'piu_bankslip_vendor', 'invoice_vendor',
