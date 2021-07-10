@@ -1,9 +1,0 @@
-name,type,value
-app_path,abs,
-db_type,param,MariaDB
-sql_host,param,mysqlserver.myhostname.com
-sql_usr,param,myusername
-sql_pswd,param,mypassword
-sql_db_name,param,invenage
-admin_id,param,1
-config_from_db,param,TRUE
