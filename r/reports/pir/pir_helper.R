@@ -146,7 +146,7 @@ get_value_report_sum <- function(inventory_report){
 }
 
 # # generate the po_report used for placing a po
-get_po_report <- function(vendor_id,round_num=2){
+get_po_report <- function(vendor_id,round_num=2,trans_col=T){
 
   lookback_yr <- as.numeric(config$stats_lookback_yr)
 
@@ -170,7 +170,9 @@ get_po_report <- function(vendor_id,round_num=2){
                                     ave_mth_sale,median_sl_mth,
                                     max_sl_mth,suggested_mth_stock,
                                     suggested_order,note)
-  po_report <- translate_tbl_column(po_report,ui_elem)
+  if(trans_col){
+    po_report <- translate_tbl_column(po_report,ui_elem)
+  }
   
   
   po_report <- round_df(po_report,digits = round_num)
