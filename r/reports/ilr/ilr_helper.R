@@ -25,7 +25,7 @@ get_import_log_report <- function(from_date,to_date){
   import_log_report <- db_read_query(paste0(
     "SELECT product_info.comm_name, import_log.unit,
     import_log.actual_unit_cost, import_log.qty, import_log.lot,
-    import_log.exp_date, import_log.in_invoice_num
+    import_log.exp_date, import_log.in_invoice_num, import_log.delivery_date
     FROM import_log inner join product_info
     on import_log.prod_code = product_info.prod_code
     where import_log.delivery_date between '",from_date,"' and '",
