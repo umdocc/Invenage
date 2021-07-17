@@ -1,0 +1,9 @@
+name	type	value
+app_path	abs	";mypath;myapp"
+db_type	param	MariaDB
+sql_host	param	mysql.myserver.net
+sql_usr	param	
+sql_pswd	param	
+sql_db_name	param	invenage
+admin_id	param	9
+report_out_path	abs	
