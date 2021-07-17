@@ -21,7 +21,7 @@ create_import_log_report <- function(input,print_report=F,trans_col=T){
 }
 
 # get function generate raw report for create function
-get_import_log_report <- function(from_date,to_date){
+get_import_log_report <- function(from_date,to_date,combine_unit_qty=T){
   import_log_report <- db_read_query(paste0(
     "SELECT product_info.comm_name, import_log.unit,
     import_log.actual_unit_cost, import_log.qty, import_log.lot,
@@ -30,6 +30,11 @@ get_import_log_report <- function(from_date,to_date){
     on import_log.prod_code = product_info.prod_code
     where import_log.delivery_date between '",from_date,"' and '",
     to_date,"' order by import_log.delivery_date asc, import_log.id asc"))
+  if(combine_unit_qty){
+    import_log_report$qty <- paste(import_log_report$qty,
+                                   import_log_report$unit)
+    import_log_report$unit <- NULL
+  }
   return(import_log_report)
 }
  
