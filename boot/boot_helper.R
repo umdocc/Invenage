@@ -37,10 +37,8 @@ build_config_dict_path <- function(config_dict){
 }
 
 load_db_config <- function(admin_id){
-  conn <- db_open(config_dict)
-  db_config <- dbReadTable(conn,'inv_config')
-  dbDisconnect(conn)
-  db_config <- db_config[db_config$admin_id==admin_id|db_config$admin_id==0,]
+  db_config <- db_read_query(paste0('select * from config where admin_id=',
+                                    admin_id,' or admin_id=0'))
   
   # if there is duplicated items in db_config, use the one with admin_id
   db_config <- db_config %>% arrange(desc(admin_id))
@@ -54,20 +52,15 @@ load_db_config <- function(admin_id){
   return(db_config)
 }
 
-# # create ui_elem
-# create_ui_elem <- function(){
-#   reload_tbl(config_dict,"localisation")
-#   app_lang <- config_dict$value[config_dict$name=='app_lang']
-#   localisation <- localisation[localisation$app_lang==app_lang,]
-#   ui_elem <- localisation[localisation$group=='ui_elements',]
-#   return(ui_elem)
-# }
-# 
-# # return the actual value of an ui_elem label
-# get_actual <- function(label_str){
-#   actual_str <- ui_elem$actual[ui_elem$label==label_str]
-#   return(actual_str)
-# }
+# create ui_elem
+create_uielem <- function(config){
+  uielem <- db_read_query(paste0(
+    "select * from uielem where app_lang='",config$app_lang,"'"))
+  uielem <- spread(uielem %>% select(label,actual),label,actual)
+  
+  return(uielem)
+}
+
 # 
 # # split a long string separated by ';' to recover the list of strings
 # split_semi <- function(input_str){
@@ -114,34 +107,7 @@ db_exec_query <- function(query){
 }
 
 # # ----------------------- general operation functions --------------------------
-# # get the actual value from the config_dict
-# get_config <- function(config_name){
-#   return(config_dict$value[config_dict$name==config_name])
-#   
-# }
-# # this function translate a strring back into label by a single line ui_elem
-# # if a table is provided, it will also translate back to the code/id
-# uistr_to_label <- function(uistr,table_name=NULL){
-#   
-#   ui_label <- ui_elem$label[ui_elem$actual==uistr]
-#   
-#   if (!is.null(table_name)){
-#     db_table <- get(table_name)
-#     label_colname <- names(db_table)[grepl('_label',names(db_table))]
-#     code_colname <- names(db_table)[grepl('_code|_id',names(db_table))]
-#     ui_code <- db_table[db_table[,label_colname]==ui_label,code_colname]
-#   }else{ui_code <- ui_label}
-#   
-#   return(ui_code)
-# }
-# 
-# create_lu_report_list <- function(config_dict){
-#   lu_report_list <- unlist(strsplit(
-#     config_dict$value[config_dict$name=='lu_report_list_label'],';'))
-#   lu_report_list <- data.frame(label = lu_report_list)
-#   return(lu_report_list)
-# }
-# 
+
 # # use shinyalert specify ony labels
 # show_alert <- function(big_label,small_label,msg_type='error'){
 #   shinyalert(title = get_actual(big_label), 

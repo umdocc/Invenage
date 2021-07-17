@@ -27,26 +27,14 @@ config_dict <- rbind(config_dict,db_config)
 config_dict <- config_dict[order(config_dict$source_rank),]
 config_dict <- config_dict[!duplicated(config_dict$name),]
 
-# 
-# # load external config  script if available
-# ext_config_path <- file.path(
-#   path.expand("~"),'invenage_data','ext_config.R')
-# if(file.exists(ext_config_path)){
-#   source(ext_config_path)
-# }
-# 
-# # create a wide format of config_dict for ease of use
-# config <- config_dict %>% select(name,value)
-# config <- spread(config,name,value)
-# 
-# # database configuration
-# db_type <- config_dict$value[config_dict$name=='db_type']
-# if (db_type == 'SQLite'){require(RSQLite)}
-# if (db_type == 'MariaDB'){require(RMariaDB)}
+# convert to wide format
+config <- config_dict %>% select(name,value)
+config <- spread(config,name,value)
+
 # 
 # # create uielem table
-# ui_elem <- create_ui_elem()
-# uielem <- spread(ui_elem %>% select(label,actual),label,actual)
+uielem <- create_uielem(config)
+# 
 # 
 # # create the list of tables included in lu_report, localised name
 # reload_tbl(config_dict,'report_type')
