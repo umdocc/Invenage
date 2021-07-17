@@ -1,1 +1,1 @@
-Rscript -e 'shiny::runApp("~/Documents/GitHub/Invenage/admin1_ui/", launch.browser = TRUE)'
+Rscript -e 'shiny::runApp("~/Documents/GitHub/Invenage/ui/", launch.browser = TRUE)'
