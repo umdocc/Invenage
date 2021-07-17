@@ -2,55 +2,31 @@
 # ----------------------------------- init -------------------------------------
 
 # install all required packages
-sys_package <- c('shinythemes','DBI','DT', 'shiny', 'shinydashboard',
+required_package <- c('shinythemes','DBI','DT', 'shiny', 'shinydashboard',
                  'ggplot2', 'scales','shinyalert','tidyr','openxlsx', 
-                 'dplyr', 'data.table', 'lubridate')
-db_package <- c('RMariaDB', 'RSQLite')
-required_package <- c(sys_package,db_package)
+                 'dplyr', 'data.table', 'lubridate','RMariaDB')
 new.packages <- required_package[
   !(required_package %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(
   new.packages, repos = 'https://cloud.r-project.org')
 
 # first only load the sys package
-lapply(sys_package, require, character.only = TRUE)
+lapply(required_package, require, character.only = TRUE)
 
 # source boot helper
 source(file.path(boot_path,'boot_helper.R'))
 
-# # create config_dict
-# config_dict <- create_config_dict(local_config_path)
-# config_dict$source <- 'local'
-# 
-# # add comment column if not yet in config_dict, as db dict have comment
-# if (!('comment' %in% names(config_dict))){
-#   config_dict$comment <- ''
-# }
-# 
-# admin_id <- as.integer(
-#   config_dict$value[config_dict$name=='admin_id'])
-# 
-# # read config_dict from db and merge with local
-# if (config_dict$value[config_dict$name=='config_from_db']=='TRUE'){
-#   
-#   conn <- db_open(config_dict)
-#   db_config <- dbReadTable(conn,'config_dict')
-#   dbDisconnect(conn)
-#   db_config <- db_config[db_config$admin_id==admin_id|db_config$admin_id==0,]
-#   
-#   # if there is duplicated items in db_config, use the one with admin_id
-#   db_config <- db_config %>% arrange(desc(admin_id))
-#   db_config <- db_config[!duplicated(db_config$name),]
-#   
-#   #remove admin_id and finalise
-#   db_config$admin_id <- NULL
-#   db_config$source <- 'db'
-#   db_config <- build_config_dict_path(db_config)
-#   # by rbind these two data frame with db_config at bottom and 
-#   # remove duplicates any config in db will be overwritten by local config
-#   config_dict <- rbind(config_dict,db_config)
-#   config_dict <- config_dict[!duplicated(config_dict$name),]
-# }
+# create local and db config
+config_dict <- load_local_config(local_config_path)
+admin_id <- as.integer(
+  config_dict$value[config_dict$name=='admin_id'])
+db_config <- load_db_config(admin_id)
+
+# bind the two config, sort by source_rank, then remove duplicates
+config_dict <- rbind(config_dict,db_config)
+config_dict <- config_dict[order(config_dict$source_rank),]
+config_dict <- config_dict[!duplicated(config_dict$name),]
+
 # 
 # # load external config  script if available
 # ext_config_path <- file.path(

@@ -1,33 +1,59 @@
-# # --------------------- config and localisation --------------------------------
-# 
-# # create config_dict and build the paths inside, require app_path
-# # if the db_config flag is true, it will read config from db, merge with local,
-# # and prioritise local config in case of duplicates
-# create_config_dict <- function(local_config_path){
-#   
-#   if (file.exists(local_config_path)){
-#     config_dict <- read.csv(local_config_path, stringsAsFactors = F)
-#   }else{
-#     stop('invenage_conf.csv not found!')
-#   }
-#   
-#   # # build paths in config_dict
-#   config_dict <- build_config_dict_path(config_dict)
-#   
-#   return(config_dict)
-# }
-# 
-# build_config_dict_path <- function(config_dict){
-#   # build paths in config_dict
-#   config_dict$value[config_dict$type=='abs'] <-
-#     gsub(';','/',config_dict$value[config_dict$type=='abs'])
-#   config_dict$value[config_dict$type=='relative'] <-
-#     gsub(';','/',config_dict$value[config_dict$type=='relative'])
-#   config_dict$value[config_dict$type=='relative'] <-
-#     file.path(app_path,config_dict$value[config_dict$type=='relative'])
-#   return(config_dict)
-# }
-# 
+# --------------------- config and localisation --------------------------------
+
+# create config_dict and build the paths inside, require app_path
+# if the db_config flag is true, it will read config from db, merge with local,
+# and prioritise local config in case of duplicates
+load_local_config <- function(local_config_path){
+
+  if (file.exists(local_config_path)){
+    config_dict <- read.table(local_config_path, sep = "\t", header = T,
+                              stringsAsFactors = F)
+  }else{
+    stop(paste('config file not found in',local_config_path))
+  }
+
+  # # build paths in config_dict
+  config_dict <- build_config_dict_path(config_dict)
+  
+  config_dict$source_rank <- 1 # local=1;db=2
+  
+  # add comment column if not yet in config_dict, as db dict have comment
+  if (!('comment' %in% names(config_dict))){
+    config_dict$comment <- ''
+  }
+  
+  return(config_dict)
+}
+
+build_config_dict_path <- function(config_dict){
+  # build paths in config_dict
+  config_dict$value[config_dict$type=='abs'] <-
+    gsub(';','/',config_dict$value[config_dict$type=='abs'])
+  config_dict$value[config_dict$type=='relative'] <-
+    gsub(';','/',config_dict$value[config_dict$type=='relative'])
+  config_dict$value[config_dict$type=='relative'] <-
+    file.path(app_path,config_dict$value[config_dict$type=='relative'])
+  return(config_dict)
+}
+
+load_db_config <- function(admin_id){
+  conn <- db_open(config_dict)
+  db_config <- dbReadTable(conn,'inv_config')
+  dbDisconnect(conn)
+  db_config <- db_config[db_config$admin_id==admin_id|db_config$admin_id==0,]
+  
+  # if there is duplicated items in db_config, use the one with admin_id
+  db_config <- db_config %>% arrange(desc(admin_id))
+  db_config <- db_config[!duplicated(db_config$name),]
+  
+  #remove admin_id and finalise
+  db_config$admin_id <- NULL
+  db_config$source_rank <- 2
+  db_config <- build_config_dict_path(db_config)
+  
+  return(db_config)
+}
+
 # # create ui_elem
 # create_ui_elem <- function(){
 #   reload_tbl(config_dict,"localisation")
@@ -49,58 +75,44 @@
 #   return(output_str)
 # }
 # 
-# # --------------------------- database functions -------------------------------
-# 
-# # db_open create a conn object that database call can use
-# db_open <- function(config_dict){
-#   db_type <- config_dict$value[config_dict$name=='db_type']
-#   if (db_type == 'SQLite'){
-#     database_path <- config_dict$value[config_dict$name=='db_file']
-#     # sqlite.driver <- dbDriver("SQLite")
-#     conn <- dbConnect(drv = RSQLite::SQLite(), dbname = database_path)
-#   }
-#   if (db_type == 'MariaDB'){
-#     conn <- dbConnect(
-#       drv = RMariaDB::MariaDB(), 
-#       username = config_dict$value[config_dict$name=='sql_usr'],
-#       password = config_dict$value[config_dict$name=='sql_pswd'], 
-#       host = config_dict$value[config_dict$name=='sql_host'],
-#       port = 3306, dbname = config_dict$value[
-#         config_dict$name=='sql_db_name'])
-#   }
-#   return(conn)
-# }
-# 
-# # simple db_write auto append
-# db_write <- function(config_dict,table_name,x){
-#   conn <- db_open(config_dict)
-#   dbWriteTable(conn,table_name,x,append=T)
-#   dbDisconnect(conn)
-# }
-# 
-# # one line db read
-# db_read_query <- function(query){
-#   conn <- db_open(config_dict)
-#   dataout <- dbGetQuery(conn,query)
-#   dbDisconnect(conn)
-#   return(dataout)
-# }
-# 
-# # one-line db exec
-# db_exec_query <- function(query){
-#   conn <- db_open(config_dict)
-#   dbExecute(conn,query)
-#   dbDisconnect(conn)
-# }
-# 
-# # append to a table, then reload it
-# append_tbl_rld <- function(config_dict,tbl_name,x){
-#   conn <- db_open(config_dict)
-#   dbWriteTable(conn,tbl_name,x,append=T)
-#   read_tbl(conn,tbl_name)
-#   dbDisconnect(conn)
-# }
-# 
+# --------------------------- database functions -------------------------------
+
+# db_open create a conn object that database call can use
+db_open <- function(config_dict){
+
+  conn <- dbConnect(
+    drv = RMariaDB::MariaDB(),
+    username = config_dict$value[config_dict$name=='sql_usr'],
+    password = config_dict$value[config_dict$name=='sql_pswd'],
+    host = config_dict$value[config_dict$name=='sql_host'],
+    port = 3306, dbname = config_dict$value[
+      config_dict$name=='sql_db_name'])
+  
+  return(conn)
+}
+
+# simple db_write auto append
+db_write <- function(config_dict,table_name,x){
+  conn <- db_open(config_dict)
+  dbWriteTable(conn,table_name,x,append=T)
+  dbDisconnect(conn)
+}
+
+# one line db read
+db_read_query <- function(query){
+  conn <- db_open(config_dict)
+  dataout <- dbGetQuery(conn,query)
+  dbDisconnect(conn)
+  return(dataout)
+}
+
+# one-line db exec
+db_exec_query <- function(query){
+  conn <- db_open(config_dict)
+  dbExecute(conn,query)
+  dbDisconnect(conn)
+}
+
 # # ----------------------- general operation functions --------------------------
 # # get the actual value from the config_dict
 # get_config <- function(config_name){
