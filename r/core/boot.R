@@ -30,7 +30,6 @@ admin_id <- as.integer(
   config_dict$value[config_dict$name=='admin_id'])
 
 # read config_dict from db and merge with local
-if (config_dict$value[config_dict$name=='config_from_db']=='TRUE'){
   
   conn <- db_open(config_dict)
   db_config <- dbReadTable(conn,'config_dict')
@@ -49,7 +48,7 @@ if (config_dict$value[config_dict$name=='config_from_db']=='TRUE'){
   # remove duplicates any config in db will be overwritten by local config
   config_dict <- rbind(config_dict,db_config)
   config_dict <- config_dict[!duplicated(config_dict$name),]
-}
+
 
 # load external config  script if available
 ext_config_path <- file.path(
