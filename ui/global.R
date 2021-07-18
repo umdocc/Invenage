@@ -8,7 +8,7 @@ boot_path <- file.path(app_path,'boot')
 
 # point to local file as app_path will be invalid during dev
 if(!file.exists(boot_path)){
-  app_path <- '~/Documents/GitHub/Invenage/'
+  app_path <- '~/Documents/GitHub/Invenage'
 }
 
 #get boot_path

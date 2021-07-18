@@ -1,4 +1,4 @@
-# --------------------- config and localisation --------------------------------
+# --------------------- config and uielem --------------------------------
 
 # create config_dict and build the paths inside, require app_path
 # if the db_config flag is true, it will read config from db, merge with local,
@@ -11,9 +11,6 @@ load_local_config <- function(local_config_path){
   }else{
     stop(paste('config file not found in',local_config_path))
   }
-
-  # # build paths in config_dict
-  config_dict <- build_config_dict_path(config_dict)
   
   config_dict$source_rank <- 1 # local=1;db=2
   
@@ -25,20 +22,28 @@ load_local_config <- function(local_config_path){
   return(config_dict)
 }
 
-build_config_dict_path <- function(config_dict){
+build_config_path <- function(config_dict){
+  
   # build paths in config_dict
-  config_dict$value[config_dict$type=='abs'] <-
-    gsub(';','/',config_dict$value[config_dict$type=='abs'])
-  config_dict$value[config_dict$type=='relative'] <-
-    gsub(';','/',config_dict$value[config_dict$type=='relative'])
   config_dict$value[config_dict$type=='relative'] <-
     file.path(app_path,config_dict$value[config_dict$type=='relative'])
+  
+  # fix windows styling
+  config_dict$value[config_dict$type=='relative'|config_dict$type=='abs'] <-
+    gsub('\\\\','/',config_dict$value[
+      config_dict$type=='relative'|config_dict$type=='abs'])
+  
   return(config_dict)
 }
 
-load_db_config <- function(admin_id){
-  db_config <- db_read_query(paste0('select * from config where admin_id=',
-                                    admin_id,' or admin_id=0'))
+load_db_config <- function(local_config){
+  admin_id <- as.integer(
+    local_config$value[local_config$name=='admin_id'])
+  
+
+  db_config <- dbGetQuery(conn,paste0('select * from config where admin_id=',
+                                      admin_id,' or admin_id=0'))
+  dbDisconnect(conn)
   
   # if there is duplicated items in db_config, use the one with admin_id
   db_config <- db_config %>% arrange(desc(admin_id))
@@ -47,64 +52,63 @@ load_db_config <- function(admin_id){
   #remove admin_id and finalise
   db_config$admin_id <- NULL
   db_config$source_rank <- 2
-  db_config <- build_config_dict_path(db_config)
+  # db_config <- build_config_dict_path(db_config)
   
   return(db_config)
 }
 
+#create a wide format config and format the data type
+create_config <- function(local_config_path){
+  
+  # create local and db config
+  local_config <- load_local_config(local_config_path)
+  
+  db_config <- load_db_config(local_config)
+  
+  # bind the two config, sort by source_rank, then remove duplicates
+  config_dict <- rbind(local_config,db_config)
+  config_dict <- config_dict[order(config_dict$source_rank),]
+  config_dict <- config_dict[!duplicated(config_dict$name),]
+  
+  #build the path
+  config_dict <- build_config_path(config_dict)
+  
+  # convert to wide format
+  config <- config_dict %>% select(name,value)
+  config <- spread(config,name,value)
+  
+  # convert boolean variable
+  var_list <- config_dict$name[config_dict$type=='boolean']
+  if(length(var_list)>0){
+    for (var_name in var_list){
+      config[[var_name]] <- (config[[var_name]]==1|
+                               grepl("T",config[[var_name]]))
+    }
+  }
+  
+  return(config)
+}
+
 # create ui_elem
 create_uielem <- function(config){
-  uielem <- db_read_query(paste0(
-    "select * from uielem where app_lang='",config$app_lang,"'"))
+  
+  query <- paste0(
+    "select * from uielem where app_lang='",config$app_lang,"'")
+  uielem <- dbGetQuery(conn,query)
+  
   uielem <- spread(uielem %>% select(label,actual),label,actual)
   
   return(uielem)
 }
 
 # 
-# # split a long string separated by ';' to recover the list of strings
-# split_semi <- function(input_str){
-#   output_str <- unlist(strsplit(input_str,';'))
-#   return(output_str)
-# }
+# split a long string separated by ';' to recover the list of strings
+split_semi <- function(input_str){
+  output_str <- unlist(strsplit(input_str,';'))
+  return(output_str)
+}
 # 
-# --------------------------- database functions -------------------------------
 
-# db_open create a conn object that database call can use
-db_open <- function(config_dict){
-
-  conn <- dbConnect(
-    drv = RMariaDB::MariaDB(),
-    username = config_dict$value[config_dict$name=='sql_usr'],
-    password = config_dict$value[config_dict$name=='sql_pswd'],
-    host = config_dict$value[config_dict$name=='sql_host'],
-    port = 3306, dbname = config_dict$value[
-      config_dict$name=='sql_db_name'])
-  
-  return(conn)
-}
-
-# simple db_write auto append
-db_write <- function(config_dict,table_name,x){
-  conn <- db_open(config_dict)
-  dbWriteTable(conn,table_name,x,append=T)
-  dbDisconnect(conn)
-}
-
-# one line db read
-db_read_query <- function(query){
-  conn <- db_open(config_dict)
-  dataout <- dbGetQuery(conn,query)
-  dbDisconnect(conn)
-  return(dataout)
-}
-
-# one-line db exec
-db_exec_query <- function(query){
-  conn <- db_open(config_dict)
-  dbExecute(conn,query)
-  dbDisconnect(conn)
-}
 
 # # ----------------------- general operation functions --------------------------
 

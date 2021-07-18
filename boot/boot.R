@@ -16,35 +16,23 @@ lapply(required_package, require, character.only = TRUE)
 # source boot helper
 source(file.path(boot_path,'boot_helper.R'))
 
-# create local and db config
-config_dict <- load_local_config(local_config_path)
-admin_id <- as.integer(
-  config_dict$value[config_dict$name=='admin_id'])
-db_config <- load_db_config(admin_id)
+# create the connection object
+conn <- dbConnect(
+  drv = RMariaDB::MariaDB(),
+  username = local_config$value[local_config$name=='sql_usr'],
+  password = local_config$value[local_config$name=='sql_pswd'],
+  host = local_config$value[local_config$name=='sql_host'],
+  port = 3306, dbname = local_config$value[
+    local_config$name=='sql_db_name'])
 
-# bind the two config, sort by source_rank, then remove duplicates
-config_dict <- rbind(config_dict,db_config)
-config_dict <- config_dict[order(config_dict$source_rank),]
-config_dict <- config_dict[!duplicated(config_dict$name),]
+#load the config data frame
+config <- create_config(local_config_path)
 
-# convert to wide format
-config <- config_dict %>% select(name,value)
-config <- spread(config,name,value)
-
-# 
-# # create uielem table
+# create uielem
 uielem <- create_uielem(config)
-# 
-# 
-# # create the list of tables included in lu_report, localised name
-# reload_tbl(config_dict,'report_type')
-# lu_report_list <- create_lu_report_list(config_dict)
-# report_group <- unique(report_type$actual)
-# lu_report_list <- merge(lu_report_list,ui_elem,all.x = T)
-# lu_report_list <- lu_report_list$actual
-# 
-# # load the list of tabs to hide
-# hidden_tab <- split_semi(config$hidden_tab)
+
+# load the list of tabs to hide
+hidden_tab <- split_semi(config$hidden_tab)
 # 
 # # load the remaining function
 # func_list <- list.files(file.path(app_path,'r'),full.names = T, recursive = T)
