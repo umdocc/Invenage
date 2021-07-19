@@ -1,10 +1,15 @@
 cdn_load_ui <- function(input,output,ui_list){
   if ('cdn_customer' %in% ui_list){
-    output$cdn_customer <- render_cdn_customer() # customer
+    output$cdn_customer <- render_cdn_customer(input) # customer
   }
+  if ('cdn_prod_name' %in% ui_list){
+    output$cdn_prod_name <- render_cdn_prod_name(input)
+  }
+  
+  return(output)
 }
 
-render_cdn_customer <- function(){renderUI({
+render_cdn_customer <- function(input){renderUI({
     
     cust_choices <- db_read_query(
       "select customer_name from customer_info")$customer_name
@@ -14,6 +19,18 @@ render_cdn_customer <- function(){renderUI({
       choices = cust_choices, selected = cust_choices[1], 
       options = list(create = F))
   })
+}
+
+render_cdn_prod_name <- function(input){renderUI({
+  
+  prod_choices <- db_read_query(
+    "select comm_name from product_info where active=1")$comm_name
+  
+  selectizeInput(
+    inputId = "cdn_prod_name", label = uielem$comm_name, 
+    choices = prod_choices, selected = prod_choices[1], 
+    options = list(create = F))
+})
 }
 
 # # function to check if an inv_out entry should be allowed before writing to db

@@ -11,7 +11,7 @@ if ('cdn' %in% hidden_tab){
       width=3,
       p(), #space
       htmlOutput('cdn_customer'),
-      # htmlOutput('prod_name_select'),
+      htmlOutput('cdn_prod_name'),
       # div(style="display: inline-block;vertical-align:top;width: 90px",
       #     htmlOutput("qty_selector")),
       # div(style="display: inline-block;vertical-align:top;width: 90px",
