@@ -10,10 +10,11 @@ shinyServer(function(input, output,session) {
   hideTab(inputId = "main", target = uielem[[tab_label]])
   }
   
-# # ------------------------------- sale menu ---------------------------------- 
-#   # ----------------------- create_delivery_note -----------------------------
+# # ------------------------------- inventory_out ------------------------------ 
+#   # --------------------------------- cdn ------------------------------------
 #   # UI
-#   output <- reload_ui(input,output,split_semi(config$cdn_ui_items))
+  output <- cdn_load_ui(
+    input, output, c('cdn_customer'))
 #   
 #   # buttons handlers
 #   observeEvent(input$inventory_out, { # inv_out button

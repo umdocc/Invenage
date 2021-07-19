@@ -46,9 +46,8 @@ sapply(func_list, source)
 
 
 # ------------------------- chrome config for windows --------------------------
-os_name <- config_dict$value[config_dict$name=='os_name']
-if (all(grepl('windows',os_name))){
-  browser_path <- config_dict$value[config_dict$name=='browser_path']
+if (grepl('windows',config$os_name)){
+  browser_path <- config$browser_path
   if (file.exists(browser_path)){
     # set the chrome option
     options(browser = browser_path)
@@ -56,4 +55,3 @@ if (all(grepl('windows',os_name))){
     stop('Path to Browser not found or incorrect!!')
   }
 }
-

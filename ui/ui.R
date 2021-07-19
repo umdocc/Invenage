@@ -2,7 +2,7 @@
 library(shiny); library(shinythemes); library(shinyalert)
 require(DT)
 navbarPage(
-  theme = shinytheme("united"), title = company_name, id = 'main',
+  theme = shinytheme(config$app_theme), title = config$app_title, id = 'main',
 
   # sale menu
   navbarMenu(title = uielem$inventory_out,

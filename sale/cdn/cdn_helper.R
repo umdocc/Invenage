@@ -1,5 +1,7 @@
 cdn_load_ui <- function(input,output,ui_list){
-  
+  if ('cdn_customer' %in% ui_list){
+    output$cdn_customer <- render_cdn_customer() # customer
+  }
 }
 
 render_cdn_customer <- function(){renderUI({
