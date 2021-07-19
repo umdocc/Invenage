@@ -40,10 +40,8 @@ load_db_config <- function(local_config){
   admin_id <- as.integer(
     local_config$value[local_config$name=='admin_id'])
   
-
   db_config <- dbGetQuery(conn,paste0('select * from config where admin_id=',
                                       admin_id,' or admin_id=0'))
-  dbDisconnect(conn)
   
   # if there is duplicated items in db_config, use the one with admin_id
   db_config <- db_config %>% arrange(desc(admin_id))
@@ -58,12 +56,7 @@ load_db_config <- function(local_config){
 }
 
 #create a wide format config and format the data type
-create_config <- function(local_config_path){
-  
-  # create local and db config
-  local_config <- load_local_config(local_config_path)
-  
-  db_config <- load_db_config(local_config)
+create_config <- function(local_config,db_config){
   
   # bind the two config, sort by source_rank, then remove duplicates
   config_dict <- rbind(local_config,db_config)
@@ -104,7 +97,13 @@ create_uielem <- function(config){
 # 
 # split a long string separated by ';' to recover the list of strings
 split_semi <- function(input_str){
+  
+  if(grepl(';',input_str)){
   output_str <- unlist(strsplit(input_str,';'))
+  }else{
+    output_str <- input_str
+    }
+  
   return(output_str)
 }
 # 
