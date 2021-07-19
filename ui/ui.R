@@ -5,9 +5,8 @@ navbarPage(
   theme = shinytheme("united"), title = company_name, id = 'main',
 
   # sale menu
-  navbarMenu(title = uielem$inv_out,
-    cdn_tab,
-    mdn_tab
+  navbarMenu(title = uielem$inventory_out,
+    cdn_tab
   )
   # 
   # # import menu

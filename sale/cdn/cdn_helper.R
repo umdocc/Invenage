@@ -1,4 +1,19 @@
-render_cdn_customer 
+cdn_load_ui <- function(input,output,ui_list){
+  
+}
+
+render_cdn_customer <- function(){renderUI({
+    
+    cust_choices <- db_read_query(
+      "select customer_name from customer_info")$customer_name
+
+    selectizeInput(
+      inputId = "cdn_customer", label = uielem$customer_name, 
+      choices = cust_choices, selected = cust_choices[1], 
+      options = list(create = F))
+  })
+}
+
 # # function to check if an inv_out entry should be allowed before writing to db
 # check_inv_out <- function(append_sale_log, config_dict){
 #   inv_out_ok <- T

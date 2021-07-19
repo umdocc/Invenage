@@ -8,3 +8,11 @@ db_open <- function(config){
   
   return(conn)
 }
+
+db_read_query <- function(query){
+  conn <- db_open(config)
+  data_out <- dbGetQuery(conn,query)
+  dbDisconnect(conn)
+  
+  return(data_out)
+}
