@@ -5,6 +5,9 @@ cdn_load_ui <- function(input,output,ui_list){
   if ('cdn_prod_name' %in% ui_list){
     output$cdn_prod_name <- render_cdn_prod_name(input)
   }
+  if ('cdn_unit' %in% ui_list){
+    output$cdn_unit <- render_cdn_unit(input)
+  }
   
   return(output)
 }
@@ -23,12 +26,28 @@ render_cdn_customer <- function(input){renderUI({
 
 render_cdn_prod_name <- function(input){renderUI({
   
-  prod_choices <- db_read_query(
-    "select comm_name from product_info where active=1")$comm_name
+  prod_choices <- db_get_prodlist(config$prod_search_str)$prod_search_str
   
   selectizeInput(
     inputId = "cdn_prod_name", label = uielem$comm_name, 
     choices = prod_choices, selected = prod_choices[1], 
+    options = list(create = F))
+})
+}
+
+render_cdn_unit <- function(input){renderUI({
+  
+  prod_choices <- db_get_prodlist(config$prod_search_str)
+  current_prod_code <- prod_choices$prod_code[
+    prod_choices$prod_search_str == input$cdn_prod_name]
+  
+  unit_choices <- db_read_query(paste0(
+    "select * from packaging where prod_code='",
+    current_prod_code,"'"))$unit
+  
+  selectizeInput(
+    inputId = "cdn_unit", label = uielem$comm_name, 
+    choices = unit_choices, selected = unit_choices[1], 
     options = list(create = F))
 })
 }
