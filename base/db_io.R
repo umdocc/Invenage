@@ -1,4 +1,4 @@
-# open the connection
+# ---------------- open/read/exec queries --------------------
 db_open <- function(config){
   conn <- dbConnect(
     drv = RMariaDB::MariaDB(),
@@ -26,6 +26,7 @@ db_exec_query <- function(query){
   dbDisconnect(conn)
 }
 
+# ------------- read tables ---------------
 # read the product list, but return a search_str for display
 # item_list can be customised
 db_get_prodlist <- function(
