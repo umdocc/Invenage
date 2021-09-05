@@ -1,18 +1,18 @@
 # ---------------- open/read/exec queries --------------------
-db_open <- function(config){
+db_open <- function(db_name = config$sql_db_name){
   conn <- dbConnect(
     drv = RMariaDB::MariaDB(),
     username = config$sql_usr,
     password = config$sql_pswd,
     host = config$sql_host,
-    port = 3306, dbname = config$sql_db_name)
+    port = 3306, dbname = db_name)
   
   return(conn)
 }
 
 # return result from a query, require db_open
 db_read_query <- function(query){
-  conn <- db_open(config)
+  conn <- db_open()
   data_out <- dbGetQuery(conn,query)
   dbDisconnect(conn)
   
@@ -21,7 +21,7 @@ db_read_query <- function(query){
 
 # execute a quqery, require db_open
 db_exec_query <- function(query){
-  conn <- db_open(config)
+  conn <- db_open()
   dbExecQuery(conn,query)
   dbDisconnect(conn)
 }
