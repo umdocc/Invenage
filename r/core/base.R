@@ -52,7 +52,7 @@ split_semi <- function(input_str){
 # --------------------------- database functions -------------------------------
 
 # db_open create a conn object that database call can use
-db_open <- function(config_dict){
+db_open <- function(config_dict,db_name='invenage'){
   db_type <- config_dict$value[config_dict$name=='db_type']
   if (db_type == 'SQLite'){
     database_path <- config_dict$value[config_dict$name=='db_file']
@@ -65,8 +65,7 @@ db_open <- function(config_dict){
       username = config_dict$value[config_dict$name=='sql_usr'],
       password = config_dict$value[config_dict$name=='sql_pswd'], 
       host = config_dict$value[config_dict$name=='sql_host'],
-      port = 3306, dbname = config_dict$value[
-        config_dict$name=='sql_db_name'])
+      port = 3306, dbname = db_name)
   }
   return(conn)
 }
