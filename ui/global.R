@@ -16,7 +16,7 @@ boot_path <- file.path(app_path,'boot')
 
 # path for reading the local config data
 home_path <- path.expand('~')
-local_config_path <- file.path(home_path,'invenage','config.tsv')
+local_config_path <- file.path(home_path,'appData','invenage','config.tsv')
 
 # load boot
 source(file.path(boot_path,'boot.R'))
