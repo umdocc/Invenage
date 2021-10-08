@@ -15,3 +15,12 @@ add_import_lic_info <- function(product_data, import_lic_data){
   required_col <- c("ref_smn","vendor_id")
 }
 
+# translate column
+translate_tbl_column <- function(input_df,ui_elem=uielem){
+  for (i in 1:length(input_df)){
+    if (names(input_df)[i] %in% names(ui_elem)){
+      names(input_df)[i] = ui_elem[names(input_df)[i]]
+    }
+  }
+  return(input_df)
+}

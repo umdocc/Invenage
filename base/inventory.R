@@ -11,3 +11,7 @@ get_sale_data <- function(vendor_id,from_date,to_date){
       "' and '",to_date,"'"))
   )
 }
+
+update_inventory <- function(){
+  
+}
