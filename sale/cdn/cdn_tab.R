@@ -19,7 +19,7 @@ if ('cdn' %in% hidden_tab){
       # div(style="display: inline-block;vertical-align:top;width: 90px",
       #     htmlOutput("warehouse_selector")),
       div(style="display: inline-block;vertical-align:top;width: 110px",
-          htmlOutput("cdn_lot")),
+          htmlOutput("cdn_warehouse")),
       # div(style="display: inline-block;vertical-align:top;width: 160px",
       #     htmlOutput("payment_selector")),
       # div(style="display: inline-block;vertical-align:top;width: 130px",

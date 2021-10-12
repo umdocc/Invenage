@@ -8,6 +8,12 @@ cdn_load_ui <- function(input,output,ui_list){
   if ('cdn_unit' %in% ui_list){
     output$cdn_unit <- render_cdn_unit(input)
   }
+  if ('cdn_qty' %in% ui_list){
+    output$cdn_qty <- render_cdn_qty(input)
+  }
+  if ('cdn_warehouse' %in% ui_list){
+    output$cdn_warehouse <- render_cdn_warehouse(input)
+  }
   
   return(output)
 }
@@ -35,11 +41,18 @@ render_cdn_prod_name <- function(input){renderUI({
 })
 }
 
+render_cdn_qty <- function(input){renderUI({
+
+    selectizeInput(
+    inputId = "cdn_qty", label = uielem$qty, 
+    choices = 1:20000, selected = 1, 
+    options = list(create = T))
+})
+}
+
 render_cdn_unit <- function(input){renderUI({
   
-  prod_choices <- db_get_prodlist(config$prod_search_str)
-  current_prod_code <- prod_choices$prod_code[
-    prod_choices$prod_search_str == input$cdn_prod_name]
+  current_prod_code <- get_cdn_prod_code(input$cdn_prod_name)
  
   unit_choices <- db_read_query(paste0(
     "select * from packaging where prod_code='",
@@ -50,6 +63,35 @@ render_cdn_unit <- function(input){renderUI({
     choices = unit_choices, selected = unit_choices[1], 
     options = list(create = F))
 })
+}
+
+render_cdn_warehouse <- function(input){renderUI({
+  
+  # get the current prod_code and choose the warehouse
+  current_prod_code <- get_cdn_prod_code(input$cdn_prod_name)
+  warehouse_choice <- db_read_query(
+    "select warehouse from warehouse_info")$warehouse
+  warehouse_select <- db_read_query(paste0(
+    "select warehouse_info.warehouse from warehouse_info 
+    inner join product_info
+    on warehouse_info.warehouse_id = product_info.warehouse_id
+    where product_info.prod_code='",
+    current_prod_code,"'"))$warehouse
+  
+  #render ui
+  selectizeInput(
+    inputId = "cdn_warehouse", label = uielem$warehouse, 
+    choices = warehouse_choice, selected = warehouse_select, 
+    options = list(create = F))
+})
+}
+
+# return a prod_code from the cdn search string
+get_cdn_prod_code <- function(cdn_prod_name){
+  prod_choices <- db_get_prodlist(config$prod_search_str)
+  current_prod_code <- prod_choices$prod_code[
+    prod_choices$prod_search_str == cdn_prod_name]
+  return(current_prod_code)
 }
 
 # # function to check if an inv_out entry should be allowed before writing to db

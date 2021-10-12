@@ -14,7 +14,8 @@ shinyServer(function(input, output,session) {
 #   # --------------------------------- cdn ------------------------------------
 #   # UI
   output <- cdn_load_ui(
-    input, output, c('cdn_customer','cdn_prod_name',"cdn_unit"))
+    input, output, c('cdn_customer', "cdn_prod_name", "cdn_qty", "cdn_unit",
+                     "cdn_warehouse"))
 #   
 #   # buttons handlers
 #   observeEvent(input$inventory_out, { # inv_out button
