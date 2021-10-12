@@ -40,13 +40,13 @@ render_cdn_unit <- function(input){renderUI({
   prod_choices <- db_get_prodlist(config$prod_search_str)
   current_prod_code <- prod_choices$prod_code[
     prod_choices$prod_search_str == input$cdn_prod_name]
-  
+ 
   unit_choices <- db_read_query(paste0(
     "select * from packaging where prod_code='",
     current_prod_code,"'"))$unit
   
   selectizeInput(
-    inputId = "cdn_unit", label = uielem$comm_name, 
+    inputId = "cdn_unit", label = uielem$unit, 
     choices = unit_choices, selected = unit_choices[1], 
     options = list(create = F))
 })

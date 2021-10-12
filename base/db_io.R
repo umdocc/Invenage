@@ -34,5 +34,8 @@ db_get_prodlist <- function(
   product_list <- db_read_query(paste0(
     "select concat(",search_str_structure,") as prod_search_str, prod_code
     from product_info"))
+  
+  #clean up
+  product_list$prod_search_str <- trimws(product_list$prod_search_str)
   return(product_list)
 }
