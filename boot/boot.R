@@ -55,3 +55,11 @@ if (grepl('windows',config$os_name)){
     stop('Path to Browser not found or incorrect!!')
   }
 }
+
+# -------------------------- compatibility fixes -------------------------------
+# fix  packaging_str=NA
+db_exec_query(
+  "update product_info set packaging_str='' where packaging_str is null")
+
+# -------------------------- load global tables --------------------------------
+db_load_tbl(c("packaging","product_info","import_log"))

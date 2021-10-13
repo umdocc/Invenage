@@ -19,10 +19,10 @@ db_read_query <- function(query){
   return(data_out)
 }
 
-# execute a quqery, require db_open
+# execute a query, require db_open
 db_exec_query <- function(query){
   conn <- db_open()
-  dbExecQuery(conn,query)
+  dbExecute(conn, query)
   dbDisconnect(conn)
 }
 
@@ -38,4 +38,23 @@ db_get_prodlist <- function(
   #clean up
   product_list$prod_search_str <- trimws(product_list$prod_search_str)
   return(product_list)
+}
+
+# function to load raw db table into
+db_load_tbl <- function(table_list=c("packaging","product_info")){
+  conn <- db_open()
+  if("packaging" %in% table_list){
+    data_tbl <- dbGetQuery(conn,"select * from packaging")
+    assign("packaging",data_tbl,envir=globalenv())
+  }
+  if("product_info" %in% table_list){
+    data_tbl <- dbGetQuery(conn,"select * from product_info")
+    assign("product_info",data_tbl,envir=globalenv())
+  }
+  if("import_log" %in% table_list){
+    data_tbl <- dbGetQuery(conn,"select * from import_log")
+    assign("import_log",data_tbl,envir=globalenv())
+  }
+  
+  dbDisconnect(conn)
 }

@@ -14,6 +14,9 @@ cdn_load_ui <- function(input,output,ui_list){
   if ('cdn_warehouse' %in% ui_list){
     output$cdn_warehouse <- render_cdn_warehouse(input)
   }
+  if ('cdn_lot' %in% ui_list){
+    output$cdn_lot <- render_cdn_lot(input)
+  }
   
   return(output)
 }
@@ -69,6 +72,7 @@ render_cdn_warehouse <- function(input){renderUI({
   
   # get the current prod_code and choose the warehouse
   current_prod_code <- get_cdn_prod_code(input$cdn_prod_name)
+
   warehouse_choice <- db_read_query(
     "select warehouse from warehouse_info")$warehouse
   warehouse_select <- db_read_query(paste0(
@@ -86,6 +90,22 @@ render_cdn_warehouse <- function(input){renderUI({
 })
 }
 
+render_cdn_lot <- function(input){renderUI({
+  current_prod_code <- get_cdn_prod_code(input$cdn_prod_name)
+  inventory <- update_inventory()
+  lot_select <- inventory[inventory$prod_code==current_prod_code,] %>%
+    arrange(intexp_date)
+  lot_choices <- lot_select$lot
+  lot_select <- lot_select[
+    lot_select$intexp_date==min(lot_select$intexp_date),]$lot
+  #render ui
+  selectizeInput(
+    inputId = "cdn_lot", label = uielem$lot, 
+    choices = lot_choices, selected = lot_select, 
+    options = list(create = F))
+})
+}
+
 # return a prod_code from the cdn search string
 get_cdn_prod_code <- function(cdn_prod_name){
   prod_choices <- db_get_prodlist(config$prod_search_str)
@@ -93,6 +113,8 @@ get_cdn_prod_code <- function(cdn_prod_name){
     prod_choices$prod_search_str == cdn_prod_name]
   return(current_prod_code)
 }
+
+
 
 # # function to check if an inv_out entry should be allowed before writing to db
 # check_inv_out <- function(append_sale_log, config_dict){
