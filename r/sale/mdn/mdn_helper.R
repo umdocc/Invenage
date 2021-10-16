@@ -47,14 +47,20 @@ update_db_pxk <- function(pxk_num,edited_stt,col_name,new_value){
     
     # if all is good, write to database
     if (error_free){
-      if(col_name %in% c('unit','note')){
-        updated_value <- paste0("'",new_value,"'")
+      
+      # slightly different query for strings and numbers
+      if(col_name %in% c('unit','note','lot')){
+        update_query <- paste0(
+          "update sale_log set ",col_name,"='",new_value,"' where id=",
+          tmp$id)
       }else{
-        updated_value <- new_value
+        update_query <- paste0(
+          "update sale_log set ",col_name,"=",new_value," where id=",
+          tmp$id)
       }
-      db_exec_query(
-        paste0("update sale_log set ",col_name,"=",updated_value,
-               " where id=",tmp$id))
+      
+      #exec
+      db_exec_query(update_query)
     }
     
   }else{
@@ -70,7 +76,7 @@ edit_db_pxk <- function(cell,pxk_num){
   pxk_render_colnames <- split_semi(config$pxk_render_colnames)
 
   # get the stt of edited row
-  #since shiny editable cell only display relative to current table
+  # since shiny editable cell only display relative to current table
   # we need to first rebuild the table, then extract the stt
   updated_pxk <- render_selected_pxk(pxk_num,config_dict)
   # reverse the column name
@@ -81,6 +87,7 @@ edit_db_pxk <- function(cell,pxk_num){
   edited_colname <- pxk_render_colnames[cell$col+1]
   # get the new_value
   new_value <- as.character(cell$value)
+  
   # update the database
   error_free <- update_db_pxk(pxk_num,edited_stt,edited_colname,new_value)
   
