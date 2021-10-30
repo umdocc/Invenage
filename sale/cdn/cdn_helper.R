@@ -17,6 +17,14 @@ cdn_load_ui <- function(input,output,ui_list){
   if ('cdn_lot' %in% ui_list){
     output$cdn_lot <- render_cdn_lot(input)
   }
+  if ('cdn_payment_type' %in% ui_list){
+    output$cdn_payment_type <- render_cdn_payment_type(input)
+  }
+  if ('cdn_unit_price' %in% ui_list){
+    output$cdn_unit_price <- render_cdn_unit_price(input)
+  }
+  
+  render_cdn_payment_type
   
   return(output)
 }
@@ -106,6 +114,40 @@ render_cdn_lot <- function(input){renderUI({
 })
 }
 
+render_cdn_payment_type <- function(input){renderUI({
+  payment_type <- db_read_query(
+    "select * from payment_type inner join uielem
+    on payment_type.payment_label=uielem.label
+    where uielem.type='payment_label'")
+  ui_choices <- payment_type$actual
+  ui_selected <- ui_choices[1]
+  
+  #render ui
+  selectizeInput(
+    inputId = "cdn_payment_type", label = uielem$payment_type, 
+    choices = ui_choices, selected = ui_selected, 
+    options = list(create = F))
+})
+}
+
+render_cdn_unit_price <- function(input){renderUI({
+  current_prod_code <- get_cdn_prod_code(input$cdn_prod_name)
+  current_customer_id <- db_read_query(paste0(
+    "select * from customer_info where customer_name='",input$cdn_customer,
+    "'"))$customer_id
+  price_choices <- get_cdn_price_history(prod_code,customer_id)
+  
+  ui_choices <- payment_type$actual
+  ui_selected <- ui_choices[1]
+  
+  #render ui
+  selectizeInput(
+    inputId = "cdn_payment_type", label = uielem$payment_type, 
+    choices = ui_choices, selected = ui_selected, 
+    options = list(create = F))
+})
+}
+
 # return a prod_code from the cdn search string
 get_cdn_prod_code <- function(cdn_prod_name){
   prod_choices <- db_get_prodlist(config$prod_search_str)
@@ -114,7 +156,12 @@ get_cdn_prod_code <- function(cdn_prod_name){
   return(current_prod_code)
 }
 
-
+get_cdn_price_history <- function(prod_code,customer_id,promo_price=0){
+  db_read_query(paste0(
+    "select * from sale_log inner join pxk_info
+    where sale_log"
+  ))
+}
 
 # # function to check if an inv_out entry should be allowed before writing to db
 # check_inv_out <- function(append_sale_log, config_dict){
