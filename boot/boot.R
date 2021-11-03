@@ -21,12 +21,13 @@ local_config <- load_local_config(local_config_path)
 
 # create the connection object
 conn <- dbConnect(
-  drv = RMariaDB::MariaDB(),
+  drv = RMySQL::MySQL(),
   username = local_config$value[local_config$name=='sql_usr'],
   password = local_config$value[local_config$name=='sql_pswd'],
   host = local_config$value[local_config$name=='sql_host'],
   port = 3306, dbname = local_config$value[
     local_config$name=='sql_db_name'])
+s <- dbExecute(conn, "SET NAMES 'utf8'") 
 
 #load the remaining config
 db_config <- load_db_config(local_config)

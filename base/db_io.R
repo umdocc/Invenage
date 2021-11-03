@@ -1,18 +1,19 @@
 # ---------------- open/read/exec queries --------------------
 db_open <- function(db_name = config$sql_db_name){
   conn <- dbConnect(
-    drv = RMariaDB::MariaDB(),
+    drv = RMySQL::MySQL(),
     username = config$sql_usr,
     password = config$sql_pswd,
     host = config$sql_host,
     port = 3306, dbname = db_name)
-  
+
   return(conn)
 }
 
 # return result from a query, require db_open
 db_read_query <- function(query){
   conn <- db_open()
+  s <- dbExecute(conn, "SET NAMES 'utf8'") 
   data_out <- dbGetQuery(conn,query)
   dbDisconnect(conn)
   
@@ -43,6 +44,7 @@ db_get_prodlist <- function(
 # function to load raw db table into
 db_load_tbl <- function(table_list=c("packaging","product_info")){
   conn <- db_open()
+
   if("packaging" %in% table_list){
     data_tbl <- dbGetQuery(conn,"select * from packaging")
     assign("packaging",data_tbl,envir=globalenv())
