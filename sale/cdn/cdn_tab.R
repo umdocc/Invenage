@@ -22,13 +22,13 @@ if ('cdn' %in% hidden_tab){
           htmlOutput("cdn_lot")),
       div(style="display: inline-block;vertical-align:top;width: 160px",
           htmlOutput("cdn_payment_type")),
-      # div(style="display: inline-block;vertical-align:top;width: 130px",
-      #     htmlOutput("unit_price")),
-      # div(style="display: inline-block;vertical-align:top;
-      #     padding-top:20px;padding-left:10px;width: 140px",
-      #     checkboxInput("promo_price",label = get_actual("promo_price"))),
-      # htmlOutput("tender_name"),
-      # textInput('pxk_note', ui_elem$actual[ui_elem$label=='note']),
+      div(style="display: inline-block;vertical-align:top;width: 130px",
+          htmlOutput("cdn_unit_price")),
+      div(style="display: inline-block;vertical-align:top;
+          padding-top:20px;padding-left:10px;width: 140px",
+          htmlOutput("cdn_promo_price")),
+      htmlOutput("cdn_tender_name"),
+      htmlOutput("cdn_note"),
       # htmlOutput("prod_info_str"),
       # actionButton("inventory_out", label = get_actual('inv_out')),
       # htmlOutput("sys_msg")
