@@ -26,6 +26,9 @@ cdn_load_ui <- function(input,output,ui_list){
   if ('cdn_tender_name' %in% ui_list){
     output$cdn_tender_name <- render_cdn_tender_name(input)
   }
+  if ('cdn_prod_info' %in% ui_list){
+    output$cdn_prod_info <- render_cdn_prod_info(input)
+  }
   
   return(output)
 }
@@ -170,6 +173,67 @@ render_cdn_tender_name <- function(input){renderUI({
 })
 }
 
+render_cdn_prod_info <- function(input){renderUI({
+  current_prod_code <- prod_choices$prod_code[
+    prod_choices$prod_search_str == input$cdn_prod_name]
+  current_lot <- input$cdn_lot
+  current_selected_unit <- input$cdn_unit
+  
+  selected_info <-inventory[
+    inventory$prod_code == current_prod_code &
+      inventory$lot == current_lot,]
+  
+  total_available <- selected_info$remaining_qty
+  
+  # also get all other available lot
+  alllot_available <- inventory[
+    inventory$prod_code == current_prod_code &
+      inventory$lot != current_lot,]
+  alllot_available$exp_date[is.na(alllot_available$exp_date)] <- 'nodate'
+  
+  if(length(total_available)==0){total_available <- 0}
+  current_exp_date <- selected_info$exp_date
+  
+  packaging_str <- packaging[
+    packaging$prod_code == current_prod_code &
+      packaging$unit == current_selected_unit,]
+  
+  ordering_unit <- get_ordering_unit(packaging)
+  current_order_unit <- ordering_unit$unit[
+    ordering_unit$prod_code==current_prod_code]
+  
+  current_units_per_pack <- packaging$units_per_pack[
+    packaging$prod_code==current_prod_code &
+      packaging$unit==current_selected_unit]
+  
+  packaging_str <- paste0(packaging_str$units_per_pack[1],
+                          packaging_str$unit[1],'/',current_order_unit)
+  alllot_str <- ''
+  alllot_available <- merge(alllot_available,ordering_unit,all.x=T)
+  if (nrow(alllot_available)>0){
+    for(i in 1:nrow(alllot_available)){
+      alllot_str <- paste0(
+        alllot_str,alllot_available$lot[i],' - ',alllot_available$exp_date[i],
+        ' - ',alllot_available$remaining_qty[i],'',alllot_available$unit[i],
+        '<br/>')
+    }
+  }
+  
+  product_info_str <- paste(
+    uielem$information, ':<br/>',
+    uielem$prod_code,':',current_prod_code, '<br/>',
+    uielem$vendor,':','<br/>',
+    uielem$ref_smn,":",'<br/>',
+    uielem$exp_date,':','<br/>',
+    uielem$remaining_qty,':',
+    round(total_available*current_units_per_pack, digits=0),
+    current_selected_unit,'(',
+    round(total_available,digits=1), current_order_unit, ')<br/>',
+    uielem$packaging_str,":",packaging_str, '<br/>',
+    uielem$other_lot,':<br/>',
+    alllot_str)
+  HTML(product_info_str)
+}) }
 
 # # function to check if an inv_out entry should be allowed before writing to db
 # check_inv_out <- function(append_sale_log, config_dict){

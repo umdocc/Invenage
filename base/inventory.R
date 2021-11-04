@@ -80,3 +80,10 @@ get_exp_date <- function(){
   
   return(exp_dateData)
 }
+
+get_ordering_unit <- function(packaging){
+  ordering_unit <- packaging[packaging$ordering_unit==1,]
+  # we no longer need this after fixing database
+  ordering_unit <- ordering_unit[!duplicated(ordering_unit$prod_code),]
+  return(ordering_unit)
+}

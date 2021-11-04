@@ -32,7 +32,7 @@ if ('cdn' %in% hidden_tab){
           )),
       htmlOutput("cdn_tender_name"),
       textInput("cdn_note",uielem$note),
-      # htmlOutput("prod_info_str"),
+      htmlOutput("cdn_prod_info"),
       # actionButton("inventory_out", label = get_actual('inv_out')),
       # htmlOutput("sys_msg")
       p()
