@@ -41,20 +41,24 @@ db_get_prodlist <- function(
 }
 
 # function to load raw db table into
-db_load_tbl <- function(table_list=c("packaging","product_info")){
+db_load_simple_tbl <- function(table_list=c("packaging","product_info")){
   conn <- db_open()
-  if("packaging" %in% table_list){
-    data_tbl <- dbGetQuery(conn,"select * from packaging")
-    assign("packaging",data_tbl,envir=globalenv())
-  }
-  if("product_info" %in% table_list){
-    data_tbl <- dbGetQuery(conn,"select * from product_info")
-    assign("product_info",data_tbl,envir=globalenv())
-  }
-  if("import_log" %in% table_list){
-    data_tbl <- dbGetQuery(conn,"select * from import_log")
-    assign("import_log",data_tbl,envir=globalenv())
+
+  for (tbl_name in table_list){
+    data_tbl <- dbGetQuery(conn,paste("select * from",tbl_name))
+    assign(tbl_name,data_tbl,envir=globalenv())
   }
   
+  dbDisconnect(conn)
+}
+
+db_load_complex_tbl <- function(table_list=c("sale_log")){
+  conn <- db_open()
+  if("sale_log" %in% table_list){
+    data_tbl <- dbGetQuery(conn,"select * from sale_log inner join pxk_info
+                           on sale_log.pxk_num = pxk_info.pxk_num")
+    assign("sale_log",data_tbl,envir=globalenv())
+    
+  }
   dbDisconnect(conn)
 }

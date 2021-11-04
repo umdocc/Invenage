@@ -20,15 +20,18 @@ if ('cdn' %in% hidden_tab){
           htmlOutput("cdn_warehouse")),
       div(style="display: inline-block;vertical-align:top;width: 160px",
           htmlOutput("cdn_lot")),
-      div(style="display: inline-block;vertical-align:top;width: 160px",
-          htmlOutput("cdn_payment_type")),
       div(style="display: inline-block;vertical-align:top;width: 130px",
+          htmlOutput("cdn_payment_type")),
+      div(style="display: inline-block;vertical-align:top;width: 160px",
           htmlOutput("cdn_unit_price")),
       div(style="display: inline-block;vertical-align:top;
-          padding-top:20px;padding-left:10px;width: 140px",
-          htmlOutput("cdn_promo_price")),
+          padding-top:20px;padding-left:10px;width: 130px",
+          checkboxInput(
+            inputId = "cdn_promo_price", label = uielem$promo_price,
+            value = F
+          )),
       htmlOutput("cdn_tender_name"),
-      htmlOutput("cdn_note"),
+      textInput("cdn_note",uielem$note),
       # htmlOutput("prod_info_str"),
       # actionButton("inventory_out", label = get_actual('inv_out')),
       # htmlOutput("sys_msg")

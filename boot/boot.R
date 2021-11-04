@@ -62,4 +62,10 @@ db_exec_query(
   "update product_info set packaging_str='' where packaging_str is null")
 
 # -------------------------- load global tables --------------------------------
-db_load_tbl(c("packaging","product_info","import_log"))
+db_load_simple_tbl(c("packaging","product_info","import_log","customer_info",
+                     "tender_info"))
+db_load_complex_tbl(c("sale_log"))
+
+
+prod_choices <- db_get_prodlist(config$prod_search_str)
+inventory <- update_inventory()

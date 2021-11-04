@@ -23,8 +23,9 @@ cdn_load_ui <- function(input,output,ui_list){
   if ('cdn_unit_price' %in% ui_list){
     output$cdn_unit_price <- render_cdn_unit_price(input)
   }
-  
-  render_cdn_payment_type
+  if ('cdn_tender_name' %in% ui_list){
+    output$cdn_tender_name <- render_cdn_tender_name(input)
+  }
   
   return(output)
 }
@@ -43,11 +44,10 @@ render_cdn_customer <- function(input){renderUI({
 
 render_cdn_prod_name <- function(input){renderUI({
   
-  prod_choices <- db_get_prodlist(config$prod_search_str)$prod_search_str
-  
   selectizeInput(
     inputId = "cdn_prod_name", label = uielem$comm_name, 
-    choices = prod_choices, selected = prod_choices[1], 
+    choices = prod_choices$prod_search_str, 
+    selected = prod_choices$prod_search_str[1], 
     options = list(create = F))
 })
 }
@@ -63,11 +63,10 @@ render_cdn_qty <- function(input){renderUI({
 
 render_cdn_unit <- function(input){renderUI({
   
-  current_prod_code <- get_cdn_prod_code(input$cdn_prod_name)
+  current_prod_code <- prod_choices$prod_code[
+    prod_choices$prod_search_str == input$cdn_prod_name]
  
-  unit_choices <- db_read_query(paste0(
-    "select * from packaging where prod_code='",
-    current_prod_code,"'"))$unit
+  unit_choices <- packaging$unit[packaging$prod_code==current_prod_code]
   
   selectizeInput(
     inputId = "cdn_unit", label = uielem$unit, 
@@ -79,7 +78,8 @@ render_cdn_unit <- function(input){renderUI({
 render_cdn_warehouse <- function(input){renderUI({
   
   # get the current prod_code and choose the warehouse
-  current_prod_code <- get_cdn_prod_code(input$cdn_prod_name)
+  current_prod_code <- prod_choices$prod_code[
+    prod_choices$prod_search_str == input$cdn_prod_name]
 
   warehouse_choice <- db_read_query(
     "select warehouse from warehouse_info")$warehouse
@@ -99,8 +99,9 @@ render_cdn_warehouse <- function(input){renderUI({
 }
 
 render_cdn_lot <- function(input){renderUI({
-  current_prod_code <- get_cdn_prod_code(input$cdn_prod_name)
-  inventory <- update_inventory()
+  current_prod_code <- prod_choices$prod_code[
+    prod_choices$prod_search_str == input$cdn_prod_name]
+  
   lot_select <- inventory[inventory$prod_code==current_prod_code,] %>%
     arrange(intexp_date)
   lot_choices <- lot_select$lot
@@ -131,37 +132,44 @@ render_cdn_payment_type <- function(input){renderUI({
 }
 
 render_cdn_unit_price <- function(input){renderUI({
-  current_prod_code <- get_cdn_prod_code(input$cdn_prod_name)
-  current_customer_id <- db_read_query(paste0(
-    "select * from customer_info where customer_name='",input$cdn_customer,
-    "'"))$customer_id
-  price_choices <- get_cdn_price_history(prod_code,customer_id)
   
-  ui_choices <- payment_type$actual
-  ui_selected <- ui_choices[1]
+  current_prod_code <- prod_choices$prod_code[
+    prod_choices$prod_search_str == input$cdn_prod_name]
   
+  current_customer_id <- customer_info$customer_id[
+    customer_info$customer_name==input$cdn_customer]
+
+  price_hist <- sale_log[sale_log$prod_code==current_prod_code,]
+  price_hist <- price_hist[price_hist$customer_id==current_customer_id,]
+
+  price_hist <- price_hist[price_hist$promotion_price==0]
+  
+  
+  price_selected <- price_hist$unit_price[
+    price_hist$sale_datetime==max(price_hist$sale_datetime)]
   #render ui
   selectizeInput(
-    inputId = "cdn_payment_type", label = uielem$payment_type, 
-    choices = ui_choices, selected = ui_selected, 
+    inputId = "cdn_unit_price", label = uielem$unit_price, 
+    choices = price_hist$unit_price, selected = price_selected, 
     options = list(create = F))
 })
 }
 
-# return a prod_code from the cdn search string
-get_cdn_prod_code <- function(cdn_prod_name){
-  prod_choices <- db_get_prodlist(config$prod_search_str)
-  current_prod_code <- prod_choices$prod_code[
-    prod_choices$prod_search_str == cdn_prod_name]
-  return(current_prod_code)
+render_cdn_tender_name <- function(input){renderUI({
+  current_customer_id <- customer_info$customer_id[
+    customer_info$customer_name==input$cdn_customer]
+  tmp <- tender_info[tender_info$customer_id==current_customer_id,]
+  tender_choices <- tmp$customer_tender_name
+  tender_selected <- tender_choices[1]
+  #render ui
+  selectizeInput(
+    inputId = "cdn_tender_name", label = uielem$tender_name, 
+    choices = tender_choices, 
+    selected = tender_selected, 
+    options = list(create = F))
+})
 }
 
-get_cdn_price_history <- function(prod_code,customer_id,promo_price=0){
-  db_read_query(paste0(
-    "select * from sale_log inner join pxk_info
-    where sale_log"
-  ))
-}
 
 # # function to check if an inv_out entry should be allowed before writing to db
 # check_inv_out <- function(append_sale_log, config_dict){
