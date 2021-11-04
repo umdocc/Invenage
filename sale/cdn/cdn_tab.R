@@ -33,41 +33,40 @@ if ('cdn' %in% hidden_tab){
       htmlOutput("cdn_tender_name"),
       textInput("cdn_note",uielem$note),
       htmlOutput("cdn_prod_info"),
-      # actionButton("inventory_out", label = get_actual('inv_out')),
-      # htmlOutput("sys_msg")
+      actionButton("add_cdn_entry", label = uielem$add_entry),
       p()
-    )
-    # box(
-    #   width = 9,
-    #   # style = "background-color:#c2e6ff;",
-    #   p(),
-    #   htmlOutput("current_pxk_info"),
-    #   p(),
-    #   DT::dataTableOutput("current_pxk_tbl"),
-    #   h4(), #space
-    #   div(
-    #     style="display: inline-block;vertical-align:top;",
-    #     h5(ui_elem$actual[ui_elem$label=='del_selected_stt'])
-    #   ),
-    #   div(style="display: inline-block;vertical-align:top; \
-    #                     width: 5px;",HTML("<br>")
-    #   ),
-    #   div(style="display: inline-block;vertical-align:top; \
-    #                     width: 100px;",
-    #       htmlOutput('invout_stt_list')
-    #   ),
-    #   div(
-    #     style="display: inline-block;vertical-align:top;width: 150px;",
-    #     actionButton(
-    #       "del_invout_stt", ui_elem$actual[ui_elem$label=='delete_stt'])
-    #   ),
-    #   div(style="display: inline-block;vertical-align:top; \
-    #                     position:absolute;right:15px",
-    #       actionButton(
-    #         "complete_form",
-    #         ui_elem$actual[ui_elem$label=='complete_form'])
-    #   )
-    # )# end inv_out box2
+    ),
+    box(
+      width = 9,
+      p(),
+      # htmlOutput("current_pxk_info"),
+      # p(),
+      # DT::dataTableOutput("current_pxk_tbl"),
+      # h4(), #space
+      # div(
+      #   style="display: inline-block;vertical-align:top;",
+      #   h5(ui_elem$actual[ui_elem$label=='del_selected_stt'])
+      # ),
+      # div(style="display: inline-block;vertical-align:top; \
+      #                   width: 5px;",HTML("<br>")
+      # ),
+      # div(style="display: inline-block;vertical-align:top; \
+      #                   width: 100px;",
+      #     htmlOutput('invout_stt_list')
+      # ),
+      # div(
+      #   style="display: inline-block;vertical-align:top;width: 150px;",
+      #   actionButton(
+      #     "del_invout_stt", ui_elem$actual[ui_elem$label=='delete_stt'])
+      # ),
+      # div(style="display: inline-block;vertical-align:top; \
+      #                   position:absolute;right:15px",
+      #     actionButton(
+      #       "complete_form",
+      #       ui_elem$actual[ui_elem$label=='complete_form'])
+      # )
+      p()
+    )# end inv_out box2
   )# end inv_out fluidRow
 ) # end of ui object
 }
