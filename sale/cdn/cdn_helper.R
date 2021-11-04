@@ -235,6 +235,17 @@ render_cdn_prod_info <- function(input){renderUI({
   HTML(product_info_str)
 }) }
 
+# render table for the pxk_man tab
+render_cdn_table <- function(input){DT::renderDataTable({
+  curent_pxk_num <- get_curent_pxk_num()
+  # output <- render_selected_pxk(selected_pxk_num,config_dict)
+  # DT::datatable(output, options = list(pageLength = 10),rownames=F,
+  #               editable = 'cell')
+})
+}
+
+
+
 # # function to check if an inv_out entry should be allowed before writing to db
 # check_inv_out <- function(append_sale_log, config_dict){
 #   inv_out_ok <- T
