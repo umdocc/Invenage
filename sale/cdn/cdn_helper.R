@@ -244,7 +244,23 @@ render_cdn_table <- function(input){DT::renderDataTable({
 })
 }
 
-
+get_curent_pxk_num <- function(){
+  # query an incomplete pxk that match the admin_id
+  current_pxk_num <- db_read_query(paste0(
+    "select * from pxk_info where admin_id =",config$admin_id,
+    " and sale_datetime = (select max(sale_datetime) from pxk_info 
+    where admin_id=",config$admin_id,")"))
+  if (current_pxk_num$completed==0){
+    current_pxk_num <- current_pxk_num$pxk_num
+  }else{
+    admin_id_length <- length(config$admin_id)
+    current_count <- as.integer(
+      substring(as.character(current_pxk_num$pxk_num), admin_id_length+6+1))
+    current_pxk_num <- paste0(admin_id,strftime(Sys.Date(),"%d%m%y"),
+                              sprintf("%02d", (current_count+1)))
+  }
+  return(current_pxk_num)
+}
 
 # # function to check if an inv_out entry should be allowed before writing to db
 # check_inv_out <- function(append_sale_log, config_dict){
