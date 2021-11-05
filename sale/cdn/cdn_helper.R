@@ -173,7 +173,10 @@ render_cdn_unit_price <- function(input){renderUI({
 render_cdn_tender_name <- function(input){renderUI({
   current_customer_id <- customer_info$customer_id[
     customer_info$customer_name==input$cdn_customer]
-  tmp <- tender_info[tender_info$customer_id==current_customer_id,]
+  tmp <- tender_info[
+    tender_info$customer_id==current_customer_id|tender_info$tender_id==0,]
+  
+  print(tmp)
   tender_choices <- tmp$customer_tender_name
   tender_selected <- tender_choices[1]
   #render ui
@@ -295,12 +298,10 @@ get_pxk_data <- function(pxk_num){
 }
 
 cdn_add_entry <- function(input,output){
-  print(current_pxk)
+  
   # if this is a new pxk, write to database first
   if (current_pxk$status=="new"){
-    
 
-    
     append_pxk_info <- data.frame(
       pxk_num = current_pxk$pxk_num,
       # time variable needs to be in UTC
@@ -327,11 +328,7 @@ cdn_add_entry <- function(input,output){
     
   }else{ #otherwise, read the info from the sale_log
     current_pxk$current_stt <- max(sale_log$stt[sale_log$pxk_num==current_pxk$pxk_num])
-    
-    print(current_pxk$current_stt)
-    print(unique(
-      prod_choices$prod_code[prod_choices$prod_search_str==input$cdn_prod_name]))
-    
+  }
     
     # build base sale_log for testing first
     append_sale_log <- data.frame(
@@ -342,11 +339,11 @@ cdn_add_entry <- function(input,output){
       lot = input$cdn_lot,
       unit_price = as.integer(input$cdn_unit_price),
       qty = input$cdn_qty,
-      pxk_num = current_pxk,
-      note = input$pxk_note
+      pxk_num = current_pxk$pxk_num,
+      note = input$cdn_note
     )
     
-    # print(append_sale_log)
+    
     
     # add warehouse_id and tender_id
     current_warehouse_id <- warehouse_info$warehouse_id[
@@ -366,13 +363,15 @@ cdn_add_entry <- function(input,output){
     
     append_sale_log$promotion_price <- as.numeric(input$cdn_promo_price)
     
-    # # writing to database
-    # conn <- db_open()
-    # dbWriteTable(conn,"sale_log",append_sale_log,append=T)
-    # dbDisconnect(conn)
+    print(append_sale_log)
+    
+    # writing to database
+    conn <- db_open()
+    dbWriteTable(conn,"sale_log",append_sale_log,append=T)
+    dbDisconnect(conn)
     
     # reload data and ui
     db_load_complex_tbl("sale_log")
-    load_cdn_data(input)
-  }
+    current_pxk_data <- rbind(current_pxk_data, append_sale_log)
+
 }
