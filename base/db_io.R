@@ -31,12 +31,14 @@ db_exec_query <- function(query){
 # item_list can be customised
 db_get_prodlist <- function(
   search_str_structure){
-  product_list <- db_read_query(paste0(
-    "select concat(",search_str_structure,") as prod_search_str, prod_code
-    from product_info"))
+  product_list <- product_info
   
   #clean up
+  product_list$prod_search_str <- paste(
+    product_list$ref_smn, product_list$comm_name, product_list$packaging_str)
   product_list$prod_search_str <- trimws(product_list$prod_search_str)
+  product_list <- product_list %>% select(prod_search_str,prod_code)
+  
   return(product_list)
 }
 

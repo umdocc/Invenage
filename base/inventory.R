@@ -15,18 +15,10 @@ get_sale_data <- function(vendor_id,from_date,to_date){
 update_inventory <- function(pos_item=TRUE, summarised = FALSE,
                              to_date = Sys.Date(), from_date="1900-01-01"){
   # read import and sale log
-  conn <- db_open()
-  tmp <- dbGetQuery(conn,paste0(
-    "select * from import_log where delivery_date between '",from_date,
-    "' and '",to_date,"'"
-  ))
-  tmp2 <- dbGetQuery(conn,paste0(
-    "select * from sale_log inner join pxk_info 
-    on sale_log.pxk_num = pxk_info.pxk_num 
-    where pxk_info.sale_datetime between '",from_date,"' and '",
-    to_date+1,"'"))
-  dbDisconnect(conn)
-  
+
+  tmp <- import_log[import_log$delivery_date<(as.Date(to_date)+1),]
+  tmp2 <- sale_log[sale_log$sale_datetime<(as.Date(to_date)+1),]
+
   tmp <- convert_to_pack(tmp,packaging,'qty','importQty')
   tmp <- tmp %>% group_by(prod_code,unit,lot,warehouse_id) %>% 
     summarise(totalImportQty = sum(importQty), .groups = 'drop')

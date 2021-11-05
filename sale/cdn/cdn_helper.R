@@ -166,7 +166,7 @@ render_cdn_unit_price <- function(input){renderUI({
   selectizeInput(
     inputId = "cdn_unit_price", label = uielem$unit_price, 
     choices = price_hist$unit_price, selected = price_selected, 
-    options = list(create = F))
+    options = list(create = T))
 })
 }
 
@@ -175,8 +175,7 @@ render_cdn_tender_name <- function(input){renderUI({
     customer_info$customer_name==input$cdn_customer]
   tmp <- tender_info[
     tender_info$customer_id==current_customer_id|tender_info$tender_id==0,]
-  
-  print(tmp)
+
   tender_choices <- tmp$customer_tender_name
   tender_selected <- tender_choices[1]
   #render ui
@@ -293,8 +292,11 @@ get_current_pxk <- function(input){
 }
 
 get_pxk_data <- function(pxk_num){
-  return(db_read_query(paste(
-    "select * from sale_log where pxk_num=",pxk_num)))
+
+  pxk_data <- db_read_query(paste(
+    "select * from sale_log where pxk_num=",pxk_num))
+
+  return(pxk_data)
 }
 
 cdn_add_entry <- function(input,output){
@@ -326,8 +328,8 @@ cdn_add_entry <- function(input,output){
     current_pxk$current_stt <- 1
     assign("current_pxk",current_pxk,envir=globalenv())
     
-  }else{ #otherwise, read the info from the sale_log
-    current_pxk$current_stt <- max(sale_log$stt[sale_log$pxk_num==current_pxk$pxk_num])
+  }else{ #otherwise, read the info from the sale_log, bump stt by 1
+    current_pxk$current_stt <- max(sale_log$stt[sale_log$pxk_num==current_pxk$pxk_num])+1
   }
     
     # build base sale_log for testing first
@@ -343,14 +345,12 @@ cdn_add_entry <- function(input,output){
       note = input$cdn_note
     )
     
-    
-    
     # add warehouse_id and tender_id
     current_warehouse_id <- warehouse_info$warehouse_id[
-      warehouse_info$warehouse == input$warehouse_selector]
+      warehouse_info$warehouse == input$cdn_warehouse]
     append_sale_log$warehouse_id <- current_warehouse_id
     current_tender_id <- tender_info$tender_id[
-      tender_info$customer_tender_name==input$tender_name & 
+      tender_info$customer_tender_name==input$cdn_tender_name & 
         tender_info$warehouse_id==current_warehouse_id]
     
     # special handling of no tender
@@ -363,15 +363,19 @@ cdn_add_entry <- function(input,output){
     
     append_sale_log$promotion_price <- as.numeric(input$cdn_promo_price)
     
-    print(append_sale_log)
-    
-    # writing to database
+    # # writing to database
     conn <- db_open()
     dbWriteTable(conn,"sale_log",append_sale_log,append=T)
     dbDisconnect(conn)
     
+    #append to current_pxk_data
+    current_pxk_data$id <- NULL
+    current_pxk_data <- rbind(current_pxk_data,append_sale_log)
+    assign("current_pxk_data",current_pxk_data,envir = globalenv())
+    
     # reload data and ui
     db_load_complex_tbl("sale_log")
-    current_pxk_data <- rbind(current_pxk_data, append_sale_log)
+    inventory <- update_inventory()
+    cdn_load_ui(input,output,"cdn_pxk_data")
 
 }
