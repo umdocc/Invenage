@@ -12,17 +12,18 @@ shinyServer(function(input, output,session) {
   
 # # ------------------------------- inventory_out ------------------------------ 
 #   # --------------------------------- cdn ------------------------------------
-#   # UI
+  load_cdn_data(input) # data
+  #   # UI
   output <- cdn_load_ui(
     input, output, c("cdn_customer", "cdn_prod_name", "cdn_qty", "cdn_unit",
                      "cdn_warehouse","cdn_lot","cdn_payment_type","cdn_unit_price",
                      "cdn_promo_price","cdn_tender_name","cdn_note",
-                     "cdn_prod_info"))
+                     "cdn_prod_info","cdn_pxk_info","cdn_pxk_data"))
 #   
-#   # buttons handlers
-#   observeEvent(input$inventory_out, { # inv_out button
-#     cdn_add_entry(input,output) # write to database
-#   })
+  # buttons handlers
+  observeEvent(input$add_cdn_entry, { # inv_out button
+    cdn_add_entry(input,output) # write to database
+  })
 #   
 #   observeEvent(input$del_invout_stt,{
 #     io_del_inv_out_stt(input,output) #exec button

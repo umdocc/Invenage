@@ -33,15 +33,15 @@ if ('cdn' %in% hidden_tab){
       htmlOutput("cdn_tender_name"),
       textInput("cdn_note",uielem$note),
       htmlOutput("cdn_prod_info"),
-      actionButton("add_cdn_entry", label = uielem$add_entry),
+      actionButton("add_cdn_entry", label = uielem$add_cdn_entry),
       p()
     ),
     box(
       width = 9,
       p(),
-      # htmlOutput("current_pxk_info"),
-      # p(),
-      # DT::dataTableOutput("current_pxk_tbl"),
+      htmlOutput("cdn_pxk_info"),
+      DT::dataTableOutput("cdn_pxk_data"),
+
       # h4(), #space
       # div(
       #   style="display: inline-block;vertical-align:top;",

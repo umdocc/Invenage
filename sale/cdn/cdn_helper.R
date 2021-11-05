@@ -29,8 +29,20 @@ cdn_load_ui <- function(input,output,ui_list){
   if ('cdn_prod_info' %in% ui_list){
     output$cdn_prod_info <- render_cdn_prod_info(input)
   }
-  
+  if ('cdn_pxk_info' %in% ui_list){
+    output$cdn_pxk_info <- render_cdn_pxk_info(input)
+  }
+  if ('cdn_pxk_data' %in% ui_list){
+    output$cdn_pxk_data <- render_cdn_pxk_data(input)
+  }
   return(output)
+}
+
+# used to load cdn data into memory
+load_cdn_data <- function(input){
+  assign("current_pxk",get_current_pxk(),envir=globalenv())
+  assign("current_pxk_data",get_pxk_data(current_pxk$pxk_num),
+         envir=globalenv())
 }
 
 render_cdn_customer <- function(input){renderUI({
@@ -235,31 +247,47 @@ render_cdn_prod_info <- function(input){renderUI({
   HTML(product_info_str)
 }) }
 
+render_cdn_pxk_info <- function(input){renderUI({
+  HTML(paste("<font size='+1'>",uielem$pxk_num,":",em(current_pxk$pxk_num),
+             '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp',
+             uielem$customer_name,':',em(current_pxk$customer_name),
+             '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp',
+             uielem$status,":",uielem[[current_pxk$status]],'</font><br/>')
+  )
+}) }
+
 # render table for the pxk_man tab
-render_cdn_table <- function(input){DT::renderDataTable({
-  curent_pxk_num <- get_curent_pxk_num()
-  # output <- render_selected_pxk(selected_pxk_num,config_dict)
-  # DT::datatable(output, options = list(pageLength = 10),rownames=F,
-  #               editable = 'cell')
+render_cdn_pxk_data <- function(input){DT::renderDataTable({
+  DT::datatable(current_pxk_data, options = list(pageLength = 10),rownames=F,
+                editable = 'cell')
 })
 }
 
-get_curent_pxk_num <- function(){
+get_current_pxk <- function(){
   # query an incomplete pxk that match the admin_id
-  current_pxk_num <- db_read_query(paste0(
+  current_pxk <- db_read_query(paste0(
     "select * from pxk_info where admin_id =",config$admin_id,
     " and sale_datetime = (select max(sale_datetime) from pxk_info 
     where admin_id=",config$admin_id,")"))
-  if (current_pxk_num$completed==0){
-    current_pxk_num <- current_pxk_num$pxk_num
+  if (current_pxk$completed==0){
+    current_pxk$status <- 'in_progress'
+    current_pxk$customer_name <- customer_info$customer_name[
+      customer_info$customer_id==current_pxk$customer_id]
   }else{
     admin_id_length <- length(config$admin_id)
     current_count <- as.integer(
       substring(as.character(current_pxk_num$pxk_num), admin_id_length+6+1))
     current_pxk_num <- paste0(admin_id,strftime(Sys.Date(),"%d%m%y"),
                               sprintf("%02d", (current_count+1)))
+    current_pxk <- data.frame(pxk_num=current_pxk_num,
+                              status='new', customer_name = "")
   }
-  return(current_pxk_num)
+  return(current_pxk)
+}
+
+get_pxk_data <- function(pxk_num){
+  return(db_read_query(paste(
+    "select * from sale_log where pxk_num=",pxk_num)))
 }
 
 # # function to check if an inv_out entry should be allowed before writing to db
