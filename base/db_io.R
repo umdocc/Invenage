@@ -60,5 +60,11 @@ db_load_complex_tbl <- function(table_list=c("sale_log")){
     assign("sale_log",data_tbl,envir=globalenv())
     
   }
+  if("payment_type" %in% table_list){
+    data_tbl <- dbGetQuery(conn,"select * from payment_type inner join uielem
+                           on payment_type.payment_label = uielem.label")
+    assign("payment_type",data_tbl,envir=globalenv())
+    
+  }
   dbDisconnect(conn)
 }

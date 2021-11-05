@@ -64,7 +64,7 @@ db_exec_query(
 # -------------------------- load global tables --------------------------------
 db_load_simple_tbl(c("packaging","product_info","import_log","customer_info",
                      "tender_info"))
-db_load_complex_tbl(c("sale_log"))
+db_load_complex_tbl(c("sale_log","payment_type"))
 
 
 prod_choices <- db_get_prodlist(config$prod_search_str)
