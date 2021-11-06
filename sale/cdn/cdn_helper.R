@@ -379,3 +379,123 @@ cdn_add_entry <- function(input,output){
     cdn_load_ui(input,output,"cdn_pxk_data")
 
 }
+
+cdn_complete_pxk <- function(){
+  # set the complete flag in database
+  if(nrow(current_pxk_data)>0){
+    db_exec_query("update pxk_info set completed=1 where pxk_num=",
+                  current_pxk$pxk_num)
+    cdn_write_pxk(current_pxk,current_pxk_data)
+    load_cdn_data(input)
+  }
+}
+
+write_cdn_pxk <- function(current_pxk, current_pxk_data, open_file=T){
+  # create new PXK file
+  orig_path <- file.path(config$form_path,'pxk_form.xlsx')
+  dest_path <- file.path(config$pxk_out_path,
+                         paste0(company_name,".PXK.",
+                                current_pxk$pxk_num,".xlsx"))
+  
+  wb <- loadWorkbook(orig_path)
+  
+  # get the expDate, if a Lot has 2 expDate, select only the 1st
+  # need to get all items, not just positive ones
+  tmp <- inventory
+  exp_date <- tmp %>% select(prod_code,lot,exp_date) %>% unique()
+  exp_date <- exp_date[!duplicated(exp_date$lot),]
+  
+  # writing customer_name
+  customer_name_coor <- as.numeric(strsplit(config$pxk_customer_coor,split=";"))
+  writeData(wb,sheet=1,current_pxk$customer_name, 
+            startRow=customer_name_coor[1], 
+            startCol=customer_name_coor[2], 
+            colNames = F)
+  
+  # append the customer code if needed
+  if(config_dict$value[config_dict$name=='add_customer_code']=='TRUE'){
+    # read the customer code, then write it to the cell next to customer name
+    
+    customer_code <- customer_info$customer_code[
+      customer_info$customer_name==printingCustomerName]
+    customer_code_coor <- as.numeric(
+      strsplit(config$pxk_customer_code_coor,split=";"))
+    
+    writeData(wb, sheet=1, customer_code, startRow=customer_code_coor[1], 
+              startCol=customer_code_coor[2], colNames = F)
+  }
+  
+  # writing pxkNum
+  pxk_num_coor <- as.numeric(strsplit(config$pxk_num_coor,split=";"))
+  
+  writeData(wb, sheet=1, current_pxk$pxk_num, startRow=pxk_num_coor[1], 
+            startCol=pxk_num_coor[2], colNames = F)
+  
+  # writing current date
+  pxk_date_coor <- as.numeric(strsplit(config$pxk_date_coor,split=";"))
+  writeData(wb, sheet=1, format(Sys.Date(),config$date_format), 
+            startRow=pxk_date_coor[1], startCol=pxk_date_coor[2], 
+            colNames = F)
+  
+  # writing payment type
+  
+  pxk_payment_coor <- as.numeric(strsplit(config$pxk_payment_coor,split=";"))
+  writeData(wb, sheet=1, out_payment_type, startRow=pxk_payment_coor[1], 
+            startCol=pxk_payment_coor[2], colNames = F)    
+  
+  # 
+  #     
+  #     # rearrange Data and write
+  #     form_data <- form_data[order(as.numeric(form_data$stt)),]
+  #     dataColumns <- unlist(strsplit(
+  #       output_info$value[output_info$name=='dataToWrite'],';'))
+  #     
+  #     ## convert other info for display purpose
+  #     form_data$dqty <- formatC(
+  #       form_data$qty,format='f',big.mark=",",digits = 2)
+  #     # clean up big unit
+  #     form_data$dqty <- gsub('\\.00','',form_data$dqty)
+  #     form_data$dSL <- paste(form_data$dqty, form_data$unit)
+  #     out_digits <- as.numeric(output_info$value[output_info$name=='out_digits'])
+  #     form_data$dunit_price <- paste(
+  #       formatC(form_data$unit_price,format='f',big.mark=",",digits = out_digits),
+  #       form_data$unit, sep='/')
+  #     form_data$a_note <- ''
+  #     
+  #     # automatically note if unit is not ordering unit
+  #     ordering_unit <- get_ordering_unit(packaging)
+  #     names(ordering_unit) <- c('prod_code','ordering_unit')
+  #     form_data <- convert_to_pack(form_data,packaging,'qty','pack_qty')
+  #     if(!all(form_data$units_per_pack==1)){
+  #       # create converted display amount
+  #       form_data <- merge(form_data,ordering_unit, all.x=T)
+  #       form_data$a_note <- paste(form_data$pack_qty,form_data$ordering_unit)
+  #       form_data$a_note[form_data$units_per_pack==1] <- ''
+  #       form_data$note <- paste(form_data$a_note,form_data$note)
+  #     }
+  #     
+  #     # arrange & select columns for writing
+  #     form_data <- form_data[order(as.numeric(form_data$stt)),]
+  #     form_data <- form_data[,dataColumns]
+  #     
+  #     # write both data and headers
+  #     dataStartRow <- as.numeric(
+  #       output_info$value[output_info$name=='dataStartRow'])
+  #     dataStartCol <- as.numeric(
+  #       output_info$value[output_info$name=='dataStartCol'])
+  #     #write headers first
+  #     writeData(wb,sheet=1,pxkDataHeaders, startRow=dataStartRow,
+  #               startCol=dataStartCol, colNames=F)
+  #     # data is one row below
+  #     writeData(wb,sheet=1,form_data,startRow=dataStartRow+1,
+  #               startCol=dataStartCol, colNames=F)
+  #     # save the excel sheet
+  #     saveWorkbook(wb,dest_path,overwrite = T)
+  #     dbDisconnect(conn)
+  #     
+  #     #open the file if open_file=T
+  #     if(open_file){
+  #       open_file_wtimeout(dest_path)
+  #     }
+  #   }
+}
