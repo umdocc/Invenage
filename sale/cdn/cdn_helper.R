@@ -260,7 +260,8 @@ render_cdn_pxk_info <- function(input){renderUI({
 
 # render table for the pxk_man tab
 render_cdn_pxk_data <- function(input){DT::renderDataTable({
-  DT::datatable(current_pxk_data, options = list(pageLength = 10),rownames=F,
+  output_pxk <- render_output_pxk(current_pxk_data)
+  DT::datatable(output_pxk, options = list(pageLength = 10),rownames=F,
                 editable = 'cell')
 })
 }
@@ -388,6 +389,24 @@ cdn_complete_pxk <- function(){
     cdn_write_pxk(current_pxk,current_pxk_data)
     load_cdn_data(input)
   }
+}
+
+# this function is also shared with pxk_man tab
+# in cdn, we use the current_pxk_data var, otherwise, reload the pxk_data var
+render_output_pxk <- function(pxk_data){
+  # directly use the current_pxk_data variable
+  output_pxk <- merge(pxk_data,product_info %>% 
+                        select(prod_code,comm_name))
+  output_pxk <- output_pxk %>% 
+    select(stt,comm_name,unit,qty,unit_price,lot,note)
+  output_pxk <- output_pxk[order(output_pxk$stt),] # sort by stt
+  
+  for (i in 1:length(output_pxk)){
+    if(length(uielem[[names(output_pxk)[i]]])==1){
+      names(output_pxk)[i] = uielem[[names(output_pxk)[i]]]
+    }
+  }
+  return(output_pxk)
 }
 
 write_cdn_pxk <- function(current_pxk, current_pxk_data, open_file=T){
