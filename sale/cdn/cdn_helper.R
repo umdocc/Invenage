@@ -464,57 +464,61 @@ write_cdn_pxk <- function(current_pxk, current_pxk_data, open_file=T){
   
   # 
   #     
-  #     # rearrange Data and write
-  #     form_data <- form_data[order(as.numeric(form_data$stt)),]
-  #     dataColumns <- unlist(strsplit(
-  #       output_info$value[output_info$name=='dataToWrite'],';'))
-  #     
-  #     ## convert other info for display purpose
-  #     form_data$dqty <- formatC(
-  #       form_data$qty,format='f',big.mark=",",digits = 2)
-  #     # clean up big unit
-  #     form_data$dqty <- gsub('\\.00','',form_data$dqty)
-  #     form_data$dSL <- paste(form_data$dqty, form_data$unit)
-  #     out_digits <- as.numeric(output_info$value[output_info$name=='out_digits'])
-  #     form_data$dunit_price <- paste(
-  #       formatC(form_data$unit_price,format='f',big.mark=",",digits = out_digits),
-  #       form_data$unit, sep='/')
-  #     form_data$a_note <- ''
-  #     
-  #     # automatically note if unit is not ordering unit
-  #     ordering_unit <- get_ordering_unit(packaging)
-  #     names(ordering_unit) <- c('prod_code','ordering_unit')
-  #     form_data <- convert_to_pack(form_data,packaging,'qty','pack_qty')
-  #     if(!all(form_data$units_per_pack==1)){
-  #       # create converted display amount
-  #       form_data <- merge(form_data,ordering_unit, all.x=T)
-  #       form_data$a_note <- paste(form_data$pack_qty,form_data$ordering_unit)
-  #       form_data$a_note[form_data$units_per_pack==1] <- ''
-  #       form_data$note <- paste(form_data$a_note,form_data$note)
-  #     }
-  #     
-  #     # arrange & select columns for writing
-  #     form_data <- form_data[order(as.numeric(form_data$stt)),]
-  #     form_data <- form_data[,dataColumns]
-  #     
-  #     # write both data and headers
-  #     dataStartRow <- as.numeric(
-  #       output_info$value[output_info$name=='dataStartRow'])
-  #     dataStartCol <- as.numeric(
-  #       output_info$value[output_info$name=='dataStartCol'])
-  #     #write headers first
-  #     writeData(wb,sheet=1,pxkDataHeaders, startRow=dataStartRow,
-  #               startCol=dataStartCol, colNames=F)
-  #     # data is one row below
-  #     writeData(wb,sheet=1,form_data,startRow=dataStartRow+1,
-  #               startCol=dataStartCol, colNames=F)
-  #     # save the excel sheet
-  #     saveWorkbook(wb,dest_path,overwrite = T)
-  #     dbDisconnect(conn)
-  #     
-  #     #open the file if open_file=T
-  #     if(open_file){
-  #       open_file_wtimeout(dest_path)
-  #     }
-  #   }
+  # rearrange Data and write
+  current_pxk_data <- current_pxk_data[order(as.numeric(current_pxk_data$stt)),]
+
+  
+  ## convert other info for display purpose
+  current_pxk_data$dqty <- formatC(
+    current_pxk_data$qty,format='f',big.mark=",",digits = 2)
+  # clean up big unit
+  current_pxk_data$dqty <- gsub('\\.00','',current_pxk_data$dqty)
+  current_pxk_data$dSL <- paste(current_pxk_data$dqty, current_pxk_data$unit)
+  # out_digit <- as.numeric(config$cdn_pxk_decimal)
+  current_pxk_data$dunit_price <- paste(
+    formatC(current_pxk_data$unit_price,format='f',
+            big.mark=",",digits = 0),
+    current_pxk_data$unit, sep='/')
+  current_pxk_data$a_note <- ''
+  
+  # automatically note if unit is not ordering unit
+  ordering_unit <- get_ordering_unit(packaging) %>% select(prod_code,unit)
+  names(ordering_unit) <- c('prod_code','ordering_unit')
+  current_pxk_data <- convert_to_pack(current_pxk_data,packaging,'qty','pack_qty')
+  if(!all(current_pxk_data$units_per_pack==1)){
+    # create converted display amount
+    current_pxk_data <- merge(current_pxk_data,ordering_unit, all.x=T)
+    current_pxk_data$a_note <- paste(current_pxk_data$pack_qty,
+                                     current_pxk_data$ordering_unit)
+    current_pxk_data$a_note[current_pxk_data$units_per_pack==1] <- ''
+    current_pxk_data$note <- paste(current_pxk_data$a_note,
+                                   current_pxk_data$note)
+  }
+  
+  # arrange & select columns for writing
+  current_pxk_data <- current_pxk_data[order(as.numeric(current_pxk_data$stt)),]
+  current_pxk_data <- current_pxk_data[,dataColumns]
+  
+  # write both data and headers
+  dataStartRow <- as.numeric(
+    output_info$value[output_info$name=='dataStartRow'])
+  dataStartCol <- as.numeric(
+    output_info$value[output_info$name=='dataStartCol'])
+  #write headers first
+  writeData(wb,sheet=1,pxkDataHeaders, startRow=dataStartRow,
+            startCol=dataStartCol, colNames=F)
+  # data is one row below
+  writeData(wb,sheet=1,current_pxk_data,startRow=dataStartRow+1,
+            startCol=dataStartCol, colNames=F)
+  # save the excel sheet
+  saveWorkbook(wb,dest_path,overwrite = T)
+  dbDisconnect(conn)
+  
+  # reload memory
+  load_cdn_data(input)
+  
+  #open the file if open_file=T
+  if(open_file){
+    open_file_wtimeout(dest_path)
+  }
 }
