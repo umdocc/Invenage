@@ -381,13 +381,14 @@ cdn_add_entry <- function(input,output){
 
 }
 
-cdn_complete_pxk <- function(){
+cdn_complete_pxk <- function(input,output){
   # set the complete flag in database
   if(nrow(current_pxk_data)>0){
-    # db_exec_query(paste0("update pxk_info set completed=1 where pxk_num=",
-    #               current_pxk$pxk_num))
+    db_exec_query(paste0("update pxk_info set completed=1 where pxk_num=",
+                  current_pxk$pxk_num))
     cdn_write_pxk(current_pxk,current_pxk_data)
     load_cdn_data(input)
+    output <- cdn_load_ui(input,output,c("cdn_pxk_info","cdn_pxk_data"))
   }
 }
 
@@ -422,7 +423,8 @@ cdn_write_pxk <- function(current_pxk, current_pxk_data, open_file=T){
   # need to get all items, not just positive ones
   tmp <- inventory
   exp_date <- tmp %>% select(prod_code,lot,exp_date) %>% unique()
-  exp_date <- exp_date[!duplicated(exp_date$lot),]
+  exp_date <- exp_date[!duplicated(exp_date$lot),] %>% 
+    select(prod_code,lot,exp_date)
   
   # writing customer_name
   wb <- write_excel(wb, current_pxk$customer_name, config$pxk_customer_coor)
@@ -432,7 +434,7 @@ cdn_write_pxk <- function(current_pxk, current_pxk_data, open_file=T){
 
     # read the customer code, then write it to the cell next to customer name
     wb <- write_excel(wb, customer_info$customer_code[
-      customer_info$customer_name==printingCustomerName], 
+      customer_info$customer_name==current_pxk$customer_name], 
       config$pxk_customer_code_coor)
   }
   
@@ -453,6 +455,9 @@ cdn_write_pxk <- function(current_pxk, current_pxk_data, open_file=T){
   ## convert other info for display purpose
   current_pxk_data$dqty <- formatC(
     current_pxk_data$qty,format='f',big.mark=",",digits = 2)
+  current_pxk_data$total_cost <- as.numeric(current_pxk_data$unit_price)*
+    as.numeric(current_pxk_data$qty)
+  
   # clean up big unit
   current_pxk_data$dqty <- gsub('\\.00','',current_pxk_data$dqty)
   current_pxk_data$dSL <- paste(current_pxk_data$dqty, current_pxk_data$unit)
@@ -479,28 +484,20 @@ cdn_write_pxk <- function(current_pxk, current_pxk_data, open_file=T){
   
   # arrange & select columns for writing
   current_pxk_data <- current_pxk_data[order(as.numeric(current_pxk_data$stt)),]
-  current_pxk_data <- current_pxk_data[,dataColumns]
+  current_pxk_data <- merge(current_pxk_data,product_info %>% 
+                              select(prod_code,comm_name,ref_smn))
+  current_pxk_data <- merge(current_pxk_data, exp_date)
+  current_pxk_data <- current_pxk_data[,
+    unlist(strsplit(config$pxk_display_col,split=";"))]
   
-  # write both data and headers
-  dataStartRow <- as.numeric(
-    output_info$value[output_info$name=='dataStartRow'])
-  dataStartCol <- as.numeric(
-    output_info$value[output_info$name=='dataStartCol'])
-  #write headers first
-  writeData(wb,sheet=1,pxkDataHeaders, startRow=dataStartRow,
-            startCol=dataStartCol, colNames=F)
-  # data is one row below
-  writeData(wb,sheet=1,current_pxk_data,startRow=dataStartRow+1,
-            startCol=dataStartCol, colNames=F)
+  # write data
+  write_excel(wb,current_pxk_data,config$pxk_data_coor)
   # save the excel sheet
   saveWorkbook(wb,dest_path,overwrite = T)
   dbDisconnect(conn)
   
-  # reload memory
-  load_cdn_data(input)
-  
   #open the file if open_file=T
   if(open_file){
-    open_file_wtimeout(dest_path)
+    system2('open',dest_path,timeout = 2)
   }
 }

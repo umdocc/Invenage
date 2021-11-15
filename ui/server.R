@@ -30,7 +30,7 @@ shinyServer(function(input, output,session) {
 #   })
 #   
   observeEvent(input$cdn_complete_pxk,{
-    cdn_complete_pxk() # execute command to complete the pxk
+    cdn_complete_pxk(input,output) # execute command to complete the pxk
   })
 # 
 #   
