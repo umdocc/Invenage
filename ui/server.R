@@ -29,9 +29,9 @@ shinyServer(function(input, output,session) {
 #     io_del_inv_out_stt(input,output) #exec button
 #   })
 #   
-#   observeEvent(input$complete_form,{
-#     complete_current_pxk(input,output) # execute command to complete the pxk
-#   })
+  observeEvent(input$cdn_complete_pxk,{
+    cdn_complete_pxk() # execute command to complete the pxk
+  })
 # 
 #   
 #   # --------------------- manage_delivery_note UI ---------------------------

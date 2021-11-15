@@ -24,3 +24,29 @@ translate_tbl_column <- function(input_df,ui_elem=uielem){
   }
   return(input_df)
 }
+
+# write a single cell or a block to excel, using wb object, 
+# and a starting_coordinate 
+write_excel <- function(wb,written_data,start_cell_coor,sheet_num=1,split_char=";"){
+  if(grepl(split_char, start_cell_coor)){
+    start_cell_coor <- as.numeric(
+      unlist(strsplit(start_cell_coor,split=split_char)))
+  }
+  writeData(wb,sheet=sheet_num,written_data, 
+            startRow=start_cell_coor[1], 
+            startCol=start_cell_coor[2], 
+            colNames = F)
+  return(wb)
+}
+
+db_integrity_check <- function(){
+  conn <- db_open()
+  # check if all items in packaging has an ordering unit
+  db_load_simple_tbl("packaging")
+  ordering_unit <- get_ordering_unit(packaging)
+  tmp <- packaging[!duplicated(packaging$prod_code),]
+  test <- merge(tmp,ordering_unit %>% select(prod_code,ordering_unit),
+                all.x = T)
+  test[is.na(test$ordering_unit),]
+  dbDisconnect(conn)
+}

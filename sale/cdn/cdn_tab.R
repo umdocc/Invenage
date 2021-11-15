@@ -42,29 +42,29 @@ if ('cdn' %in% hidden_tab){
       htmlOutput("cdn_pxk_info"),
       DT::dataTableOutput("cdn_pxk_data"),
 
-      # h4(), #space
-      # div(
-      #   style="display: inline-block;vertical-align:top;",
-      #   h5(ui_elem$actual[ui_elem$label=='del_selected_stt'])
-      # ),
-      # div(style="display: inline-block;vertical-align:top; \
-      #                   width: 5px;",HTML("<br>")
-      # ),
-      # div(style="display: inline-block;vertical-align:top; \
-      #                   width: 100px;",
-      #     htmlOutput('invout_stt_list')
-      # ),
-      # div(
-      #   style="display: inline-block;vertical-align:top;width: 150px;",
-      #   actionButton(
-      #     "del_invout_stt", ui_elem$actual[ui_elem$label=='delete_stt'])
-      # ),
-      # div(style="display: inline-block;vertical-align:top; \
-      #                   position:absolute;right:15px",
-      #     actionButton(
-      #       "complete_form",
-      #       ui_elem$actual[ui_elem$label=='complete_form'])
-      # )
+      h4(), #space
+      div(
+        style="display: inline-block;vertical-align:top;",
+        h5(uielem$del_line)
+      ),
+      div(style="display: inline-block;vertical-align:top; \
+                        width: 5px;",HTML("<br>")
+      ),
+      div(style="display: inline-block;vertical-align:top; \
+                        width: 100px;",
+          htmlOutput('invout_stt_list')
+      ),
+      div(
+        style="display: inline-block;vertical-align:top;width: 150px;",
+        actionButton(
+          "del_invout_stt", uielem$delete)
+      ),
+      div(style="display: inline-block;vertical-align:top; \
+                        position:absolute;right:15px",
+          actionButton(
+            "cdn_complete_pxk",
+            uielem$complete)
+      ),
       p()
     )# end inv_out box2
   )# end inv_out fluidRow

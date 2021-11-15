@@ -384,8 +384,8 @@ cdn_add_entry <- function(input,output){
 cdn_complete_pxk <- function(){
   # set the complete flag in database
   if(nrow(current_pxk_data)>0){
-    db_exec_query("update pxk_info set completed=1 where pxk_num=",
-                  current_pxk$pxk_num)
+    # db_exec_query(paste0("update pxk_info set completed=1 where pxk_num=",
+    #               current_pxk$pxk_num))
     cdn_write_pxk(current_pxk,current_pxk_data)
     load_cdn_data(input)
   }
@@ -409,11 +409,11 @@ render_output_pxk <- function(pxk_data){
   return(output_pxk)
 }
 
-write_cdn_pxk <- function(current_pxk, current_pxk_data, open_file=T){
+cdn_write_pxk <- function(current_pxk, current_pxk_data, open_file=T){
   # create new PXK file
   orig_path <- file.path(config$form_path,'pxk_form.xlsx')
   dest_path <- file.path(config$pxk_out_path,
-                         paste0(company_name,".PXK.",
+                         paste0(config$company_name,".PXK.",
                                 current_pxk$pxk_num,".xlsx"))
   
   wb <- loadWorkbook(orig_path)
@@ -425,56 +425,38 @@ write_cdn_pxk <- function(current_pxk, current_pxk_data, open_file=T){
   exp_date <- exp_date[!duplicated(exp_date$lot),]
   
   # writing customer_name
-  customer_name_coor <- as.numeric(strsplit(config$pxk_customer_coor,split=";"))
-  writeData(wb,sheet=1,current_pxk$customer_name, 
-            startRow=customer_name_coor[1], 
-            startCol=customer_name_coor[2], 
-            colNames = F)
-  
+  wb <- write_excel(wb, current_pxk$customer_name, config$pxk_customer_coor)
+
   # append the customer code if needed
-  if(config_dict$value[config_dict$name=='add_customer_code']=='TRUE'){
+  if(config$add_customer_code=="TRUE"){
+
     # read the customer code, then write it to the cell next to customer name
-    
-    customer_code <- customer_info$customer_code[
-      customer_info$customer_name==printingCustomerName]
-    customer_code_coor <- as.numeric(
-      strsplit(config$pxk_customer_code_coor,split=";"))
-    
-    writeData(wb, sheet=1, customer_code, startRow=customer_code_coor[1], 
-              startCol=customer_code_coor[2], colNames = F)
+    wb <- write_excel(wb, customer_info$customer_code[
+      customer_info$customer_name==printingCustomerName], 
+      config$pxk_customer_code_coor)
   }
   
   # writing pxkNum
-  pxk_num_coor <- as.numeric(strsplit(config$pxk_num_coor,split=";"))
-  
-  writeData(wb, sheet=1, current_pxk$pxk_num, startRow=pxk_num_coor[1], 
-            startCol=pxk_num_coor[2], colNames = F)
+  wb <- write_excel(wb, current_pxk$pxk_num, config$pxk_num_coor)
   
   # writing current date
-  pxk_date_coor <- as.numeric(strsplit(config$pxk_date_coor,split=";"))
-  writeData(wb, sheet=1, format(Sys.Date(),config$date_format), 
-            startRow=pxk_date_coor[1], startCol=pxk_date_coor[2], 
-            colNames = F)
+  wb <- write_excel(wb, format(Sys.Date(),config$date_format), 
+                    config$pxk_date_coor)
   
   # writing payment type
-  
-  pxk_payment_coor <- as.numeric(strsplit(config$pxk_payment_coor,split=";"))
-  writeData(wb, sheet=1, out_payment_type, startRow=pxk_payment_coor[1], 
-            startCol=pxk_payment_coor[2], colNames = F)    
-  
-  # 
-  #     
-  # rearrange Data and write
-  current_pxk_data <- current_pxk_data[order(as.numeric(current_pxk_data$stt)),]
+  wb <- write_excel(wb, 
+                    payment_type$actual[
+                      payment_type$payment_code==current_pxk$payment_code], 
+                    config$pxk_payment_coor)
 
-  
+  # writing data
   ## convert other info for display purpose
   current_pxk_data$dqty <- formatC(
     current_pxk_data$qty,format='f',big.mark=",",digits = 2)
   # clean up big unit
   current_pxk_data$dqty <- gsub('\\.00','',current_pxk_data$dqty)
   current_pxk_data$dSL <- paste(current_pxk_data$dqty, current_pxk_data$unit)
-  # out_digit <- as.numeric(config$cdn_pxk_decimal)
+
   current_pxk_data$dunit_price <- paste(
     formatC(current_pxk_data$unit_price,format='f',
             big.mark=",",digits = 0),
