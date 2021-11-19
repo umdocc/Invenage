@@ -106,7 +106,7 @@ shinyServer(function(input, output,session) {
 #     create_pxk_file(man_pxk_num) # create the pxk
 #   })
 #   
-#   # ------------------------------- inv_in UI ----------------------------------
+#   # -------------------------- add_import_items UI ---------------------------
 # 
 #   output <- reload_ui(input,output,
 #     c('in_invoice_num','in_prodname_select','in_vendor','in_unit','in_note',
