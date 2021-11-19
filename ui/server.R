@@ -10,111 +10,31 @@ shinyServer(function(input, output,session) {
   hideTab(inputId = "main", target = uielem[[tab_label]])
   }
   
-# # ------------------------------- inventory_out ------------------------------ 
-#   # --------------------------------- cdn ------------------------------------
+#  ----------------------- create delivery note - cdn --------------------------
   load_cdn_data(input) # data
-  #   # UI
+  # UI
   output <- cdn_load_ui(
     input, output, c("cdn_customer", "cdn_prod_name", "cdn_qty", "cdn_unit",
                      "cdn_warehouse","cdn_lot","cdn_payment_type","cdn_unit_price",
                      "cdn_promo_price","cdn_tender_name","cdn_note",
                      "cdn_prod_info","cdn_pxk_info","cdn_pxk_data"))
-#   
+  
   # buttons handlers
   observeEvent(input$add_cdn_entry, { # inv_out button
     cdn_add_entry(input,output) # write to database
   })
-#   
-#   observeEvent(input$del_invout_stt,{
-#     io_del_inv_out_stt(input,output) #exec button
-#   })
-#   
+  
   observeEvent(input$cdn_complete_pxk,{
     cdn_complete_pxk(input,output) # execute command to complete the pxk
   })
-# 
-#   
-#   # --------------------- manage_delivery_note UI ---------------------------
-#   # sidebar
-#   output$man_pxk_list <- render_pxk_list(
-#     input,config_dict,'man_pxk_list') #pxk_list
-#   output$man_pxk_cust_select <- render_customer_list(
-#     'customer_change',type='customer_change', input)
-#   output$manpxk_pay_change <- render_payment_type(input, # payment change
-#                                                   iid = 'manpxk_pay_change',ui_type = 'man_pxk') 
-#   
-#   #main
-#   output$man_pxk_info <- render_man_pxk_info(input)
-#   output$pxk_detail <- render_man_pxktable(input)
-#   output$stt_select <- render_pxkman_stt_list(
-#     input,config_dict, iid='stt_select') #select_stt
-#   
-#   # button handlers
-#   observeEvent(input$delete_stt_man,{
-#     selected_pxk_num <- as.integer(input$man_pxk_list)
-#     full_stt_list <- as.character(
-#       get_pxk_entry_num(selected_pxk_num,config_dict))
-#     trans_list <- data.frame(label=c(full_stt_list,'all'),
-#                              localised=c(full_stt_list,
-#                                          ui_elem$actual[ui_elem$label=='all']))
-#     stt_to_proc <- as.character(
-#       trans_list$label[
-#         as.character(trans_list$localised)==as.character(input$stt_select)]
-#     )
-#     delete_pxk(selected_pxk_num,stt_to_proc,config_dict)
-#     # refresh the UI
-#     output$pxk_detail <- render_man_pxktable(input) # reload the pxk_man table
-#     output$stt_select <- render_pxkman_stt_list(
-#       input,config_dict, iid='stt_select')
-#   })
-#   
-#   observeEvent(input$edit_pxk_info,{
-#     selected_pxk_num <- as.integer(input$man_pxk_list)
-#     # translate changed data
-#     new_customer <- input$customer_change
-#     new_customer_id <- customer_info$customer_id[
-#       customer_info$customer_name == new_customer]
-#     new_payment <- input$manpxk_pay_change
-#     
-#     new_payment_code <- payment_type$payment_code[
-#       payment_type$actual == new_payment]
-#     
-#     # writing to database
-#     conn <- db_open(config_dict)
-#     query <- paste(
-#       'update pxk_info set customer_id =', new_customer_id,', payment_code =',
-#       new_payment_code, "where pxk_num =", selected_pxk_num)
-#     dbExecute(conn,query)
-#     dbDisconnect(conn)
-#     
-#     # refresh the UI
-#     output$man_pxk_info <- render_man_pxk_info(input) # pxk_info row
-#     output$pxk_detail <- render_man_pxktable(input) # reload the pxk_man table
-#     output$stt_select <- render_pxkman_stt_list(
-#       input, config_dict, iid='stt_select')
-#   })
-#   # table edit handler
-#   observeEvent(input$pxk_detail_cell_edit,{
-#     cell <- input$pxk_detail_cell_edit
-#     current_pxk_num <- input$man_pxk_list
-#     errorsFree <- edit_db_pxk(cell,current_pxk_num)
-#     output$pxk_detail <- render_man_pxktable(input) #refresh the pxk
-#   })
-#   
-#   observeEvent(input$print_pxk_man,{
-#     man_pxk_num <- input$man_pxk_list
-#     create_pxk_file(man_pxk_num) # create the pxk
-#   })
-#   
-#   # -------------------------- add_import_items UI ---------------------------
-# 
-#   output <- reload_ui(input,output,
-#     c('in_invoice_num','in_prodname_select','in_vendor','in_unit','in_note',
-#       'in_actual_unit_cost','po_list_2load','in_vat_percent','in_warehouse'))
-#   # main table
-#   output$latest_import_tbl <- render_output_tbl('import_log')
-#   
-#   # ----------- buttons
+
+# -------------------------- add_import_item - aii -----------------------------
+
+  # UI load
+  output <- aii_load_ui(input,output,
+    c('aii_prod_name', 'aii_invoice_num', "aii_invoice_warehouse",
+      "aii_qty", "aii_unit","aii_lot","aii_exp_date"))
+  # buttons
 #   # create and append import_log
 #   observeEvent(input$inv_in,{
 #     process_inv_in_buttton(config_dict,input)     # writing to database

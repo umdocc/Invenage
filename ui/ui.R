@@ -3,15 +3,17 @@ library(shiny); library(shinythemes); library(shinyalert)
 require(DT)
 navbarPage(
   theme = shinytheme(config$app_theme), title = config$app_title, id = 'main',
-
+  
   # sale menu
   navbarMenu(title = uielem$inventory_out,
-    cdn_tab
+             cdn_tab
+  ),
+  
+  # import
+  navbarMenu(title = uielem$add_import_item,
+             aii_tab
   )
-  # 
-  # # import menu
-  # iti_tab,
-  # 
+  
   # # reports menu
   # navbarMenu(title = uielem$reports,
   #            pir_tab,

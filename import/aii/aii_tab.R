@@ -1,75 +1,69 @@
-# # ------------------------------ ui object -------------------------------------
-# # if hidden, create blank, otherwise create the tab
-# if ('cdn' %in% hidden_tab){
-#   cdn_tab <- tabPanel(
-#     theme = shinytheme(config$app_theme), uielem$create_delivery_note)
-# }else{
-#   cdn_tab <- tabPanel(
-#   theme = shinytheme(config$app_theme), uielem$create_delivery_note,
-#   fluidRow(
-#     box(
-#       width=3,
-#       p(), #space
-#       htmlOutput('cdn_customer'),
-#       htmlOutput('cdn_prod_name'),
-#       div(style="display: inline-block;vertical-align:top;width: 90px",
-#           htmlOutput("cdn_qty")),
-#       div(style="display: inline-block;vertical-align:top;width: 90px",
-#           htmlOutput("cdn_unit")),
-#       div(style="display: inline-block;vertical-align:top;width: 110px",
-#           htmlOutput("cdn_warehouse")),
-#       div(style="display: inline-block;vertical-align:top;width: 160px",
-#           htmlOutput("cdn_lot")),
-#       div(style="display: inline-block;vertical-align:top;width: 130px",
-#           htmlOutput("cdn_payment_type")),
-#       div(style="display: inline-block;vertical-align:top;width: 160px",
-#           htmlOutput("cdn_unit_price")),
-#       div(style="display: inline-block;vertical-align:top;
-#           padding-top:20px;padding-left:10px;width: 130px",
-#           checkboxInput(
-#             inputId = "cdn_promo_price", label = uielem$promo_price,
-#             value = F
-#           )),
-#       htmlOutput("cdn_tender_name"),
-#       textInput("cdn_note",uielem$note),
-#       htmlOutput("cdn_prod_info"),
-#       actionButton("add_cdn_entry", label = uielem$add_cdn_entry),
-#       p()
-#     ),
-#     box(
-#       width = 9,
-#       p(),
-#       htmlOutput("cdn_pxk_info"),
-#       DT::dataTableOutput("cdn_pxk_data"),
-# 
-#       h4(), #space
-#       div(
-#         style="display: inline-block;vertical-align:top;",
-#         h5(uielem$del_line)
-#       ),
-#       div(style="display: inline-block;vertical-align:top; \
-#                         width: 5px;",HTML("<br>")
-#       ),
-#       div(style="display: inline-block;vertical-align:top; \
-#                         width: 100px;",
-#           htmlOutput('invout_stt_list')
-#       ),
-#       div(
-#         style="display: inline-block;vertical-align:top;width: 150px;",
-#         actionButton(
-#           "del_invout_stt", uielem$delete)
-#       ),
-#       div(style="display: inline-block;vertical-align:top; \
-#                         position:absolute;right:15px",
-#           actionButton(
-#             "cdn_complete_pxk",
-#             uielem$complete)
-#       ),
-#       p()
-#     )# end inv_out box2
-#   )# end inv_out fluidRow
-# ) # end of ui object
-# }
+# ------------------------------ ui object -------------------------------------
+# if hidden, create blank, otherwise create the tab
+if ('aii' %in% hidden_tab){
+  aii_tab <- tabPanel(
+    theme = shinytheme(config$app_theme), uielem$add_import_item)
+}else{
+  aii_tab <- tabPanel(
+    theme = shinytheme(config$app_theme), uielem$add_import_item,
+    fluidRow(
+      box(
+        width=3,
+        p(), #space
+        htmlOutput('aii_prod_name'),
+        div(style="display: inline-block;vertical-align:top;width: 130px",
+            htmlOutput('aii_invoice_num')),
+        div(style="display: inline-block;vertical-align:top;width: 130px",
+            htmlOutput('aii_invoice_warehouse')),
+        div(style="display: inline-block;vertical-align:top;width: 90px",
+            htmlOutput("aii_qty")),
+        div(style="display: inline-block;vertical-align:top;width: 90px",
+            htmlOutput("aii_unit")),
+        div(style="display: inline-block;vertical-align:top;width: 110px",
+            htmlOutput("aii_lot")),
+        div(style="display: inline-block;vertical-align:top;width: 160px",
+            htmlOutput("aii_exp_date")),
+        # div(style="display: inline-block;vertical-align:top;width: 130px",
+        #     htmlOutput("aii_unit_cost")),
+        # div(style="display: inline-block;vertical-align:top;width: 160px",
+        #     htmlOutput("aii_vat_percent")),
+        textInput("aii_note",uielem$note),
+        actionButton("add_aii_entry", label = uielem$add_import_item),
+        p()
+      ),
+      box(
+        width = 9,
+        p(),
+        # DT::dataTableOutput("aii_import_log"),
+        # 
+        # h4(), #space
+        # div(
+        #   style="display: inline-block;vertical-align:top;",
+        #   h5(uielem$del_line)
+        # ),
+        # div(style="display: inline-block;vertical-align:top; \
+        #                   width: 5px;",HTML("<br>")
+        # ),
+        # div(style="display: inline-block;vertical-align:top; \
+        #                   width: 100px;",
+        #     htmlOutput('invout_stt_list')
+        # ),
+        # div(
+        #   style="display: inline-block;vertical-align:top;width: 150px;",
+        #   actionButton(
+        #     "del_invout_stt", uielem$delete)
+        # ),
+        # div(style="display: inline-block;vertical-align:top; \
+        #                   position:absolute;right:15px",
+        #     actionButton(
+        #       "cdn_complete_pxk",
+        #       uielem$complete)
+        # ),
+        p()
+      )# end inv_out box2
+    )# end inv_out fluidRow
+  ) # end of ui object
+}
 # # ---------------------------- render functions --------------------------------  
 # render_current_pxk_infostr <- function(config_dict){renderUI({
 #   pxk_num <- get_current_pxk(config_dict) # get the current pxk_num

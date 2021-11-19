@@ -1,134 +1,131 @@
-# cdn_load_ui <- function(input,output,ui_list){
-#   if ('cdn_customer' %in% ui_list){
-#     output$cdn_customer <- render_cdn_customer(input) # customer
-#   }
-#   if ('cdn_prod_name' %in% ui_list){
-#     output$cdn_prod_name <- render_cdn_prod_name(input)
-#   }
-#   if ('cdn_unit' %in% ui_list){
-#     output$cdn_unit <- render_cdn_unit(input)
-#   }
-#   if ('cdn_qty' %in% ui_list){
-#     output$cdn_qty <- render_cdn_qty(input)
-#   }
-#   if ('cdn_warehouse' %in% ui_list){
-#     output$cdn_warehouse <- render_cdn_warehouse(input)
-#   }
-#   if ('cdn_lot' %in% ui_list){
-#     output$cdn_lot <- render_cdn_lot(input)
-#   }
-#   if ('cdn_payment_type' %in% ui_list){
-#     output$cdn_payment_type <- render_cdn_payment_type(input)
-#   }
-#   if ('cdn_unit_price' %in% ui_list){
-#     output$cdn_unit_price <- render_cdn_unit_price(input)
-#   }
-#   if ('cdn_tender_name' %in% ui_list){
-#     output$cdn_tender_name <- render_cdn_tender_name(input)
-#   }
-#   if ('cdn_prod_info' %in% ui_list){
-#     output$cdn_prod_info <- render_cdn_prod_info(input)
-#   }
-#   if ('cdn_pxk_info' %in% ui_list){
-#     output$cdn_pxk_info <- render_cdn_pxk_info(input)
-#   }
-#   if ('cdn_pxk_data' %in% ui_list){
-#     output$cdn_pxk_data <- render_cdn_pxk_data(input)
-#   }
-#   return(output)
-# }
-# 
-# # used to load cdn data into memory
-# load_cdn_data <- function(input){
-#   assign("current_pxk",get_current_pxk(input),envir=globalenv())
-#   assign("current_pxk_data",get_pxk_data(current_pxk$pxk_num),
-#          envir=globalenv())
-# }
-# 
-# render_cdn_customer <- function(input){renderUI({
-#     
-#     cust_choices <- db_read_query(
-#       "select customer_name from customer_info")$customer_name
-# 
-#     selectizeInput(
-#       inputId = "cdn_customer", label = uielem$customer_name, 
-#       choices = cust_choices, selected = cust_choices[1], 
-#       options = list(create = F))
-#   })
-# }
-# 
-# render_cdn_prod_name <- function(input){renderUI({
-#   
-#   selectizeInput(
-#     inputId = "cdn_prod_name", label = uielem$comm_name, 
-#     choices = prod_choices$prod_search_str, 
-#     selected = prod_choices$prod_search_str[1], 
-#     options = list(create = F))
-# })
-# }
-# 
-# render_cdn_qty <- function(input){renderUI({
-# 
-#     selectizeInput(
-#     inputId = "cdn_qty", label = uielem$qty, 
-#     choices = 1:20000, selected = 1, 
-#     options = list(create = T))
-# })
-# }
-# 
-# render_cdn_unit <- function(input){renderUI({
-#   
-#   current_prod_code <- prod_choices$prod_code[
-#     prod_choices$prod_search_str == input$cdn_prod_name]
-#  
-#   unit_choices <- packaging$unit[packaging$prod_code==current_prod_code]
-#   
-#   selectizeInput(
-#     inputId = "cdn_unit", label = uielem$unit, 
-#     choices = unit_choices, selected = unit_choices[1], 
-#     options = list(create = F))
-# })
-# }
-# 
-# render_cdn_warehouse <- function(input){renderUI({
-#   
-#   # get the current prod_code and choose the warehouse
-#   current_prod_code <- prod_choices$prod_code[
-#     prod_choices$prod_search_str == input$cdn_prod_name]
-# 
-#   warehouse_choice <- db_read_query(
-#     "select warehouse from warehouse_info")$warehouse
-#   warehouse_select <- db_read_query(paste0(
-#     "select warehouse_info.warehouse from warehouse_info 
-#     inner join product_info
-#     on warehouse_info.warehouse_id = product_info.warehouse_id
-#     where product_info.prod_code='",
-#     current_prod_code,"'"))$warehouse
-#   
-#   #render ui
-#   selectizeInput(
-#     inputId = "cdn_warehouse", label = uielem$warehouse, 
-#     choices = warehouse_choice, selected = warehouse_select, 
-#     options = list(create = F))
-# })
-# }
-# 
-# render_cdn_lot <- function(input){renderUI({
-#   current_prod_code <- prod_choices$prod_code[
-#     prod_choices$prod_search_str == input$cdn_prod_name]
-#   
-#   lot_select <- inventory[inventory$prod_code==current_prod_code,] %>%
-#     arrange(intexp_date)
-#   lot_choices <- lot_select$lot
-#   lot_select <- lot_select[
-#     lot_select$intexp_date==min(lot_select$intexp_date),]$lot
-#   #render ui
-#   selectizeInput(
-#     inputId = "cdn_lot", label = uielem$lot, 
-#     choices = lot_choices, selected = lot_select, 
-#     options = list(create = F))
-# })
-# }
+aii_load_ui <- function(input,output,ui_list){
+  if ('aii_prod_name' %in% ui_list){
+    output$aii_prod_name <- render_aii_prod_name(input)
+  }
+  if ('aii_invoice_num' %in% ui_list){
+    output$aii_invoice_num <- render_aii_invoice_num(input)
+  }
+  if ('aii_invoice_warehouse' %in% ui_list){
+    output$aii_invoice_warehouse <- render_aii_invoice_warehouse(input)
+  }
+  if ('aii_qty' %in% ui_list){
+    output$aii_qty <- render_aii_qty(input)
+  }
+  if ('aii_unit' %in% ui_list){
+    output$aii_unit <- render_aii_unit(input)
+  }
+  if ('aii_lot' %in% ui_list){
+    output$aii_lot <- render_aii_lot(input)
+  }
+  if ('aii_exp_date' %in% ui_list){
+    output$aii_exp_date <- render_aii_exp_date(input)
+  }
+  # if ('cdn_payment_type' %in% ui_list){
+  #   output$cdn_payment_type <- render_cdn_payment_type(input)
+  # }
+  # if ('cdn_unit_price' %in% ui_list){
+  #   output$cdn_unit_price <- render_cdn_unit_price(input)
+  # }
+  # if ('cdn_tender_name' %in% ui_list){
+  #   output$cdn_tender_name <- render_cdn_tender_name(input)
+  # }
+  # if ('cdn_prod_info' %in% ui_list){
+  #   output$cdn_prod_info <- render_cdn_prod_info(input)
+  # }
+  # if ('cdn_pxk_info' %in% ui_list){
+  #   output$cdn_pxk_info <- render_cdn_pxk_info(input)
+  # }
+  # if ('cdn_pxk_data' %in% ui_list){
+  #   output$cdn_pxk_data <- render_cdn_pxk_data(input)
+  # }
+  return(output)
+}
+
+# used to load cdn data into memory
+load_aii_data <- function(input){
+  # assign("current_pxk",get_current_pxk(input),envir=globalenv())
+  # assign("current_pxk_data",get_pxk_data(current_pxk$pxk_num),
+  #        envir=globalenv())
+}
+
+render_aii_prod_name <- function(input){renderUI({
+
+  selectizeInput(
+    inputId = "aii_prod_name", label = uielem$comm_name,
+    choices = prod_choices$prod_search_str,
+    selected = prod_choices$prod_search_str[1],
+    options = list(create = F))
+})
+}
+ 
+render_aii_qty <- function(input){renderUI({
+
+    selectizeInput(
+    inputId = "aii_qty", label = uielem$qty,
+    choices = 1:20000, selected = 1,
+    options = list(create = T))
+})
+}
+
+render_aii_unit <- function(input){renderUI({
+
+  current_prod_code <- prod_choices$prod_code[
+    prod_choices$prod_search_str == input$aii_prod_name]
+
+  unit_choices <- packaging$unit[packaging$prod_code==current_prod_code]
+
+  selectizeInput(
+    inputId = "aii_unit", label = uielem$unit,
+    choices = unit_choices, selected = unit_choices[1],
+    options = list(create = F))
+})
+}
+
+render_aii_invoice_num <- function(input){renderUI({
+  selectizeInput(
+    inputId = "aii_invoice_num", label = uielem$invoice_num,
+    choices = "", selected = "",
+    options = list(create = T))
+})
+}
+
+render_aii_invoice_warehouse <- function(input){renderUI({
+
+  warehouse_choice <- warehouse_info$warehouse
+
+  #render ui
+  selectizeInput(
+    inputId = "aii_warehouse", label = uielem$invoiced_warehouse,
+    choices = warehouse_choice, selected = warehouse_choice[1],
+    options = list(create = F))
+})
+}
+
+render_aii_lot <- function(input){renderUI({
+  current_prod_code <- prod_choices$prod_code[
+    prod_choices$prod_search_str == input$aii_prod_name]
+
+  lot_select <- inventory[inventory$prod_code==current_prod_code,] %>%
+    arrange(intexp_date)
+  lot_choices <- lot_select$lot
+  lot_select <- lot_select[
+    lot_select$intexp_date==max(lot_select$intexp_date),]$lot
+  #render ui
+  selectizeInput(
+    inputId = "aii_lot", label = uielem$lot,
+    choices = lot_choices, selected = lot_select,
+    options = list(create = T))
+})
+}
+
+render_aii_exp_date <- function(input){renderUI({
+  
+  selectizeInput(
+    inputId = "aii_exp_date", label = uielem$exp_date,
+    choices = "", selected = "",
+    options = list(create = T))
+})
+}
 # 
 # render_cdn_payment_type <- function(input){renderUI({
 #   payment_type <- db_read_query(
