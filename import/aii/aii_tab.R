@@ -23,8 +23,8 @@ if ('aii' %in% hidden_tab){
             htmlOutput("aii_lot")),
         div(style="display: inline-block;vertical-align:top;width: 160px",
             htmlOutput("aii_exp_date")),
-        # div(style="display: inline-block;vertical-align:top;width: 130px",
-        #     htmlOutput("aii_unit_cost")),
+        div(style="display: inline-block;vertical-align:top;width: 130px",
+            htmlOutput("aii_unit_cost")),
         # div(style="display: inline-block;vertical-align:top;width: 160px",
         #     htmlOutput("aii_vat_percent")),
         textInput("aii_note",uielem$note),
@@ -34,7 +34,7 @@ if ('aii' %in% hidden_tab){
       box(
         width = 9,
         p(),
-        # DT::dataTableOutput("aii_import_log"),
+        DT::dataTableOutput("aii_import_data"),
         # 
         # h4(), #space
         # div(

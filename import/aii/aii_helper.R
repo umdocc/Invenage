@@ -23,9 +23,9 @@ aii_load_ui <- function(input,output,ui_list){
   # if ('cdn_payment_type' %in% ui_list){
   #   output$cdn_payment_type <- render_cdn_payment_type(input)
   # }
-  # if ('cdn_unit_price' %in% ui_list){
-  #   output$cdn_unit_price <- render_cdn_unit_price(input)
-  # }
+  if ('aii_unit_cost' %in% ui_list){
+    output$aii_unit_cost <- render_aii_unit_cost(input)
+  }
   # if ('cdn_tender_name' %in% ui_list){
   #   output$cdn_tender_name <- render_cdn_tender_name(input)
   # }
@@ -35,9 +35,9 @@ aii_load_ui <- function(input,output,ui_list){
   # if ('cdn_pxk_info' %in% ui_list){
   #   output$cdn_pxk_info <- render_cdn_pxk_info(input)
   # }
-  # if ('cdn_pxk_data' %in% ui_list){
-  #   output$cdn_pxk_data <- render_cdn_pxk_data(input)
-  # }
+  if ('aii_import_data' %in% ui_list){
+    output$aii_import_data <- render_aii_import_data(input)
+  }
   return(output)
 }
 
@@ -143,29 +143,23 @@ render_aii_exp_date <- function(input){renderUI({
 # })
 # }
 # 
-# render_cdn_unit_price <- function(input){renderUI({
-#   
-#   current_prod_code <- prod_choices$prod_code[
-#     prod_choices$prod_search_str == input$cdn_prod_name]
-#   
-#   current_customer_id <- customer_info$customer_id[
-#     customer_info$customer_name==input$cdn_customer]
-# 
-#   price_hist <- sale_log[sale_log$prod_code==current_prod_code,]
-#   price_hist <- price_hist[price_hist$customer_id==current_customer_id,]
-# 
-#   price_hist <- price_hist[price_hist$promotion_price==0]
-#   
-#   
-#   price_selected <- price_hist$unit_price[
-#     price_hist$sale_datetime==max(price_hist$sale_datetime)]
-#   #render ui
-#   selectizeInput(
-#     inputId = "cdn_unit_price", label = uielem$unit_price, 
-#     choices = price_hist$unit_price, selected = price_selected, 
-#     options = list(create = T))
-# })
-# }
+render_aii_unit_cost <- function(input){renderUI({
+
+  current_prod_code <- prod_choices$prod_code[
+    prod_choices$prod_search_str == input$aii_prod_name]
+
+  import_hist <- import_log[import_log$prod_code==current_prod_code,]
+  import_hist <- import_hist[import_hist$unit==input$aii_unit,]
+  
+  cost_selected <- import_hist$actual_unit_cost[
+    import_hist$delivery_date==max(import_hist$delivery_date)]
+  #render ui
+  selectizeInput(
+    inputId = "aii_unit_cost", label = uielem$unit_price,
+    choices = import_hist$actual_unit_cost, selected = cost_selected,
+    options = list(create = T))
+})
+}
 # 
 # render_cdn_tender_name <- function(input){renderUI({
 #   current_customer_id <- customer_info$customer_id[
@@ -255,14 +249,33 @@ render_aii_exp_date <- function(input){renderUI({
 #   )
 # }) }
 # 
-# # render table for the pxk_man tab
-# render_cdn_pxk_data <- function(input){DT::renderDataTable({
-#   output_pxk <- render_output_pxk(current_pxk_data)
-#   DT::datatable(output_pxk, options = list(pageLength = 10),rownames=F,
-#                 editable = 'cell')
-# })
-# }
-# 
+# render table for the pxk_man tab
+render_aii_import_data <- function(input){DT::renderDataTable({
+  
+  # get the table tthen display it using DTdatatable
+  output_tbl <- get_aii_import_data()
+  DT::datatable(output_tbl, options = list(pageLength = 15), rownames=F,
+                editable = 'cell')
+  
+})
+}
+
+get_aii_import_data <- function(trans_col=T){
+  
+  output_tbl <- merge(import_log,product_info,by="prod_code",all.x=T) 
+  output_tbl$dqty <- paste(output_tbl$qty,output_tbl$unit)
+  output_tbl <- output_tbl %>% 
+    select(id,comm_name,dqty,in_invoice_num) %>% arrange(desc(id))
+
+  # translate to local language by default  
+  if(trans_col){
+    output_tbl <- translate_tbl_column(output_tbl)
+  }
+  
+  return(output_tbl)
+
+}
+ 
 # get_current_pxk <- function(input){
 #   # query an incomplete pxk that match the admin_id
 #   current_pxk <- db_read_query(paste0(
