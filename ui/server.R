@@ -36,9 +36,9 @@ shinyServer(function(input, output,session) {
       "aii_invoice_warehouse", "aii_qty", "aii_unit", "aii_lot",
       "aii_exp_date", "aii_unit_cost", "aii_vat_percent", "aii_import_data"))
   # buttons
-#   # create and append import_log
-#   observeEvent(input$inv_in,{
-#     process_inv_in_buttton(config_dict,input)     # writing to database
+  # append import_log
+  observeEvent(input$aii_add_entry,{
+    aii_add_entry(input,output)     # writing to database
 #     # refresh the UI
 #     output$latest_import_tbl <- render_output_tbl('import_log')
 #   })

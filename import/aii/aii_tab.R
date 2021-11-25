@@ -31,7 +31,7 @@ if ('aii' %in% hidden_tab){
             htmlOutput('aii_invoice_warehouse')),
         div(style="display: inline-block;vertical-align:top;width: 170px",
             textInput("aii_note",uielem$note)),
-        actionButton("add_aii_entry", label = uielem$add_import_item),
+        actionButton("aii_add_entry", label = uielem$add_import_item),
         p()
       ),
       box(
