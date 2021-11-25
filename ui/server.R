@@ -32,9 +32,9 @@ shinyServer(function(input, output,session) {
 
   # UI load
   output <- aii_load_ui(input,output,
-    c('aii_prod_name', 'aii_invoice_num', "aii_invoice_warehouse",
-      "aii_qty", "aii_unit","aii_lot","aii_exp_date","aii_unit_cost",
-      "aii_import_data"))
+    c('aii_prod_name', "aii_vendor", 'aii_invoice_num', 
+      "aii_invoice_warehouse", "aii_qty", "aii_unit", "aii_lot",
+      "aii_exp_date", "aii_unit_cost", "aii_vat_percent", "aii_import_data"))
   # buttons
 #   # create and append import_log
 #   observeEvent(input$inv_in,{

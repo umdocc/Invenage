@@ -80,7 +80,7 @@ db_exec_query(
 
 # -------------------------- load global tables --------------------------------
 db_load_simple_tbl(c("packaging","product_info","import_log","customer_info",
-                     "tender_info","warehouse_info"))
+                     "tender_info","warehouse_info","vendor_info"))
 db_load_complex_tbl(c("sale_log","payment_type"))
 
 

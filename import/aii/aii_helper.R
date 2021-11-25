@@ -20,15 +20,15 @@ aii_load_ui <- function(input,output,ui_list){
   if ('aii_exp_date' %in% ui_list){
     output$aii_exp_date <- render_aii_exp_date(input)
   }
-  # if ('cdn_payment_type' %in% ui_list){
-  #   output$cdn_payment_type <- render_cdn_payment_type(input)
-  # }
+  if ('aii_vendor' %in% ui_list){
+    output$aii_vendor <- render_aii_vendor(input)
+  }
   if ('aii_unit_cost' %in% ui_list){
     output$aii_unit_cost <- render_aii_unit_cost(input)
   }
-  # if ('cdn_tender_name' %in% ui_list){
-  #   output$cdn_tender_name <- render_cdn_tender_name(input)
-  # }
+  if ('aii_vat_percent' %in% ui_list){
+    output$aii_vat_percent <- render_aii_vat_percent(input)
+  }
   # if ('cdn_prod_info' %in% ui_list){
   #   output$cdn_prod_info <- render_cdn_prod_info(input)
   # }
@@ -126,23 +126,25 @@ render_aii_exp_date <- function(input){renderUI({
     options = list(create = T))
 })
 }
-# 
-# render_cdn_payment_type <- function(input){renderUI({
-#   payment_type <- db_read_query(
-#     "select * from payment_type inner join uielem
-#     on payment_type.payment_label=uielem.label
-#     where uielem.type='payment_label'")
-#   ui_choices <- payment_type$actual
-#   ui_selected <- ui_choices[1]
-#   
-#   #render ui
-#   selectizeInput(
-#     inputId = "cdn_payment_type", label = uielem$payment_type, 
-#     choices = ui_choices, selected = ui_selected, 
-#     options = list(create = F))
-# })
-# }
-# 
+
+render_aii_vat_percent <- function(input){renderUI({
+  current_prod_code <- prod_choices$prod_code[
+    prod_choices$prod_search_str == input$aii_prod_name]
+  current_vendor_id <- vendor_info$vendor_id[
+    vendor_info$vendor==input$aii_vendor
+  ]
+  import_hist <- import_log[import_log$prod_code==current_prod_code,]
+  selected_vat <- import_hist$in_vat_percent[
+    import_hist$vendor_id==current_vendor_id][1]
+
+  #render ui
+  selectizeInput(
+    inputId = "aii_vat_percent", label = uielem$in_vat_percent,
+    choices = 1:20, selected = selected_vat,
+    options = list(create = T))
+})
+}
+
 render_aii_unit_cost <- function(input){renderUI({
 
   current_prod_code <- prod_choices$prod_code[
@@ -160,23 +162,26 @@ render_aii_unit_cost <- function(input){renderUI({
     options = list(create = T))
 })
 }
-# 
-# render_cdn_tender_name <- function(input){renderUI({
-#   current_customer_id <- customer_info$customer_id[
-#     customer_info$customer_name==input$cdn_customer]
-#   tmp <- tender_info[
-#     tender_info$customer_id==current_customer_id|tender_info$tender_id==0,]
-# 
-#   tender_choices <- tmp$customer_tender_name
-#   tender_selected <- tender_choices[1]
-#   #render ui
-#   selectizeInput(
-#     inputId = "cdn_tender_name", label = uielem$tender_name, 
-#     choices = tender_choices, 
-#     selected = tender_selected, 
-#     options = list(create = F))
-# })
-# }
+
+render_aii_vendor <- function(input){renderUI({
+  
+  current_prod_code <- prod_choices$prod_code[
+    prod_choices$prod_search_str == input$aii_prod_name]
+  import_hist <- import_log[import_log$prod_code==current_prod_code,]
+
+  selected_vendor_id <- import_hist$vendor_id[
+    import_hist$delivery_date==max(import_hist$delivery_date)][1]
+  selected_vendor <- vendor_info$vendor[
+    vendor_info$vendor_id == selected_vendor_id]
+  
+  #render ui
+  selectizeInput(
+    inputId = "aii_vendor", label = uielem$vendor,
+    choices = vendor_info$vendor,
+    selected = selected_vendor,
+    options = list(create = F))
+})
+}
 # 
 # render_cdn_prod_info <- function(input){renderUI({
 #   current_prod_code <- prod_choices$prod_code[
@@ -265,7 +270,8 @@ get_aii_import_data <- function(trans_col=T){
   output_tbl <- merge(import_log,product_info,by="prod_code",all.x=T) 
   output_tbl$dqty <- paste(output_tbl$qty,output_tbl$unit)
   output_tbl <- output_tbl %>% 
-    select(id,comm_name,dqty,in_invoice_num) %>% arrange(desc(id))
+    select(id, comm_name, dqty, lot, exp_date, actual_unit_cost, 
+           in_invoice_num, in_vat_percent, note) %>% arrange(desc(id))
 
   # translate to local language by default  
   if(trans_col){
