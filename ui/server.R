@@ -41,7 +41,7 @@ shinyServer(function(input, output,session) {
     aii_add_entry(input,output)     # writing to database
 #     # refresh the UI
 #     output$latest_import_tbl <- render_output_tbl('import_log')
-#   })
+  })
 #   
 # # ---------------------------- reports menu ------------------------------------
 #   # ----------------------------- po_inventory tab -----------------------------
