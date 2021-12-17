@@ -147,7 +147,6 @@ render_cdn_payment_type <- function(input){renderUI({
 }
 
 render_cdn_unit_price <- function(input){renderUI({
-  
   current_prod_code <- prod_choices$prod_code[
     prod_choices$prod_search_str == input$cdn_prod_name]
   
@@ -156,16 +155,16 @@ render_cdn_unit_price <- function(input){renderUI({
 
   price_hist <- sale_log[sale_log$prod_code==current_prod_code,]
   price_hist <- price_hist[price_hist$customer_id==current_customer_id,]
-
-  price_hist <- price_hist[price_hist$promotion_price==0]
+  price_hist <- price_hist[price_hist$promotion_price==0,]
   
-  
+  price_choices <- unique(price_hist$unit_price)
   price_selected <- price_hist$unit_price[
     price_hist$sale_datetime==max(price_hist$sale_datetime)]
+
   #render ui
   selectizeInput(
     inputId = "cdn_unit_price", label = uielem$unit_price, 
-    choices = price_hist$unit_price, selected = price_selected, 
+    choices = price_choices, selected = price_selected, 
     options = list(create = T))
 })
 }
