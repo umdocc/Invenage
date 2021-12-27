@@ -85,4 +85,4 @@ db_load_complex_tbl(c("sale_log","payment_type"))
 
 
 prod_choices <- db_get_prodlist(config$prod_search_str)
-inventory <- update_inventory()
+update_inventory()

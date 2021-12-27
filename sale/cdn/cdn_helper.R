@@ -375,8 +375,8 @@ cdn_add_entry <- function(input,output){
     
     # reload data and ui
     db_load_complex_tbl("sale_log")
-    inventory <- update_inventory()
-    cdn_load_ui(input,output,"cdn_pxk_data")
+    update_inventory()
+    cdn_load_ui(input,output,c("cdn_pxk_data","cdn_prod_info"))
 
 }
 

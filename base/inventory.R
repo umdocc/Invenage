@@ -54,7 +54,7 @@ update_inventory <- function(pos_item=TRUE, summarised = FALSE,
   # we will no longer need the unit, as everything should be in ordering_unit
   inventory$unit <- NULL
   
-  return(inventory)
+  assign("inventory",inventory,envir = globalenv())
 }
 
 get_exp_date <- function(){
