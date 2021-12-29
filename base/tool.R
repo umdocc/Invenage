@@ -50,3 +50,14 @@ db_integrity_check <- function(){
   test[is.na(test$ordering_unit),]
   dbDisconnect(conn)
 }
+
+# generate per customer pack prices by aggregating sale_log
+gen_customer_pricelist <- function(sale_data){
+  data_df <- convert_to_pack(sale_data,packaging,"qty","pack_qty")
+  data_df$pack_price <- data_df$unit_price*data_df$units_per_pack
+  data_df <- data_df %>% group_by(prod_code,customer_id) %>% 
+    summarise(min_price=min(pack_price),mid_price=median(pack_price),
+              max_price=max(pack_price))
+  data_df <- merge(data_df,customer_info %>% select(customer_id,customer_name))
+  return(data_df)
+}
