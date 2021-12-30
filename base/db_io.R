@@ -43,7 +43,7 @@ db_get_prodlist <- function(
 }
 
 # function to load raw db table into
-db_load_simple_tbl <- function(table_list=c("packaging","product_info")){
+glb_load_simple_tbl <- function(table_list=c("packaging","product_info")){
   conn <- db_open()
 
   for (tbl_name in table_list){
@@ -54,7 +54,7 @@ db_load_simple_tbl <- function(table_list=c("packaging","product_info")){
   dbDisconnect(conn)
 }
 
-db_load_complex_tbl <- function(table_list=c("sale_log")){
+glb_load_complex_tbl <- function(table_list=c("sale_log")){
   conn <- db_open()
   if("sale_log" %in% table_list){
     data_tbl <- dbGetQuery(conn,"select * from sale_log inner join pxk_info

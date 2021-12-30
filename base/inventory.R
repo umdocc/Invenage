@@ -12,7 +12,7 @@ get_sale_data <- function(vendor_id,from_date,to_date){
   )
 }
 
-update_inventory <- function(pos_item=TRUE, summarised = FALSE,
+glb_update_inventory <- function(pos_item=TRUE, summarised = FALSE,
                              to_date = Sys.Date(), from_date="1900-01-01"){
   # read import and sale log
 

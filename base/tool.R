@@ -90,3 +90,11 @@ gen_customer_pricelist <- function(
 open_location <- function(location_path, timeout=2){
   system2('open',location_path)
 }
+
+gbl_write_var <- function(var_name, var_data){
+  assign(var_name,var_data,envir=globalenv())
+}
+
+show_error <- function(big_msg,small_msg){
+  shinyalert(big_msg, small_msg, type = "error")
+}

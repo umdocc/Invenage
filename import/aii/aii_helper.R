@@ -29,12 +29,6 @@ aii_load_ui <- function(input,output,ui_list){
   if ('aii_vat_percent' %in% ui_list){
     output$aii_vat_percent <- render_aii_vat_percent(input)
   }
-  # if ('cdn_prod_info' %in% ui_list){
-  #   output$cdn_prod_info <- render_cdn_prod_info(input)
-  # }
-  # if ('cdn_pxk_info' %in% ui_list){
-  #   output$cdn_pxk_info <- render_cdn_pxk_info(input)
-  # }
   if ('aii_import_data' %in% ui_list){
     output$aii_import_data <- render_aii_import_data(input)
   }
@@ -95,7 +89,7 @@ render_aii_invoice_warehouse <- function(input){renderUI({
 
   #render ui
   selectizeInput(
-    inputId = "aii_warehouse", label = uielem$invoiced_warehouse,
+    inputId = "aii_invoice_warehouse", label = uielem$invoiced_warehouse,
     choices = warehouse_choice, selected = warehouse_choice[1],
     options = list(create = F))
 })
@@ -213,9 +207,9 @@ get_aii_import_data <- function(trans_col=T){
  
 aii_add_entry <- function(input,output){
   
-  curent_prod_code <- prod_choices$prod_code[
+  current_prod_code <- prod_choices$prod_code[
     prod_choices$prod_search_str==input$aii_prod_name]
-  
+
   append_import_log <- data.frame(
     prod_code = current_prod_code,
     unit = input$aii_unit,
@@ -231,5 +225,15 @@ aii_add_entry <- function(input,output){
     vendor_id = vendor_info$vendor_id[vendor_info$vendor==input$aii_vendor],
     note = input$aii_note
     )
+
+  # write to database
+  conn <- db_open()
+  dbWriteTable(conn,"import_log",append_import_log,append=T)
+  dbDisconnect(conn)
   
+  # reload global variables
+  glb_load_simple_tbl("import_log")
+  glb_update_inventory()
+  output <- aii_load_ui(input,output,"aii_import_data")
+  return(output)
 }

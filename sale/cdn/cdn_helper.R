@@ -374,8 +374,8 @@ cdn_add_entry <- function(input,output){
     assign("current_pxk_data",current_pxk_data,envir = globalenv())
     
     # reload data and ui
-    db_load_complex_tbl("sale_log")
-    update_inventory()
+    glb_load_complex_tbl("sale_log")
+    glb_update_inventory()
     cdn_load_ui(input,output,c("cdn_pxk_data","cdn_prod_info"))
 
 }
