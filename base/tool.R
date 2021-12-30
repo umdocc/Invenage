@@ -27,8 +27,9 @@ translate_tbl_column <- function(input_df,ui_elem=uielem){
 
 # write a single cell or a block to excel, using wb object, 
 # and a starting_coordinate 
-write_excel_sheet <- function(
-  wb, written_data, start_cell_coor="1;1",sheet_num=1,split_char=";"){
+write_excel <- function(
+  wb, written_data, start_cell_coor="1;1", sheet_num=1, split_char=";",
+  include_colname=F){
   if(grepl(split_char, start_cell_coor)){
     start_cell_coor <- as.numeric(
       unlist(strsplit(start_cell_coor,split=split_char)))
@@ -36,7 +37,7 @@ write_excel_sheet <- function(
   writeData(wb,sheet=sheet_num,written_data, 
             startRow=start_cell_coor[1], 
             startCol=start_cell_coor[2], 
-            colNames = F)
+            colNames = include_colname)
   return(wb)
 }
 
@@ -84,4 +85,8 @@ gen_customer_pricelist <- function(
   data_df$singular_price[data_df$min_price!=data_df$max_price] <- F
   return(data_df)
   
+}
+
+open_location <- function(location_path, timeout=2){
+  system2('open',location_path)
 }

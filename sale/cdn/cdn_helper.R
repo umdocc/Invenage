@@ -497,6 +497,6 @@ cdn_write_pxk <- function(current_pxk, current_pxk_data, open_file=T){
   
   #open the file if open_file=T
   if(open_file){
-    system2('open',dest_path,timeout = 2)
+    open_location(dest_path)
   }
 }
