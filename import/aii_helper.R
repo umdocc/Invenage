@@ -35,13 +35,6 @@ aii_load_ui <- function(input,output,ui_list){
   return(output)
 }
 
-# used to load cdn data into memory
-load_aii_data <- function(input){
-  # assign("current_pxk",get_current_pxk(input),envir=globalenv())
-  # assign("current_pxk_data",get_pxk_data(current_pxk$pxk_num),
-  #        envir=globalenv())
-}
-
 render_aii_prod_name <- function(input){renderUI({
 
   selectizeInput(
