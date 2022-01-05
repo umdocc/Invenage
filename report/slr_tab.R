@@ -24,7 +24,7 @@ if('slr' %in% hidden_tab){
     box(
       width=9, height = 800,
       h3(uielem$sale_log),
-      DT::dataTableOutput("sale_log_report_tbl"),
+      # DT::dataTableOutput("sale_log_report_tbl"),
       p() #space
     )
   )

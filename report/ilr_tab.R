@@ -1,7 +1,7 @@
 # inv_out tab ui and functions
 # ---------------------------- shiny ui object --------------------------------
 if('ilr' %in% hidden_tab){
-  ilr_tab <- tabPanel(uielem$import_log)
+  ilr_tab <- tabPanel(uielem$import_log_report)
 }else{
   ilr_tab <- tabPanel(
   theme = shinytheme("united"), uielem$import_log_report,
@@ -24,7 +24,7 @@ if('ilr' %in% hidden_tab){
     box(
       width=9, height = 800,
       h3(uielem$import_log),
-      DT::dataTableOutput("import_log_report_tbl"),
+      # DT::dataTableOutput("import_log_report_tbl"),
       p() #space
     )
   )

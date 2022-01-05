@@ -11,15 +11,15 @@ navbarPage(
   
   # import
   navbarMenu(title = uielem$add_import_item,
-             aii_tab
-  )
+             aii_tab,
+             sep_tab
+  ),
   
-  # # reports menu
-  # navbarMenu(title = uielem$reports,
-  #            pir_tab,
-  #            slr_tab,
-  #            ilr_tab
-  #            ),
+  # reports menu
+  navbarMenu(title = uielem$report,
+             slr_tab,
+             ilr_tab
+             ),
   # 
   # # update_db menu
   # navbarMenu(
@@ -44,9 +44,8 @@ navbarPage(
   #   tech_service_warranty_tab
   # ),
   # 
-  # # ceo menu
-  # navbarMenu(
-  #   get_actual('ceo'),
-  #   vendor_import_performance_tab
-  # )
+  # ceo menu
+  navbarMenu(title = uielem$ceo,
+             ceo_tab
+  )
 ) # end navbarPage
