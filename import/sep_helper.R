@@ -48,10 +48,7 @@ sep_sync_po2db <- function(input){
     # create list of rows to append to db and write
     append_log <- sep_check_db_exist(po_data)
     if(nrow(append_log)>0){
-      conn <- db_open()
-      dbWriteTable(conn,"import_log",append_log, 
-                   append=T, row.names=F, overwrite=F)
-      dbDisconnect(conn)
+      db_append_tbl("import_log",append_log)
     }
   }
 }

@@ -26,6 +26,12 @@ db_exec_query <- function(query){
   dbDisconnect(conn)
 }
 
+db_append_tbl <- function(tbl_name,data_df){
+  conn <- db_open()
+  dbWriteTable(conn,tbl_name,data_df, append=T, overwrite=F)
+  dbDisconnect(conn)
+}
+
 # ------------- read tables ---------------
 # read the product list, but return a search_str for display
 # item_list can be customised
