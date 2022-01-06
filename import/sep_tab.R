@@ -11,7 +11,7 @@ if ('sep' %in% hidden_tab){
         width=3,
         p(), #space
         htmlOutput('sep_po_name'),
-        actionButton("sep_sync", label = uielem$sync_excel_po),
+        actionButton("sep_sync_po", label = uielem$sync_excel_po),
         p()
       ),
       box(
