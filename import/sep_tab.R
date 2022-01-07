@@ -7,6 +7,7 @@ if ('sep' %in% hidden_tab){
   sep_tab <- tabPanel(
     theme = shinytheme(config$app_theme), uielem$sync_excel_po,
     fluidRow(
+      useShinyalert(),  # Set up shinyalert
       box(
         width=3,
         p(), #space

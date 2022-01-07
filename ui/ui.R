@@ -2,6 +2,7 @@
 library(shiny); library(shinythemes); library(shinyalert)
 require(DT)
 navbarPage(
+  
   theme = shinytheme(config$app_theme), title = config$app_title, id = 'main',
   
   # sale menu
@@ -11,6 +12,7 @@ navbarPage(
   
   # import
   navbarMenu(title = uielem$add_import_item,
+             useShinyalert(),  # Set up shinyalert
              aii_tab,
              sep_tab
   ),

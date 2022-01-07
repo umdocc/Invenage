@@ -86,3 +86,5 @@ glb_load_complex_tbl(c("sale_log","payment_type"))
 
 prod_choices <- db_get_prodlist(config$prod_search_str)
 glb_update_inventory()
+ordering_unit <- get_ordering_unit(packaging)
+gbl_write_var("error_free",T)

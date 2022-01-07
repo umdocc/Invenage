@@ -21,3 +21,15 @@ alert_ref_notfound <- function(ref_list){
                type = "error")
   }
 }
+
+alert_add_success <- function(item_list){
+  if(config$app_lang=="Vi"){
+    shinyalert(uielem$add_success, 
+               paste(item_list), 
+               type = "success")
+  }else{
+    shinyalert(uielem$add_success, 
+               paste(item_list),
+               type = "success")
+  }
+}

@@ -40,5 +40,16 @@ shinyServer(function(input, output,session) {
   observeEvent(input$aii_add_entry,{
     output <- aii_add_entry(input,output)     # writing to database
   })
+  
+  # -------------------------- sync_excel_po - sep -----------------------------
+  
+  # UI & data load
+  sep_load_data()
+  output <- sep_load_ui(input,output, c('sep_po_name'))
+  
+  # buttons handler
+  observeEvent(input$sep_sync_po,{
+    output <- sep_sync_po2db(input,output)     # writing to database
+  })
 
 })
