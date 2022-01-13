@@ -45,36 +45,44 @@ sep_get_local_po_list <- function(po_path){
 }
 
 sep_sync_po2db <- function(input,output){
-  
-  # collect variables
-  po_name <- input$sep_po_name
-  po_data_colnames <- unlist(strsplit(config$po_data_colnames,split=";"))
-  
-  # read the po data
-  full_path <- local_po_list$full_path[local_po_list$po_name==po_name]
-  po_data <- sep_read_po_data(full_path)
-  
-  if(!is.logical(po_data)){
-    
-    po_data$po_name <- po_name
-    po_data <- merge(po_data,ordering_unit, all.x=T)
-    
-    # create list of rows to append to db and write
-    append_log <- sep_check_db_exist(po_name, po_data)
-    if(nrow(append_log)>0){
-      
-      # add data and append to db
-      append_log$delivery_date <- Sys.Date()
-      append_log$vendor_id <- get_vid_from_po_name(po_name)
-      
-      if(error_free){
-        alert_add_success(append_log$prod_code)
-      }else{
-        alert_unknown_error()
-      }
-      
-    }
+
+# collect variables
+po_name <- input$sep_po_name
+po_data_colnames <- unlist(strsplit(config$po_data_colnames,split=";"))
+
+# read the po data
+full_path <- local_po_list$full_path[local_po_list$po_name==po_name]
+po_data <- sep_read_po_data(full_path)
+
+if(error_free){
+
+  po_data$po_name <- po_name
+  po_data <- merge(po_data,ordering_unit, all.x=T)
+
+  if(any(is.na(po_data$unit))){
+    gbl_write_var("error_free", F)
+    show_error("unit_notfound",
+               po_data$prod_code[is.na(po_data$unit)])
   }
+
+  # create list of rows to append to db and write
+  append_log <- sep_check_db_exist(po_name, po_data)
+  if(nrow(append_log)>0){
+
+    # add data and append to db
+    append_log$delivery_date <- Sys.Date()
+    append_log$vendor_id <- get_vid_from_po_name(po_name)
+    keep_col <- c("prod_code", "unit", "qty", "lot", "po_name", "exp_date",
+                  "delivery_date", "vendor_id", "note")
+    append_log <- append_log[,keep_col]
+    if(error_free){
+      # need to reload other uis
+      # db_append_tbl("import_log",append_log)
+      # show_success("add_success")
+    }
+
+  }
+}
   
   return(output)
 }
@@ -88,8 +96,8 @@ sep_read_po_data <- function(full_path){
   po_data <- read.xlsx(full_path,startRow = po_data_coord[1])
   po_data <- sep_check_required_cols(po_data)
   
-  # proceed if previous check not return a logical (FALSE) value
-  if(!is.logical(po_data)){
+  # proceed if previous check not return error_free
+  if(error_free){
     
     # keep only required col and clean up
     po_data <- po_data[,po_required_cols]
@@ -105,25 +113,17 @@ sep_read_po_data <- function(full_path){
 
 sep_check_required_cols <- function(po_data){
   
-  # check the data for required columns, show error with missing columns
-  error_free <- T
-  
   for (col_name in po_required_cols){
     if(!(col_name %in% names(po_data))&error_free){
-      alert_col_notfound(col_name)
-      error_free <- F
+      show_error("col_notfound",col_name)
+      gbl_write_var("error_free", F)
     }
   }
   
-  if(error_free){
-    return(po_data)
-  }else{
-    return(FALSE)
-  }
+  return(po_data)
 }
 
 sep_add_po_prod_code <- function(po_data){
-  error_free <- T
   po_data <- merge(po_data,product_info %>%
                      select(ref_smn,vendor_id,prod_code),
                    all.x=T)
@@ -131,14 +131,11 @@ sep_add_po_prod_code <- function(po_data){
   # check the po for invalid prod_code and notify the user
   invalid_ref <- po_data$ref_smn[is.na(po_data$prod_code)]
   if(length(invalid_ref)>0){
-    alert_ref_notfound(invalid_ref)
-    errorr_free <- F
+    show_error("ref_notfound",invalid_ref)
+    gbl_write_var("error_free",F)
   }
-  if(error_free){
-    return(po_data)
-  }else{
-    return(FALSE)
-  }
+  
+  return(po_data)
 }
 
 sep_clean_po_data <- function(po_data){
@@ -181,15 +178,4 @@ get_vid_from_po_name <- function(po_name){
   }
   return(vendor_id)
   
-}
-
-sep_add_po_import_price <- function(input,output){
-  po_name <- input$sep_po_list
-  vendor_id <- guess_vendor_id(po_name,mode='filepath')
-  if (length(vendor_id)==1){
-    write_po_price(po_name)
-    show_alert("success","add_import_price_success","success")
-  }else{
-    show_alert("error","unknown_vendor","error")
-  }
 }
