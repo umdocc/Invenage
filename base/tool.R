@@ -56,15 +56,27 @@ db_integrity_check <- function(){
 # generate per customer pack prices by aggregating sale_log
 gen_customer_pricelist <- function(
   sale_data,group_vector=c("prod_code","customer_id"),
-  display_mode="full"){
+  display_mode="full",extra_price="latest"){
   
   data_df <- convert_to_pack(sale_data,packaging,"qty","pack_qty")
   data_df <- data_df[!is.na(data_df$unit_price)&
                        data_df$unit_price>=0,]
   data_df$pack_price <- data_df$unit_price*data_df$units_per_pack
+  
+  latest_price <- data_df %>% group_by_at(group_vector)%>% 
+    filter(sale_datetime==max(sale_datetime)) 
+  latest_price <- latest_price[,c(group_vector,"pack_price")] %>% 
+    rename("latest_price"="pack_price")
+  
   data_df <- data_df %>% group_by_at(group_vector) %>% 
     summarise(min_price=min(pack_price),mid_price=median(pack_price),
               max_price=max(pack_price))
+  
+  if("latest" %in% extra_price){
+    data_df <- merge(data_df,latest_price,all.x=T)
+  }
+  
+  
   
   # add display info if needed
   if(display_mode=="full"){
