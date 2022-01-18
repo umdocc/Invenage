@@ -225,8 +225,8 @@ aii_add_entry <- function(input,output){
   dbDisconnect(conn)
   
   # reload global variables
-  glb_load_simple_tbl("import_log")
-  glb_update_inventory()
+  gbl_load_tbl("import_log")
+  gbl_update_inventory()
   output <- aii_load_ui(input,output,"aii_import_data")
   return(output)
 }

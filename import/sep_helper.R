@@ -76,9 +76,12 @@ if(error_free){
                   "delivery_date", "vendor_id", "note")
     append_log <- append_log[,keep_col]
     if(error_free){
-      # need to reload other uis
-      # db_append_tbl("import_log",append_log)
-      # show_success("add_success")
+      db_append_tbl("import_log",append_log)
+      
+      # reload other UIs
+      gbl_load_tbl("import_log")
+      gbl_update_inventory()
+      show_success("add_success")
     }
 
   }

@@ -56,7 +56,7 @@ db_integrity_check <- function(){
 # generate per customer pack prices by aggregating sale_log
 gen_customer_pricelist <- function(
   sale_data,group_vector=c("prod_code","customer_id"),
-  display_mode="full",extra_price="latest"){
+  display_mode="full",extra_price="latest",add_info=NULL, vendor_id_list=0){
   
   data_df <- convert_to_pack(sale_data,packaging,"qty","pack_qty")
   data_df <- data_df[!is.na(data_df$unit_price)&
@@ -90,6 +90,20 @@ gen_customer_pricelist <- function(
       data_df <- merge(
         data_df,customer_info %>% select(customer_id,customer_name))
     }
+  }
+  
+  # add vendor name if needed
+  if("vendor" %in% add_info){
+    data_df <- merge(
+      data_df, product_info %>% select(prod_code,vendor_id))
+    
+    # if the vendor_id is not 0, filter to selected vendor only
+    if(vendor_id_list!=0){
+      data_df <- data_df[data_df$vendor_id %in% vendor_id_list,]
+    }
+    
+    data_df <- merge(
+      data_df, vendor_info %>% select(vendor_id,vendor))
   }
   
   # label for consistency

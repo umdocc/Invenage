@@ -46,15 +46,18 @@ load_cdn_data <- function(input){
 }
 
 render_cdn_customer <- function(input){renderUI({
-    
+  if(current_pxk$status=="new"){
     cust_choices <- db_read_query(
       "select customer_name from customer_info")$customer_name
-
-    selectizeInput(
-      inputId = "cdn_customer", label = uielem$customer_name, 
-      choices = cust_choices, selected = cust_choices[1], 
-      options = list(create = F))
-  })
+  }else{
+    cust_choices <- current_pxk$customer_name
+  }
+  
+  selectizeInput(
+    inputId = "cdn_customer", label = uielem$customer_name, 
+    choices = cust_choices, selected = cust_choices[1], 
+    options = list(create = F))
+})
 }
 
 render_cdn_prod_name <- function(input){renderUI({
@@ -68,8 +71,8 @@ render_cdn_prod_name <- function(input){renderUI({
 }
 
 render_cdn_qty <- function(input){renderUI({
-
-    selectizeInput(
+  
+  selectizeInput(
     inputId = "cdn_qty", label = uielem$qty, 
     choices = 1:20000, selected = 1, 
     options = list(create = T))
@@ -80,7 +83,7 @@ render_cdn_unit <- function(input){renderUI({
   
   current_prod_code <- prod_choices$prod_code[
     prod_choices$prod_search_str == input$cdn_prod_name]
- 
+  
   unit_choices <- packaging$unit[packaging$prod_code==current_prod_code]
   
   selectizeInput(
@@ -95,7 +98,7 @@ render_cdn_warehouse <- function(input){renderUI({
   # get the current prod_code and choose the warehouse
   current_prod_code <- prod_choices$prod_code[
     prod_choices$prod_search_str == input$cdn_prod_name]
-
+  
   warehouse_choice <- db_read_query(
     "select warehouse from warehouse_info")$warehouse
   warehouse_select <- db_read_query(paste0(
@@ -152,7 +155,7 @@ render_cdn_unit_price <- function(input){renderUI({
   
   current_customer_id <- customer_info$customer_id[
     customer_info$customer_name==input$cdn_customer]
-
+  
   price_hist <- sale_log[sale_log$prod_code==current_prod_code,]
   price_hist <- price_hist[price_hist$customer_id==current_customer_id,]
   price_hist <- price_hist[price_hist$promotion_price==0,]
@@ -160,7 +163,7 @@ render_cdn_unit_price <- function(input){renderUI({
   price_choices <- unique(price_hist$unit_price)
   price_selected <- price_hist$unit_price[
     price_hist$sale_datetime==max(price_hist$sale_datetime)]
-
+  
   #render ui
   selectizeInput(
     inputId = "cdn_unit_price", label = uielem$unit_price, 
@@ -174,7 +177,7 @@ render_cdn_tender_name <- function(input){renderUI({
     customer_info$customer_name==input$cdn_customer]
   tmp <- tender_info[
     tender_info$customer_id==current_customer_id|tender_info$tender_id==0,]
-
+  
   tender_choices <- tmp$customer_tender_name
   tender_selected <- tender_choices[1]
   #render ui
@@ -280,8 +283,8 @@ get_current_pxk <- function(input){
     if(as.integer(Sys.Date()-as.Date(current_pxk$sale_datetime))>0){
       current_count <- 1
     }else{
-    current_count <- as.integer(
-      substring(as.character(current_pxk$pxk_num), admin_id_length+6+1))+1
+      current_count <- as.integer(
+        substring(as.character(current_pxk$pxk_num), admin_id_length+6+1))+1
     }
     current_pxk_num <- paste0(config$admin_id,strftime(Sys.Date(),"%d%m%y"),
                               sprintf("%02d", (current_count)))
@@ -292,10 +295,10 @@ get_current_pxk <- function(input){
 }
 
 get_pxk_data <- function(pxk_num){
-
+  
   pxk_data <- db_read_query(paste(
     "select * from sale_log where pxk_num=",pxk_num))
-
+  
   return(pxk_data)
 }
 
@@ -303,7 +306,7 @@ cdn_add_entry <- function(input,output){
   
   # if this is a new pxk, write to database first
   if (current_pxk$status=="new"){
-
+    
     append_pxk_info <- data.frame(
       pxk_num = current_pxk$pxk_num,
       # time variable needs to be in UTC
@@ -331,63 +334,63 @@ cdn_add_entry <- function(input,output){
   }else{ #otherwise, read the info from the sale_log, bump stt by 1
     current_pxk$current_stt <- max(sale_log$stt[sale_log$pxk_num==current_pxk$pxk_num])+1
   }
-    
-    # build base sale_log for testing first
-    append_sale_log <- data.frame(
-      stt = current_pxk$current_stt,
-      prod_code = unique(
-        prod_choices$prod_code[prod_choices$prod_search_str==input$cdn_prod_name]),
-      unit = input$cdn_unit,
-      lot = input$cdn_lot,
-      unit_price = as.integer(input$cdn_unit_price),
-      qty = input$cdn_qty,
-      pxk_num = current_pxk$pxk_num,
-      note = input$cdn_note
-    )
-    
-    # add warehouse_id and tender_id
-    current_warehouse_id <- warehouse_info$warehouse_id[
-      warehouse_info$warehouse == input$cdn_warehouse]
-    append_sale_log$warehouse_id <- current_warehouse_id
-    current_tender_id <- tender_info$tender_id[
-      tender_info$customer_tender_name==input$cdn_tender_name & 
-        tender_info$warehouse_id==current_warehouse_id]
-    
-    # special handling of no tender
-    tender_0_name <- tender_info$customer_tender_name[
-      tender_info$tender_id==0]
-    if(input$cdn_tender_name==tender_0_name){
-      current_tender_id <- 0
-    }
-    append_sale_log$tender_id <- current_tender_id
-    
-    append_sale_log$promotion_price <- as.numeric(input$cdn_promo_price)
-    
-    # # writing to database
-    conn <- db_open()
-    dbWriteTable(conn,"sale_log",append_sale_log,append=T)
-    dbDisconnect(conn)
-    
-    #append to current_pxk_data
-    current_pxk_data$id <- NULL
-    current_pxk_data <- rbind(current_pxk_data,append_sale_log)
-    assign("current_pxk_data",current_pxk_data,envir = globalenv())
-    
-    # reload data and ui
-    glb_load_complex_tbl("sale_log")
-    glb_update_inventory()
-    cdn_load_ui(input,output,c("cdn_pxk_data","cdn_prod_info"))
-
+  
+  # build base sale_log for testing first
+  append_sale_log <- data.frame(
+    stt = current_pxk$current_stt,
+    prod_code = unique(
+      prod_choices$prod_code[prod_choices$prod_search_str==input$cdn_prod_name]),
+    unit = input$cdn_unit,
+    lot = input$cdn_lot,
+    unit_price = as.integer(input$cdn_unit_price),
+    qty = input$cdn_qty,
+    pxk_num = current_pxk$pxk_num,
+    note = input$cdn_note
+  )
+  
+  # add warehouse_id and tender_id
+  current_warehouse_id <- warehouse_info$warehouse_id[
+    warehouse_info$warehouse == input$cdn_warehouse]
+  append_sale_log$warehouse_id <- current_warehouse_id
+  current_tender_id <- tender_info$tender_id[
+    tender_info$customer_tender_name==input$cdn_tender_name & 
+      tender_info$warehouse_id==current_warehouse_id]
+  
+  # special handling of no tender
+  tender_0_name <- tender_info$customer_tender_name[
+    tender_info$tender_id==0]
+  if(input$cdn_tender_name==tender_0_name){
+    current_tender_id <- 0
+  }
+  append_sale_log$tender_id <- current_tender_id
+  
+  append_sale_log$promotion_price <- as.numeric(input$cdn_promo_price)
+  
+  # # writing to database
+  db_append_tbl("sale_log",append_sale_log)
+  
+  #append to current_pxk_data
+  current_pxk_data$id <- NULL
+  current_pxk_data <- rbind(current_pxk_data,append_sale_log)
+  assign("current_pxk_data",current_pxk_data,envir = globalenv())
+  
+  # reload data and ui
+  gbl_load_tbl("sale_log")
+  gbl_update_inventory()
+  cdn_load_ui(input,output,c("cdn_pxk_data","cdn_prod_info", "cdn_pxk_info",
+                             "cdn_customer"))
+  
 }
 
 cdn_complete_pxk <- function(input,output){
   # set the complete flag in database
   if(nrow(current_pxk_data)>0){
     db_exec_query(paste0("update pxk_info set completed=1 where pxk_num=",
-                  current_pxk$pxk_num))
-    cdn_write_pxk(current_pxk,current_pxk_data)
+                         current_pxk$pxk_num))
+    cdn_write_pxk()
     load_cdn_data(input)
-    output <- cdn_load_ui(input,output,c("cdn_pxk_info","cdn_pxk_data"))
+    output <- cdn_load_ui(input,output,c("cdn_pxk_info","cdn_pxk_data",
+                                         "cdn_customer"))
   }
 }
 
@@ -409,94 +412,108 @@ render_output_pxk <- function(pxk_data){
   return(output_pxk)
 }
 
-cdn_write_pxk <- function(current_pxk, current_pxk_data, open_file=T){
+cdn_check_pxk <- function(current_pxk){
   # create new PXK file
-  orig_path <- file.path(config$form_path,'pxk_form.xlsx')
-  dest_path <- file.path(config$pxk_out_path,
-                         paste0(config$company_name,".PXK.",
-                                current_pxk$pxk_num,".xlsx"))
+  current_pxk$orig_path <- file.path(config$form_path,'pxk_form.xlsx')
+  current_pxk$dest_path <- file.path(config$pxk_out_path,
+                                     paste0(config$company_name,".PXK.",
+                                            current_pxk$pxk_num,".xlsx"))
   
-  wb <- loadWorkbook(orig_path)
-  
-  # get the expDate, if a Lot has 2 expDate, select only the 1st
-  # need to get all items, not just positive ones
-  tmp <- inventory
-  exp_date <- tmp %>% select(prod_code,lot,exp_date) %>% unique()
-  exp_date <- exp_date[!duplicated(exp_date$lot),] %>% 
-    select(prod_code,lot,exp_date)
-  
-  # writing customer_name
-  wb <- write_excel(wb, current_pxk$customer_name, config$pxk_customer_coor)
-
-  # append the customer code if needed
-  if(config$add_customer_code=="TRUE"){
-
-    # read the customer code, then write it to the cell next to customer name
-    wb <- write_excel(wb, customer_info$customer_code[
-      customer_info$customer_name==current_pxk$customer_name], 
-      config$pxk_customer_code_coor)
+  if(!file.exists(current_pxk$orig_path)){
+    gbl_write_var("error_free",F)
+    show_error("file_notfound","pxk_form.xlsx")
   }
   
-  # writing pxkNum
-  wb <- write_excel(wb, current_pxk$pxk_num, config$pxk_num_coor)
-  
-  # writing current date
-  wb <- write_excel(wb, format(Sys.Date(),config$date_format), 
-                    config$pxk_date_coor)
-  
-  # writing payment type
-  wb <- write_excel(wb, 
-                    payment_type$actual[
-                      payment_type$payment_code==current_pxk$payment_code], 
-                    config$pxk_payment_coor)
+  return(current_pxk)
+}
 
-  # writing data
-  ## convert other info for display purpose
-  current_pxk_data$dqty <- formatC(
-    current_pxk_data$qty,format='f',big.mark=",",digits = 2)
-  current_pxk_data$total_cost <- as.numeric(current_pxk_data$unit_price)*
-    as.numeric(current_pxk_data$qty)
+cdn_write_pxk <- function(open_file=T){
   
-  # clean up big unit
-  current_pxk_data$dqty <- gsub('\\.00','',current_pxk_data$dqty)
-  current_pxk_data$dSL <- paste(current_pxk_data$dqty, current_pxk_data$unit)
-
-  current_pxk_data$dunit_price <- paste(
-    formatC(current_pxk_data$unit_price,format='f',
-            big.mark=",",digits = 0),
-    current_pxk_data$unit, sep='/')
-  current_pxk_data$a_note <- ''
-  
-  # automatically note if unit is not ordering unit
-  ordering_unit <- get_ordering_unit(packaging) %>% select(prod_code,unit)
-  names(ordering_unit) <- c('prod_code','ordering_unit')
-  current_pxk_data <- convert_to_pack(current_pxk_data,packaging,'qty','pack_qty')
-  if(!all(current_pxk_data$units_per_pack==1)){
-    # create converted display amount
-    current_pxk_data <- merge(current_pxk_data,ordering_unit, all.x=T)
-    current_pxk_data$a_note <- paste(current_pxk_data$pack_qty,
-                                     current_pxk_data$ordering_unit)
-    current_pxk_data$a_note[current_pxk_data$units_per_pack==1] <- ''
-    current_pxk_data$note <- paste(current_pxk_data$a_note,
-                                   current_pxk_data$note)
-  }
-  
-  # arrange & select columns for writing
-  current_pxk_data <- current_pxk_data[order(as.numeric(current_pxk_data$stt)),]
-  current_pxk_data <- merge(current_pxk_data,product_info %>% 
-                              select(prod_code,comm_name,ref_smn))
-  current_pxk_data <- merge(current_pxk_data, exp_date)
-  current_pxk_data <- current_pxk_data[,
-    unlist(strsplit(config$pxk_display_col,split=";"))]
-  
-  # write data
-  write_excel(wb,current_pxk_data,config$pxk_data_coor)
-  # save the excel sheet
-  saveWorkbook(wb,dest_path,overwrite = T)
-  dbDisconnect(conn)
-  
-  #open the file if open_file=T
-  if(open_file){
-    open_location(dest_path)
+  current_pxk <- cdn_check_pxk(current_pxk)
+  if(error_free){
+    
+    wb <- loadWorkbook(orig_path)
+    
+    # get the expDate, if a Lot has 2 expDate, select only the 1st
+    # need to get all items, not just positive ones
+    tmp <- inventory
+    exp_date <- tmp %>% select(prod_code,lot,exp_date) %>% unique()
+    exp_date <- exp_date[!duplicated(exp_date$lot),] %>% 
+      select(prod_code,lot,exp_date)
+    
+    # writing customer_name
+    wb <- write_excel(wb, current_pxk$customer_name, config$pxk_customer_coor)
+    
+    # append the customer code if needed
+    if(config$add_customer_code=="TRUE"){
+      
+      # read the customer code, then write it to the cell next to customer name
+      wb <- write_excel(wb, customer_info$customer_code[
+        customer_info$customer_name==current_pxk$customer_name], 
+        config$pxk_customer_code_coor)
+    }
+    
+    # writing pxkNum
+    wb <- write_excel(wb, current_pxk$pxk_num, config$pxk_num_coor)
+    
+    # writing current date
+    wb <- write_excel(wb, format(Sys.Date(),config$date_format), 
+                      config$pxk_date_coor)
+    
+    # writing payment type
+    wb <- write_excel(wb, 
+                      payment_type$actual[
+                        payment_type$payment_code==current_pxk$payment_code], 
+                      config$pxk_payment_coor)
+    
+    # writing data
+    ## convert other info for display purpose
+    current_pxk_data$dqty <- formatC(
+      current_pxk_data$qty,format='f',big.mark=",",digits = 2)
+    current_pxk_data$total_cost <- as.numeric(current_pxk_data$unit_price)*
+      as.numeric(current_pxk_data$qty)
+    
+    # clean up big unit
+    current_pxk_data$dqty <- gsub('\\.00','',current_pxk_data$dqty)
+    current_pxk_data$dSL <- paste(current_pxk_data$dqty, current_pxk_data$unit)
+    
+    current_pxk_data$dunit_price <- paste(
+      formatC(current_pxk_data$unit_price,format='f',
+              big.mark=",",digits = 0),
+      current_pxk_data$unit, sep='/')
+    current_pxk_data$a_note <- ''
+    
+    # automatically note if unit is not ordering unit
+    ordering_unit <- get_ordering_unit(packaging) %>% select(prod_code,unit)
+    names(ordering_unit) <- c('prod_code','ordering_unit')
+    current_pxk_data <- convert_to_pack(current_pxk_data,packaging,'qty','pack_qty')
+    if(!all(current_pxk_data$units_per_pack==1)){
+      # create converted display amount
+      current_pxk_data <- merge(current_pxk_data,ordering_unit, all.x=T)
+      current_pxk_data$a_note <- paste(current_pxk_data$pack_qty,
+                                       current_pxk_data$ordering_unit)
+      current_pxk_data$a_note[current_pxk_data$units_per_pack==1] <- ''
+      current_pxk_data$note <- paste(current_pxk_data$a_note,
+                                     current_pxk_data$note)
+    }
+    
+    # arrange & select columns for writing
+    current_pxk_data <- current_pxk_data[order(as.numeric(current_pxk_data$stt)),]
+    current_pxk_data <- merge(current_pxk_data,product_info %>% 
+                                select(prod_code,comm_name,ref_smn))
+    current_pxk_data <- merge(current_pxk_data, exp_date)
+    current_pxk_data <- current_pxk_data[,
+                                         unlist(strsplit(config$pxk_display_col,split=";"))]
+    
+    # write data
+    write_excel(wb,current_pxk_data,config$pxk_data_coor)
+    # save the excel sheet
+    saveWorkbook(wb,dest_path,overwrite = T)
+    dbDisconnect(conn)
+    
+    #open the file if open_file=T
+    if(open_file){
+      open_location(dest_path)
+    }
   }
 }

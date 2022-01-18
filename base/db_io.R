@@ -48,31 +48,33 @@ db_get_prodlist <- function(
   return(product_list)
 }
 
-# function to load raw db table into
-glb_load_simple_tbl <- function(table_list=c("packaging","product_info")){
+# load table with some customisation
+gbl_load_tbl <- function(table_list=c("uielem")){
+  
   conn <- db_open()
-
+  
   for (tbl_name in table_list){
+    # if complex table process separately, otherwise load entire tbl
+    if(tbl_name %in% c("sale_log", "payment_type")){
+      
+      if(tbl_name=="sale_log"){
+        data_tbl <- dbGetQuery(conn,"select * from sale_log inner join pxk_info
+                           on sale_log.pxk_num = pxk_info.pxk_num")
+        assign("sale_log",data_tbl,envir=globalenv())
+      }
+      
+      if(tbl_name=="payment_type"){
+        data_tbl <- dbGetQuery(conn,"select * from payment_type inner join uielem
+                           on payment_type.payment_label = uielem.label")
+        assign("payment_type",data_tbl,envir=globalenv())
+      }
+      
+    }else{
     data_tbl <- dbGetQuery(conn,paste("select * from",tbl_name))
     assign(tbl_name,data_tbl,envir=globalenv())
+    }
   }
-  
-  dbDisconnect(conn)
-}
 
-glb_load_complex_tbl <- function(table_list=c("sale_log")){
-  conn <- db_open()
-  if("sale_log" %in% table_list){
-    data_tbl <- dbGetQuery(conn,"select * from sale_log inner join pxk_info
-                           on sale_log.pxk_num = pxk_info.pxk_num")
-    assign("sale_log",data_tbl,envir=globalenv())
-    
-  }
-  if("payment_type" %in% table_list){
-    data_tbl <- dbGetQuery(conn,"select * from payment_type inner join uielem
-                           on payment_type.payment_label = uielem.label")
-    assign("payment_type",data_tbl,envir=globalenv())
-    
-  }
   dbDisconnect(conn)
-}
+  
+  }

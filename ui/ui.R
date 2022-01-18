@@ -12,7 +12,6 @@ navbarPage(
   
   # import
   navbarMenu(title = uielem$add_import_item,
-             useShinyalert(),  # Set up shinyalert
              aii_tab,
              sep_tab
   ),
