@@ -45,6 +45,19 @@ load_cdn_data <- function(input){
          envir=globalenv())
 }
 
+init_cdn <- function(input,output){
+  
+  output <- cdn_load_ui(
+    input,output,
+    c("cdn_customer", "cdn_prod_name", "cdn_qty", "cdn_unit",
+      "cdn_warehouse","cdn_lot","cdn_payment_type","cdn_unit_price",
+      "cdn_promo_price","cdn_tender_name","cdn_note",
+      "cdn_prod_info","cdn_pxk_info","cdn_pxk_data"))
+  load_cdn_data(input)
+  
+  return(output)
+}
+
 render_cdn_customer <- function(input){renderUI({
   if(current_pxk$status=="new"){
     cust_choices <- db_read_query(

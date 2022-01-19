@@ -18,33 +18,9 @@ navbarPage(
   
   # reports menu
   navbarMenu(title = uielem$report,
-             slr_tab,
-             ilr_tab
+             pir_tab
              ),
-  # 
-  # # update_db menu
-  # navbarMenu(
-  #   get_actual('update_db'),
-  #   update_customer_tab,
-  #   update_product_tab,
-  #   update_vendor_invoice_tab,
-  #   update_import_price_tab,
-  #   update_vendor_tab
-  # ),
-  # 
-  # # tools menu
-  # navbarMenu(
-  #   get_actual('tools'),
-  #   sync_excel_po_tab
-  # ),
-  # 
-  # # service and warranty menu
-  # navbarMenu(
-  #   get_actual('service_and_warranty'),
-  #   tech_service_log_tab,
-  #   tech_service_warranty_tab
-  # ),
-  # 
+
   # ceo menu
   navbarMenu(title = uielem$ceo,
              ceo_tab

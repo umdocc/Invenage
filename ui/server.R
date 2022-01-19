@@ -11,19 +11,13 @@ shinyServer(function(input, output,session) {
   }
   
 #  ----------------------- create delivery note - cdn --------------------------
-  load_cdn_data(input) # data
-  # UI
-  output <- cdn_load_ui(
-    input, output, c("cdn_customer", "cdn_prod_name", "cdn_qty", "cdn_unit",
-                     "cdn_warehouse","cdn_lot","cdn_payment_type","cdn_unit_price",
-                     "cdn_promo_price","cdn_tender_name","cdn_note",
-                     "cdn_prod_info","cdn_pxk_info","cdn_pxk_data"))
+  
+  output <- init_cdn(input,output) #init
   
   # buttons handlers
   observeEvent(input$add_cdn_entry, { # inv_out button
     cdn_add_entry(input,output) # write to database
   })
-  
   observeEvent(input$cdn_complete_pxk,{
     cdn_complete_pxk(input,output) # execute command to complete the pxk
   })
@@ -50,6 +44,16 @@ shinyServer(function(input, output,session) {
   # buttons handler
   observeEvent(input$sep_sync_po,{
     output <- sep_sync_po2db(input,output)     # writing to database
+  })
+  
+  # ------------------------ po_inventory_report - pir -------------------------
+  
+  # UI & data load
+  output <- pir_load_ui(input,output, c('pir_data'))
+  
+  # buttons handler
+  observeEvent(input$pir_print_report,{
+    print("test button")     # writing to database
   })
 
 })
