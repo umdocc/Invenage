@@ -383,8 +383,10 @@ cdn_add_entry <- function(input,output){
 }
 
 cdn_complete_pxk <- function(input,output){
-  # set the complete flag in database
-  if(nrow(current_pxk_data)>0){
+  
+  # check pxk for error then set the complete flag in database
+  cdn_check_pxk()
+  if(error_free){
     db_exec_query(paste0("update pxk_info set completed=1 where pxk_num=",
                          current_pxk$pxk_num))
     cdn_write_pxk()
@@ -393,6 +395,7 @@ cdn_complete_pxk <- function(input,output){
                                          "cdn_customer"))
   }
 }
+
 
 # this function is also shared with pxk_man tab
 # in cdn, we use the current_pxk_data var, otherwise, reload the pxk_data var
@@ -412,7 +415,7 @@ render_output_pxk <- function(pxk_data){
   return(output_pxk)
 }
 
-cdn_check_pxk <- function(current_pxk){
+cdn_check_pxk <- function(){
   # create new PXK file
   current_pxk$orig_path <- file.path(config$form_path,'pxk_form.xlsx')
   current_pxk$dest_path <- file.path(config$pxk_out_path,
@@ -424,15 +427,24 @@ cdn_check_pxk <- function(current_pxk){
     show_error("file_notfound","pxk_form.xlsx")
   }
   
-  return(current_pxk)
+  if(!dir.exists(dirname(current_pxk$dest_path))){
+    gbl_write_var("error_free",F)
+    show_error("path_notfound",dirname(current_pxk$dest_path))
+  }
+
+  if(nrow(current_pxk_data)==0){
+    gbl_write_var("error_free",F)
+    show_error("no_data","")
+  }
+    
+  gbl_write_var("current_pxk",current_pxk)
 }
 
 cdn_write_pxk <- function(open_file=T){
-  
-  current_pxk <- cdn_check_pxk(current_pxk)
+
   if(error_free){
     
-    wb <- loadWorkbook(orig_path)
+    wb <- loadWorkbook(current_pxk$orig_path)
     
     # get the expDate, if a Lot has 2 expDate, select only the 1st
     # need to get all items, not just positive ones
@@ -508,12 +520,12 @@ cdn_write_pxk <- function(open_file=T){
     # write data
     write_excel(wb,current_pxk_data,config$pxk_data_coor)
     # save the excel sheet
-    saveWorkbook(wb,dest_path,overwrite = T)
+    saveWorkbook(wb,current_pxk$dest_path,overwrite = T)
     dbDisconnect(conn)
     
     #open the file if open_file=T
     if(open_file){
-      open_location(dest_path)
+      open_location(current_pxk$dest_path)
     }
   }
 }
