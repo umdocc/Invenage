@@ -216,6 +216,10 @@ aii_add_entry <- function(input,output){
     warehouse_id = warehouse_info$warehouse_id[
       warehouse_info$warehouse==input$aii_invoice_warehouse],
     vendor_id = vendor_info$vendor_id[vendor_info$vendor==input$aii_vendor],
+    in_invoice_num = input$aii_invoice_num,
+    in_vat_percent = input$aii_vat_percent,
+    in_warehouse_id = warehouse_info$warehouse_id[
+      warehouse_info$warehouse==input$aii_invoice_warehouse],
     note = input$aii_note
     )
 
