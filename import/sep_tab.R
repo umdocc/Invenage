@@ -13,7 +13,10 @@ if ('sep' %in% hidden_tab){
         p(), #space
         htmlOutput('sep_po_name'),
         actionButton("sep_sync_po", label = uielem$sync_excel_po),
-        p()
+        p(),
+        fileInput("sep_file", uielem$update_actual_unit_cost, 
+                  accept = ".xlsx"),
+        actionButton("write_unit_cost", label = uielem$update_actual_unit_cost),
       ),
       box(
         width = 9,

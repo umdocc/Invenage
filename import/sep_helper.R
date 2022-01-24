@@ -183,8 +183,35 @@ get_vid_from_po_name <- function(po_name){
   
 }
 
-write_po_price <- function(po_name, price_list){
+sep_update_unit_cost <- function(input,output){
+  po_name <- input$sep_po_name
+  sep_file_upload <- input$sep_file
+  
+  unit_cost_data <- read.xlsx(sep_file_upload$datapath, header = T)
+  
+  # will need to check file format and columns etc later
+  unit_cost_data <- unit_cost_data %>% select(ref_smn,actual_unit_cost)
+  
+  # write the unit cost to both the po and the database
+  write_po_unit_cost(po_name, unit_cost_data)
+  
+  return(output)
+}
+
+write_po_unit_cost <- function(po_name, unit_cost_data=NULL, 
+                               write_mode="full"
+                           ){
+  
   po_data <- db_read_query(
     paste0("select * from import_log where po_name='",po_name,"'"))
   po_data <- merge(po_data, product_info %>% select(prod_code,ref_smn))
+  
+  if(write_mode=="missing"){
+    po_data <- po_data[is.na(po_data$actual_unit_cost),]
+  }
+  po_data$actual_unit_cost <- NULL
+  
+  po_data <- merge(po_data,unit_cost_data %>% select(ref_smn,actual_unit_cost),
+                         all.x=T)
+  po_data <- po_data[!is.na(po_data$actual_unit_cost),]
 }
