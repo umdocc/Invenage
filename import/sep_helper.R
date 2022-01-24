@@ -187,13 +187,14 @@ sep_update_unit_cost <- function(input,output){
   po_name <- input$sep_po_name
   sep_file_upload <- input$sep_file
   
-  unit_cost_data <- read.xlsx(sep_file_upload$datapath, header = T)
-  
+  unit_cost_data <- read.xlsx(sep_file_upload$datapath)
+  print(sep_file_upload$datapath)
+  print(unit_cost_data)
   # will need to check file format and columns etc later
   unit_cost_data <- unit_cost_data %>% select(ref_smn,actual_unit_cost)
   
   # write the unit cost to both the po and the database
-  write_po_unit_cost(po_name, unit_cost_data)
+  # write_po_unit_cost(po_name, unit_cost_data)
   
   return(output)
 }
