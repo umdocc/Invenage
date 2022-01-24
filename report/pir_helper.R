@@ -93,21 +93,27 @@ render_pir_data <- function(input){DT::renderDataTable({
 #   system2('open',output_path,timeout = 2)
 # }
 
-# get_separate_lot_report <- function(vendor_id){
-#   inventory_report <- update_inventory(config_dict)
-#   tmp <- db_read_query("select product_info.prod_code, product_info.ref_smn,
-#                       product_info.comm_name, vendor_info.vendor_id, 
-#                       vendor_info.vendor 
-#                       from product_info inner join vendor_info
-#                       on product_info.vendor_id = vendor_info.vendor_id")
-#   inventory_report <- merge(inventory_report,tmp,by='prod_code',all.x=T)
-#   if(vendor_id!=0){
-#     inventory_report <- inventory_report[inventory_report$vendor_id==vendor_id,]
-#   }
-#   col_names <- split_semi(config$pir_separate_lot_report_col)
-#   inventory_report <- inventory_report %>% select(col_names)
-#   return(inventory_report)
-# }
+# separate lot is just inventory without sum
+get_separate_lot_report <- function(vendor_id){
+
+  # collect other information
+  inventory_report <- merge(inventory,
+                            product_info %>% 
+                              select(prod_code, comm_name,ref_smn, vendor_id),
+                            by='prod_code',all.x=T)
+  inventory_report <- merge(inventory_report,
+                            vendor_info %>% 
+                              select(vendor_id, vendor),
+                            by='vendor_id',all.x=T)
+  
+  if(vendor_id!=0){
+    inventory_report <- inventory_report[inventory_report$vendor_id==vendor_id,]
+  }
+  col_names <- split_semi(config$pir_separate_lot_report_col)
+  inventory_report <- inventory_report %>% select(col_names)
+  
+  return(inventory_report)
+}
 
 # generate the inventory report as data_frame
 get_value_report <- function(vendor_id=0){

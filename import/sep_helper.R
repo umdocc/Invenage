@@ -182,3 +182,9 @@ get_vid_from_po_name <- function(po_name){
   return(vendor_id)
   
 }
+
+write_po_price <- function(po_name, price_list){
+  po_data <- db_read_query(
+    paste0("select * from import_log where po_name='",po_name,"'"))
+  po_data <- merge(po_data, product_info %>% select(prod_code,ref_smn))
+}
