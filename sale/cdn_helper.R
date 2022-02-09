@@ -315,38 +315,36 @@ get_pxk_data <- function(pxk_num){
   return(pxk_data)
 }
 
-cdn_add_entry <- function(input,output){
+cdn_write_new_pxk <- function(current_pxk){
   
-  # if this is a new pxk, write to database first
-  if (current_pxk$status=="new"){
-    
-    append_pxk_info <- data.frame(
-      pxk_num = current_pxk$pxk_num,
-      # time variable needs to be in UTC
-      sale_datetime = format(as.POSIXlt(Sys.time(),tz="UTC"),
-                             '%Y-%m-%d %H:%M:%S'),
-      customer_id = customer_info$customer_id[
-        customer_info$customer_name==input$cdn_customer],
-      payment_code = payment_type$payment_code[
-        payment_type$actual == input$cdn_payment_type],
-      completed = 0,
-      admin_id = config$admin_id
-    )
-    
-    # write to database
-    conn <- db_open()
-    dbWriteTable(conn,"pxk_info",append_pxk_info,append=T)
-    dbDisconnect(conn)
-    
-    #update variable in memory
-    current_pxk$status <- "in_progress"
-    current_pxk$customer_name <- input$cdn_customer
-    current_pxk$current_stt <- 1
-    assign("current_pxk",current_pxk,envir=globalenv())
-    
-  }else{ #otherwise, read the info from the sale_log, bump stt by 1
-    current_pxk$current_stt <- max(sale_log$stt[sale_log$pxk_num==current_pxk$pxk_num])+1
-  }
+  append_pxk_info <- data.frame(
+    pxk_num = current_pxk$pxk_num,
+    # time variable needs to be in UTC
+    sale_datetime = format(as.POSIXlt(Sys.time(),tz="UTC"),
+                           '%Y-%m-%d %H:%M:%S'),
+    customer_id = customer_info$customer_id[
+      customer_info$customer_name==input$cdn_customer],
+    payment_code = payment_type$payment_code[
+      payment_type$actual == input$cdn_payment_type],
+    completed = 0,
+    admin_id = config$admin_id
+  )
+  
+  # write to database
+  conn <- db_open()
+  dbWriteTable(conn,"pxk_info",append_pxk_info,append=T)
+  dbDisconnect(conn)
+  
+  #update variable in memory
+  current_pxk$status <- "in_progress"
+  current_pxk$customer_name <- input$cdn_customer
+  current_pxk$current_stt <- 1
+  
+  return(current_pxk)
+  
+}
+
+cdn_build_append_sale_log <- function(input){
   
   # build base sale_log for testing first
   append_sale_log <- data.frame(
@@ -379,19 +377,40 @@ cdn_add_entry <- function(input,output){
   
   append_sale_log$promotion_price <- as.numeric(input$cdn_promo_price)
   
+  return(append_sale_log)
+}
+
+cdn_add_entry <- function(input,output){
+  
+  # if this is a new pxk, write to database first
+  if (current_pxk$status=="new"){
+    
+    # update pxk status in database and global
+    current_pxk <- cdn_write_new_pxk(cdn_write_new_pxk)
+    assign("current_pxk",current_pxk,envir=globalenv())
+    
+  }else{ #otherwise, read the info from the sale_log, bump stt by 1
+    current_pxk$current_stt <- max(
+      sale_log$stt[sale_log$pxk_num==current_pxk$pxk_num])+1
+  }
+  
+  append_sale_log <- cdn_build_append_sale_log(input)
+  
   # # writing to database
-  db_append_tbl("sale_log",append_sale_log)
-  
-  #append to current_pxk_data
-  current_pxk_data$id <- NULL
-  current_pxk_data <- rbind(current_pxk_data,append_sale_log)
-  assign("current_pxk_data",current_pxk_data,envir = globalenv())
-  
-  # reload data and ui
-  gbl_load_tbl("sale_log")
-  gbl_update_inventory()
-  cdn_load_ui(input,output,c("cdn_pxk_data","cdn_prod_info", "cdn_pxk_info",
-                             "cdn_customer"))
+  if(error_free){
+    db_append_tbl("sale_log",append_sale_log)
+    
+    #append to current_pxk_data
+    current_pxk_data$id <- NULL
+    current_pxk_data <- rbind(current_pxk_data,append_sale_log)
+    assign("current_pxk_data",current_pxk_data,envir = globalenv())
+    
+    # reload data and ui
+    gbl_load_tbl("sale_log")
+    gbl_update_inventory()
+    cdn_load_ui(input,output,c("cdn_pxk_data","cdn_prod_info", "cdn_pxk_info",
+                               "cdn_customer"))
+  }
   
 }
 
@@ -399,6 +418,7 @@ cdn_complete_pxk <- function(input,output){
   
   # check pxk for error then set the complete flag in database
   cdn_check_pxk()
+  
   if(error_free){
     db_exec_query(paste0("update pxk_info set completed=1 where pxk_num=",
                          current_pxk$pxk_num))
