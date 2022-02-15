@@ -87,3 +87,6 @@ prod_choices <- db_get_prodlist(config$prod_search_str)
 gbl_update_inventory()
 ordering_unit <- get_ordering_unit(packaging)
 gbl_write_var("error_free",T)
+
+# create global data
+create_global_data()

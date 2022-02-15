@@ -55,8 +55,8 @@ shinyServer(function(input, output,session) {
   output <- pir_load_ui(input,output, c('pir_data'))
   
   # buttons handler
-  observeEvent(input$pir_print_report,{
-    print("test button")     # writing to database
+  observeEvent(input$pir_create_report,{
+    pir_create_report(input)    # writing to database
   })
 
 })

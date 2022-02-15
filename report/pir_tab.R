@@ -23,7 +23,7 @@ if('pir' %in% hidden_tab){
                                   uielem$separate_lot,
                                   uielem$expiry_first)
                   ),
-      actionButton(inputId = "pir_print_report", 
+      actionButton(inputId = "pir_create_report", 
                    label = uielem$print_report),
       p(),
     ),

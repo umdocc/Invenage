@@ -9,28 +9,27 @@ pir_load_ui <- function(input,output,ui_list){
 
 # render display data
 render_pir_data <- function(input){DT::renderDataTable({
-  # config variables
-  report_type <- input$pir_report_type
-  current_vendor_id <- vendor_info$vendor_id[
-    vendor_info$vendor==input$pir_vendor]
-  
-  if(report_type==uielem$value_report){
-    inventory_report <- get_value_report(current_vendor_id)
+
+  # we will need to access input here as these values 
+  # has not been written to global data
+  if(input$pir_report_type==uielem$value_report){
+    inventory_report <- get_value_report(vendor_info$vendor_id[
+      vendor_info$vendor==input$pir_vendor])
     output_tbl <- get_value_report_sum(inventory_report)
   }
   
-  # if po_report is selected
-  if(report_type==uielem$po_report){
-    output_tbl <- get_po_report(current_vendor_id) #get data
-  }
-  
-  if(report_type==uielem$separate_lot){
-    output_tbl <- get_separate_lot_report(current_vendor_id)
-  }
-  
-  if(report_type==uielem$expiry_first){
-    output_tbl <- gen_empty_df()
-  }
+  # # if po_report is selected
+  # if(report_type==uielem$po_report){
+  #   output_tbl <- get_po_report(current_vendor_id) #get data
+  # }
+  # 
+  # if(report_type==uielem$separate_lot){
+  #   output_tbl <- get_separate_lot_report(current_vendor_id)
+  # }
+  # 
+  # if(report_type==uielem$expiry_first){
+  #   output_tbl <- gen_empty_df()
+  # }
   
   #translate and render
   output_tbl <- translate_tbl_column(output_tbl,uielem)
@@ -38,37 +37,55 @@ render_pir_data <- function(input){DT::renderDataTable({
 })
 }
 
-# create_inventory_report <- function(input){
-#   # configure the output path
-#   output_path <- file.path(config$report_out_path,
-#                            paste0(config$report_name_default,".xlsx"))
-#   
-#   # config variables
-#   report_type <- input$pir_report_type
-#   current_vendor_id <- db_read_query(paste0("select vendor_id from vendor_info
-#     where vendor='",input$pir_vendor,"'"))$vendor_id
-# 
-# 
-#   # if value report is selected
-#   if(report_type==uielem$value_report){
-# 
-#     inventory_report <- get_value_report(current_vendor_id)
-#     inventory_report_sum <- get_value_report_sum(inventory_report)
-#     
-#     # translate and write
-#     inventory_report <- inventory_report %>% 
-#       select(vendor,comm_name,ref_smn,total_remain_qty,mean_unit_cost,
-#              total_value)
-#     inventory_report <- translate_tbl_column(inventory_report,uielem)
-#     inventory_report_sum <- translate_tbl_column(inventory_report_sum, uielem)
-#     
-#     list_of_sheets <- list()
-#     list_of_sheets[[uielem$summary]] <- inventory_report_sum
-#     list_of_sheets[[uielem$detail]] <- inventory_report
-# 
-#     write.xlsx(list_of_sheets, file=output_path,
-#                overwrite = T)
-#   }
+pir_create_report <- function(input){
+  
+  # config variables
+  pir_data$report_type <- input$pir_report_type
+  pir_data$vendor_id <- vendor_info$vendor_id[
+    vendor_info$vendor==input$pir_vendor]
+  gbl_write_var("pir_data",pir_data)
+  
+  # if value report is selected
+  if(pir_data$report_type==uielem$value_report){
+    inventory_report <- get_value_report(pir_data$vendor_id)
+  }
+  
+  pir_print_report(pir_data, inventory_report)
+}
+
+
+pir_print_report <- function(pir_data, inventory_report){
+  
+  
+  
+  if(pir_data$report_type==uielem$value_report){
+    
+    inventory_report_sum <- get_value_report_sum(inventory_report)
+    inventory_report_sum <- translate_tbl_column(inventory_report_sum, uielem)
+  }
+  
+  # translate and write
+  inventory_report <- inventory_report %>%
+    select(vendor_id,comm_name,ref_smn,total_remain_qty,mean_unit_cost,
+           total_value)
+  inventory_report <- translate_tbl_column(inventory_report,uielem)
+  
+  if(pir_data$report_type==uielem$value_report){
+    list_of_sheets <- list()
+    list_of_sheets[[uielem$summary]] <- inventory_report_sum
+    list_of_sheets[[uielem$detail]] <- inventory_report
+  }else{
+    list_of_sheets <- list()
+    list_of_sheets[[uielem$summary]] <- inventory_report_sum
+  }
+  
+  # write excel using list of sheet
+  write.xlsx(list_of_sheets, file=pir_data$output_path,
+             overwrite = T)
+  open_location(pir_data$output_path)
+  
+  
+}
 #   
 #   if(report_type==uielem$separate_lot){
 #     output_data <- get_separate_lot_report(current_vendor_id)
