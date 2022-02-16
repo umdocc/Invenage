@@ -18,7 +18,12 @@ app_path <- dirname(getwd()) # app_path is one level up from shiny folder
 
 # point to local file as app_path will be invalid during dev
 if(!file.exists(file.path(app_path,"ui","global.R"))){
-  app_path <- '~/Documents/GitHub/Invenage'
+  home_path <- path.expand("~")
+  if(Sys.info()[["sysname"]]=="Windows"){
+    app_path <- file.path(home_path,"GitHub","Invenage")
+  }else{
+    app_path <- file.path(home_path,"Documents","GitHub","Invenage")
+  }
 }
 
 #get boot_path
@@ -81,7 +86,7 @@ db_exec_query(
 # -------------------------- load global tables --------------------------------
 gbl_load_tbl(c("sale_log", "payment_type", "packaging", "product_info",
                "import_log", "customer_info", "tender_info", "warehouse_info",
-               "vendor_info"))
+               "vendor_info","import_price"))
 
 prod_choices <- db_get_prodlist(config$prod_search_str)
 gbl_update_inventory()
