@@ -120,3 +120,17 @@ open_location <- function(location_path, timeout=2){
 gbl_write_var <- function(var_name, var_data){
   assign(var_name,var_data,envir=globalenv())
 }
+
+check_required_col <- function(col_list, input_df,set_gbl_var=T){
+  error_free <- T
+  # check for required column
+  for(col_name in col_list){
+    if (!(col_name %in% names(input_df))){
+      error_msg <- paste("Required column",col_name,"not found")
+      error_free <- F
+    }
+  }
+  if(set_gbl_var){
+    gbl_write_var("error_free",error_free)
+  }
+}

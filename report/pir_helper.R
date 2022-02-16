@@ -326,3 +326,28 @@ get_unit_price_from_import_data <- function(import_data, remove_null,
   }
   return(import_data)
 }
+
+# take a table and add import_price based on min order
+pir_add_import_price <- function(input_df, qty_col="qty"){
+  
+  check_required_col(c(qty_col,"prod_code"), input_df)
+  
+  if(error_free){
+    col_names <- names(input_df) # save list of columns
+    names(input_df)[names(input_df)==qty_col] <- "qty"
+    
+    tmp <- merge(import_price,input_df,all.x=T)
+    tmp <- tmp[tmp$qty>=tmp$min_order & !is.na(tmp$qty),]
+    tmp$qty_ratio <- tmp$qty/tmp$min_order
+    tmp <- tmp %>% group_by(prod_code) %>% mutate(min_ratio=min(qty_ratio))
+    tmp <- tmp[tmp$qty_ratio==tmp$min_ratio,]
+    
+    names(tmp)[names(tmp)=="qty"] <- qty_col
+    
+    # select only original columns
+    col_names <- c(col_names,"import_price","currency_code")
+    tmp <- tmp[,col_names]
+  }else{
+    stop("function encountered error!")
+  }
+}
