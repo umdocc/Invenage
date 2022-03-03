@@ -315,7 +315,7 @@ get_pxk_data <- function(pxk_num){
   return(pxk_data)
 }
 
-cdn_write_new_pxk <- function(current_pxk){
+cdn_write_new_pxk <- function(input, current_pxk){
   
   append_pxk_info <- data.frame(
     pxk_num = current_pxk$pxk_num,
@@ -335,7 +335,7 @@ cdn_write_new_pxk <- function(current_pxk){
   dbWriteTable(conn,"pxk_info",append_pxk_info,append=T)
   dbDisconnect(conn)
   
-  #update variable in memory
+  #update variable current_pxk
   current_pxk$status <- "in_progress"
   current_pxk$customer_name <- input$cdn_customer
   current_pxk$current_stt <- 1
@@ -384,15 +384,21 @@ cdn_add_entry <- function(input,output){
   
   # if this is a new pxk, write to database first
   if (current_pxk$status=="new"){
-    
-    # update pxk status in database and global
-    current_pxk <- cdn_write_new_pxk(cdn_write_new_pxk)
-    assign("current_pxk",current_pxk,envir=globalenv())
-    
-  }else{ #otherwise, read the info from the sale_log, bump stt by 1
-    current_pxk$current_stt <- max(
-      sale_log$stt[sale_log$pxk_num==current_pxk$pxk_num])+1
+    current_pxk <- cdn_write_new_pxk(input, current_pxk)
+  
+  #otherwise, read the info from the sale_log, bump stt by 1 if found
+  }else{
+    max_stt <- max(
+      sale_log$stt[
+        sale_log$pxk_num==as.numeric(as.character(current_pxk$pxk_num))])
+    if(length(max_stt)==1){
+      current_pxk$current_stt <- max_stt+1
+    }else{
+      current_pxk$current_stt <- 1
+    }
   }
+  # writing to global
+  gbl_write_var("current_pxk",current_pxk)
   
   append_sale_log <- cdn_build_append_sale_log(input)
   
@@ -403,7 +409,7 @@ cdn_add_entry <- function(input,output){
     #append to current_pxk_data
     current_pxk_data$id <- NULL
     current_pxk_data <- rbind(current_pxk_data,append_sale_log)
-    assign("current_pxk_data",current_pxk_data,envir = globalenv())
+    gbl_write_var("current_pxk_data",current_pxk_data)
     
     # reload data and ui
     gbl_load_tbl("sale_log")
@@ -422,7 +428,7 @@ cdn_complete_pxk <- function(input,output){
   if(error_free){
     db_exec_query(paste0("update pxk_info set completed=1 where pxk_num=",
                          current_pxk$pxk_num))
-    cdn_write_pxk()
+    cdn_print_pxk()
     load_cdn_data(input)
     output <- cdn_load_ui(input,output,c("cdn_pxk_info","cdn_pxk_data",
                                          "cdn_customer"))
@@ -473,11 +479,11 @@ cdn_check_pxk <- function(){
   gbl_write_var("current_pxk",current_pxk)
 }
 
-cdn_write_pxk <- function(open_file=T){
+cdn_print_pxk <- function(open_file=T){
 
   if(error_free){
     
-    wb <- loadWorkbook(current_pxk$orig_path)
+    wb <- loadWorkbook(file.path(config$form_path,"pxk_form.xlsx"))
     
     # get the expDate, if a Lot has 2 expDate, select only the 1st
     # need to get all items, not just positive ones
@@ -551,11 +557,14 @@ cdn_write_pxk <- function(open_file=T){
                                          unlist(strsplit(config$pxk_display_col,split=";"))]
     
     # write data
-    write_excel(wb,current_pxk_data,config$pxk_data_coor)
-    # save the excel sheet
-    saveWorkbook(wb,current_pxk$dest_path,overwrite = T)
-    dbDisconnect(conn)
+    wb <- write_excel(wb,current_pxk_data,config$pxk_data_coor)
     
+    # save the excel sheet
+    dest_path <- file.path(
+      config$pxk_out_path,
+      paste0(config$company_name,".",current_pxk$pxk_num,".xlsx"))
+    saveWorkbook(wb,file=dest_path,overwrite = T)
+
     #open the file if open_file=T
     if(open_file){
       open_location(current_pxk$dest_path)
