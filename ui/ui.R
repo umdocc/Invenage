@@ -24,5 +24,7 @@ navbarPage(
   # ceo menu
   navbarMenu(title = uielem$ceo,
              ceo_tab
-  )
+             ),
+  # sys info
+  sysinfo_tab
 ) # end navbarPage
