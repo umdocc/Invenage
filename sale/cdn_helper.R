@@ -380,6 +380,16 @@ cdn_build_append_sale_log <- function(input){
   return(append_sale_log)
 }
 
+cdn_check_append_sale_log <- function(append_sale_log){
+  tmp <- inventory[inventory$lot==append_sale_log$lot,]
+  test_remain <- tmp$qty-append_sale_log$qty
+  thres <- -0.001
+  if(test_remain < thres){
+    gbl_write_var("error_free",F)
+    show_error("qty_limit_exceed")
+  }
+}
+
 cdn_add_entry <- function(input,output){
   
   # if this is a new pxk, write to database first
@@ -388,11 +398,10 @@ cdn_add_entry <- function(input,output){
   
   #otherwise, read the info from the sale_log, bump stt by 1 if found
   }else{
-    max_stt <- max(
-      sale_log$stt[
-        sale_log$pxk_num==as.numeric(as.character(current_pxk$pxk_num))])
-    if(length(max_stt)==1){
-      current_pxk$current_stt <- max_stt+1
+    current_stt_list <- sale_log$stt[
+      sale_log$pxk_num==as.numeric(as.character(current_pxk$pxk_num))]
+    if(length(current_stt_list)>0){
+      current_pxk$current_stt <- max(current_stt_list)+1
     }else{
       current_pxk$current_stt <- 1
     }
@@ -400,7 +409,9 @@ cdn_add_entry <- function(input,output){
   # writing to global
   gbl_write_var("current_pxk",current_pxk)
   
+  # build and check append_sale_log
   append_sale_log <- cdn_build_append_sale_log(input)
+  # cdn_check_append_sale_log(append_sale_log)
   
   # # writing to database
   if(error_free){
