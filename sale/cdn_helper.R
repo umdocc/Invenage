@@ -382,16 +382,16 @@ cdn_build_append_sale_log <- function(input){
 
 cdn_check_append_sale_log <- function(append_sale_log){
   tmp <- inventory[inventory$lot==append_sale_log$lot,]
-  test_remain <- tmp$qty-append_sale_log$qty
+  test_remain <- tmp$remaining_qty - as.numeric(append_sale_log$qty)
   thres <- -0.001
   if(test_remain < thres){
     gbl_write_var("error_free",F)
-    show_error("qty_limit_exceed")
+    show_error("qty_exceed_limit")
   }
 }
 
 cdn_add_entry <- function(input,output){
-  
+  gbl_set_error_free(T)
   # if this is a new pxk, write to database first
   if (current_pxk$status=="new"){
     current_pxk <- cdn_write_new_pxk(input, current_pxk)
@@ -411,7 +411,9 @@ cdn_add_entry <- function(input,output){
   
   # build and check append_sale_log
   append_sale_log <- cdn_build_append_sale_log(input)
-  # cdn_check_append_sale_log(append_sale_log)
+  
+  gbl_write_var("append_sale_log",append_sale_log)
+  cdn_check_append_sale_log(append_sale_log)
   
   # # writing to database
   if(error_free){
@@ -491,10 +493,13 @@ cdn_check_pxk <- function(){
 }
 
 cdn_print_pxk <- function(open_file=T){
-
+  form_path <- file.path(config$form_path,"pxk_form.xlsx")
+  dest_path <- file.path(
+    config$pxk_out_path,
+    paste0(config$company_name,".",current_pxk$pxk_num,".xlsx"))
   if(error_free){
     
-    wb <- loadWorkbook(file.path(config$form_path,"pxk_form.xlsx"))
+    wb <- loadWorkbook(form_path)
     
     # get the expDate, if a Lot has 2 expDate, select only the 1st
     # need to get all items, not just positive ones
@@ -571,14 +576,11 @@ cdn_print_pxk <- function(open_file=T){
     wb <- write_excel(wb,current_pxk_data,config$pxk_data_coor)
     
     # save the excel sheet
-    dest_path <- file.path(
-      config$pxk_out_path,
-      paste0(config$company_name,".",current_pxk$pxk_num,".xlsx"))
     saveWorkbook(wb,file=dest_path,overwrite = T)
 
     #open the file if open_file=T
     if(open_file){
-      open_location(current_pxk$dest_path)
+      open_location(dest_path)
     }
   }
 }

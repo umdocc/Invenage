@@ -121,6 +121,11 @@ gbl_write_var <- function(var_name, var_data){
   assign(var_name,var_data,envir=globalenv())
 }
 
+# set error_free variable
+gbl_set_error_free <- function(ef_value){
+  gbl_write_var("error_free",ef_value)
+}
+
 check_required_col <- function(col_list, input_df,set_gbl_var=T){
   error_free <- T
   # check for required column
