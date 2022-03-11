@@ -20,11 +20,12 @@ navbarPage(
   navbarMenu(title = uielem$report,
              pir_tab
              ),
+  
+  #update_db menu
+  navbarMenu(title = uielem$update_db,
+             upi_tab
+  ),
 
-  # ceo menu
-  navbarMenu(title = uielem$ceo,
-             ceo_tab
-             ),
   # sys info
   sysinfo_tab
 ) # end navbarPage
