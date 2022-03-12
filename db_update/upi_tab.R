@@ -14,7 +14,7 @@ if ('update_product_info' %in% hidden_tab){
           div(style="display: inline-block;vertical-align:top;width: 120px",
               htmlOutput('upi_ref_smn')),
           htmlOutput('upi_prod_code'),
-          textInput(inputId = 'upi_comm_name', label = uielem$comm_name),
+          htmlOutput('upi_comm_name'),
           div(style="display: inline-block;vertical-align:top;width: 90px",
               htmlOutput('upi_ordering_unit')),
           div(style="display: inline-block;vertical-align:top;width: 90px",

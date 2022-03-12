@@ -58,5 +58,12 @@ shinyServer(function(input, output,session) {
   observeEvent(input$pir_create_report,{
     pir_create_report(input)    # writing to database
   })
-
+  
+  # ------------------------------ update_db menu ------------------------------
+  # update_product_info --------------------------------------------------------
+  output <- upi_init(input,output) #init
+  observeEvent(input$upi_add_product,{
+    output <- upi_add_product(input, output)   # writing to database
+  })
+  
 })

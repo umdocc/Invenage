@@ -1,20 +1,94 @@
 # ------------------------------ UI Load & Render ------------------------------
+# init function
+upi_init <- function(input,output){
+  output <- upi_load_ui(input,output,
+              c('upi_vendor', "upi_ref_smn", "upi_prod_code", "upi_comm_name",
+                "upi_ordering_unit", "upi_prod_type", "upi_default_warehouse"))
+  return(output)
+}
+
 # function to reload additional ui
 upi_load_ui <- function(input,output,ui_list){
   if ("upi_vendor" %in% ui_list){
     output$upi_vendor <- render_upi_vendor()
   }
+  if ("upi_ref_smn" %in% ui_list){
+    output$upi_ref_smn <- render_upi_ref_smn()
+  }
+  if ("upi_prod_code" %in% ui_list){
+    output$upi_prod_code <- render_upi_prod_code()
+  }
+  if ("upi_comm_name" %in% ui_list){
+    output$upi_comm_name <- render_upi_comm_name()
+  }
+  if ("upi_ordering_unit" %in% ui_list){
+    output$upi_ordering_unit <- render_upi_ordering_unit()
+  }
+  if ("upi_prod_type" %in% ui_list){
+    output$upi_prod_type <- render_upi_prod_type()
+  }
+  if ("upi_default_warehouse" %in% ui_list){
+    output$upi_default_warehouse <- render_upi_default_warehouse()
+  }
   return(output)
 }
-# 
-udp_render_vendor <- function(){renderUI({
-  vendor_list <- vendor_info$vendor
 
+
+
+render_upi_vendor <- function(){renderUI({
   selectizeInput(
     inputId = "upi_vendor",
     label = uielem$vendor,
     choices = vendor_info$vendor,
     selected = vendor_info$vendor[1])
+})}
+
+render_upi_ref_smn <- function(){renderUI({
+  selectizeInput(
+    inputId = "upi_ref_smn",
+    label = uielem$ref_smn,
+    choices = NULL,
+    selected = NULL)
+})}
+
+render_upi_prod_code <- function(){renderUI({
+  selectizeInput(
+    inputId = "upi_prod_code",
+    label = uielem$prod_code,
+    choices = NULL,
+    selected = NULL)
+})}
+
+render_upi_comm_name <- function(){renderUI({
+  selectizeInput(
+    inputId = "upi_comm_name",
+    label = uielem$comm_name,
+    choices = NULL,
+    selected = NULL)
+})}
+
+render_upi_ordering_unit <- function(){renderUI({
+  selectizeInput(
+    inputId = "upi_ordering_unit",
+    label = uielem$ordering_unit,
+    choices = NULL,
+    selected = NULL)
+})}
+
+render_upi_prod_type <- function(){renderUI({
+  selectizeInput(
+    inputId = "upi_prod_type",
+    label = uielem$prod_type,
+    choices = NULL,
+    selected = NULL)
+})}
+
+render_upi_default_warehouse <- function(){renderUI({
+  selectizeInput(
+    inputId = "upi_default_warehouse",
+    label = uielem$default_warehouse,
+    choices = NULL,
+    selected = NULL)
 })}
 # 
 # # add product button handler
