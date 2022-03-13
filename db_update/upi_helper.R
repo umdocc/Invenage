@@ -4,6 +4,8 @@ upi_init <- function(input,output){
   output <- upi_load_ui(input,output,
               c('upi_vendor', "upi_ref_smn", "upi_prod_code", "upi_comm_name",
                 "upi_ordering_unit", "upi_prod_type", "upi_default_warehouse"))
+  upi_data <- data.frame(vendor_id=0)
+  gbl_write_var("upi_data",upi_data)
   return(output)
 }
 
@@ -33,155 +35,98 @@ upi_load_ui <- function(input,output,ui_list){
   return(output)
 }
 
-
-
 render_upi_vendor <- function(){renderUI({
   selectizeInput(
-    inputId = "upi_vendor",
-    label = uielem$vendor,
-    choices = vendor_info$vendor,
-    selected = vendor_info$vendor[1])
+    inputId = "upi_vendor", label = uielem$vendor,
+    choices = vendor_info$vendor, selected = vendor_info$vendor[1])
 })}
 
 render_upi_ref_smn <- function(){renderUI({
   selectizeInput(
-    inputId = "upi_ref_smn",
-    label = uielem$ref_smn,
-    choices = NULL,
-    selected = NULL)
+    inputId = "upi_ref_smn", label = uielem$ref_smn,
+    choices = NULL, selected = NULL,
+    options = list(create=T))
 })}
 
 render_upi_prod_code <- function(){renderUI({
   selectizeInput(
-    inputId = "upi_prod_code",
-    label = uielem$prod_code,
-    choices = NULL,
-    selected = NULL)
+    inputId = "upi_prod_code", label = uielem$prod_code,
+    choices = NULL, selected = NULL,
+    options = list(create=T))
 })}
 
 render_upi_comm_name <- function(){renderUI({
   selectizeInput(
-    inputId = "upi_comm_name",
-    label = uielem$comm_name,
-    choices = NULL,
-    selected = NULL)
+    inputId = "upi_comm_name", label = uielem$comm_name,
+    choices = NULL, selected = NULL,
+    options = list(create=T))
 })}
 
 render_upi_ordering_unit <- function(){renderUI({
   selectizeInput(
-    inputId = "upi_ordering_unit",
-    label = uielem$ordering_unit,
-    choices = NULL,
-    selected = NULL)
+    inputId = "upi_ordering_unit", label = uielem$ordering_unit,
+    choices = NULL, selected = NULL,
+    options = list(create=T))
 })}
 
 render_upi_prod_type <- function(){renderUI({
   selectizeInput(
-    inputId = "upi_prod_type",
-    label = uielem$prod_type,
-    choices = NULL,
-    selected = NULL)
+    inputId = "upi_prod_type", label = uielem$prod_type,
+    choices = NULL, selected = NULL)
 })}
 
 render_upi_default_warehouse <- function(){renderUI({
   selectizeInput(
-    inputId = "upi_default_warehouse",
-    label = uielem$default_warehouse,
-    choices = NULL,
-    selected = NULL)
+    inputId = "upi_default_warehouse", label = uielem$default_warehouse,
+    choices = NULL, selected = NULL)
 })}
-# 
-# # add product button handler
-# udp_add_product <- function(input,output){
-#   # collect variables
-#   input_vendor_name <- input$udp_vendor
-#   input_ref_smn <- input$udp_ref_smn
-#   input_prod_code <- input$udp_prod_code
-#   
-#   # if the vendor not exist yet, add and display a notice
-#   if(!check_vendor_exist(input_vendor_name)){
-#     add_vendor_with_product(input_vendor_name)
-#     show_alert("notice","new_vendor_added","info")
-#   }
-#   # pulling information from ui
-#   prod_vendor_id <- vendor_info$vendor_id[
-#     vendor_info$vendor==input_vendor_name]
-#   
-#   # check if a product exist
-#   if(!(check_product_exist(prod_vendor_id,input_ref_smn))){
-#     
-#     # check if the prod_code exist
-#     if(!(check_prod_code_exist(input_prod_code))){
-#       
-#       # compile the line to be added to product_info
-#       append_prod <- data.frame( 
-#         prod_code = input_prod_code,
-#         comm_name = input$udp_comm_name,
-#         vendor_id = prod_vendor_id, 
-#         ref_smn = input_ref_smn,
-#         type = product_type$prod_type[
-#           product_type$actual == input$add_prod_type],
-#         updated_date = format(Sys.Date()),
-#         warehouse_id = warehouse_info$warehouse_id[
-#           warehouse_info$warehouse==input$add_warehouse],
-#         active = 1)
-#       
-#       
-#       # compose line to be added to packaging
-#       append_pkg <- data.frame(
-#         prod_code = input$udp_prod_code, 
-#         unit = tolower(input$udp_ordering_unit),
-#         units_per_pack = 1, 
-#         last_updated = format(Sys.Date())
-#       )
-#       
-#       
-#       # check if anything missing
-#       if(check_blank(append_prod) | check_blank(append_pkg)){
-#         big_msg <- uielem$input_error
-#         small_msg <- uielem$missing_fields
-#         shinyalert(title = big_msg, text = small_msg, type = "error")
-#       }else{
-#         append_tbl_rld(config_dict, 'product_info',append_prod)
-#         append_tbl_rld(config_dict, 'packaging',append_pkg)
-#         
-#         big_msg <- ui_elem$actual[ui_elem$label=='done']
-#         small_msg <- ui_elem$actual[ui_elem$label=='add_prod_success']
-#         shinyalert(title = big_msg, text = small_msg, type = "success")
-#       }
-#     }
-#   }
-# }
-# 
-# # add a vendor when adding a new product, config all parameters automatically
-# add_vendor_with_product <- function(input_vendor_name){
-#   if(input_vendor_name!=''&!is.na(input_vendor_name)){
-#     append_vendor_info <- data.frame(
-#       vendor = input_vendor_name, 
-#       local=0,
-#       orig_vendor = 1)
-#     append_tbl_rld(config_dict,'vendor_info',append_vendor_info)
-#     
-#     if(as.integer(config$add_vendor_code)){
-#       add_vendor_code(input_vendor_name)
-#     }
-#   }else{
-#     show_alert("error","empty_vendor_name")
-#   }
-#   
-# }
-# 
-# add_vendor_code <- function(vendor_name){
-#   new_vendor_id <- db_read_query(paste0(
-#     "select vendor_id from vendor_info where vendor='",
-#     vendor_name,"'"))$vendor_id
-#   new_vendor_code <- paste0(
-#     config$vendor_code_prefix,
-#     formatC(as.integer(new_vendor_id),
-#             width=as.integer(config$vendor_code_width), 
-#             flag="0"))
-#   
-#   db_exec_query(paste0(
-#     "update vendor_info info set vendor_code='",
-#     new_vendor_code,"' where vendor_id=",new_vendor_id))
-# }
+
+# collection input data and write to global
+upi_update_data <- function(input){
+  upi_data$vendor_id <- vendor_info$vendor_id[
+    vendor_info$vendor==input$upi_vendor]
+  upi_data$ref_smn <- input$upi_ref_smn
+  upi_data$prod_code <- input$upi_prod_code
+  upi_data$comm_name <- input$upi_comm_name
+  upi_data$ordering_unit <- tolower(input$upi_ordering_unit)
+  gbl_write_var("upi_data",upi_data)
+}
+
+# add product button handler
+upi_add_product <- function(input,output){
+  
+  upi_update_data(input) #collect data
+  
+  # check if a ref or prod_code exist
+  tmp <- product_info[product_info$vendor_id==upi_data$vendor_id & 
+                        product_info$ref_smn == upi_data$ref_smn,]
+  if(nrow(tmp)>0){
+    show_error("ref_exist",upi_data$ref_smn)
+  }
+  tmp <- product_info[product_info$prod_code==upi_data$prod_code,]
+  if(nrow(tmp)>0){
+    show_error("prod_code_exist",upi_data$prod_code)
+  }
+
+  # compile the line to be added to product_info
+  if(error_free){
+    append_prod <- upi_data %>% select(vendor_id, ref_smn, prod_code, comm_name)
+    append_prod$type <- product_type$prod_type[
+        product_type$actual == input$upi_prod_type]
+    append_prod$updated_date <- format(Sys.Date())
+    append_prod$warehouse_id <- warehouse_info$warehouse_id[
+        warehouse_info$warehouse==input$upi_default_warehouse]
+    append_prod$active <- 1
+  
+    # compose line to be added to packaging
+    append_pkg <- upi_data %>% select(prod_code, unit=ordering_unit)
+    append_pkg$units_per_pack <- 1
+    append_pkg$last_updated <- format(Sys.Date())
+    
+    # writing to db
+    db_append_tbl('product_info',append_prod)
+    db_append_tbl('packaging',append_pkg)
+    show_success()
+  }
+
+}
