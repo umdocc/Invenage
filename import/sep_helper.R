@@ -32,7 +32,7 @@ sep_get_local_po_list <- function(po_path){
   po_filelist <- data.frame(
     full_path = list.files(path = po_path, full.names = T, recursive = T))
   if(nrow(po_filelist)>0){
-    po_filelist$po_name <- basename(po_filelist$full_path)
+    po_filelist$po_name <- basename(as.character(po_filelist$full_path))
     po_filelist <- po_filelist[
       grepl(config$po_id_string,po_filelist$po_name) & 
         grepl(config$po_file_format,po_filelist$po_name),]
