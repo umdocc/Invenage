@@ -68,15 +68,15 @@ sapply(func_list, source)
 
 
 # ------------------------- chrome config for windows --------------------------
-if (grepl('windows',config$os_name)){
-  browser_path <- config$browser_path
-  if (file.exists(browser_path)){
-    # set the chrome option
-    options(browser = browser_path)
-  }else{
-    stop('Path to Browser not found or incorrect!!')
-  }
-}
+# if (grepl('windows',config$os_name)){
+#   browser_path <- config$browser_path
+#   if (file.exists(browser_path)){
+#     # set the chrome option
+#     options(browser = browser_path)
+#   }else{
+#     stop('Path to Browser not found or incorrect!!')
+#   }
+# }
 
 # -------------------------- compatibility fixes -------------------------------
 # fix  packaging_str=NA
