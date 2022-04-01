@@ -1,15 +1,28 @@
-get_sale_data <- function(vendor_id,from_date,to_date){
-  return(db_read_query(paste0(
+get_sale_data <- function(vendor_id,from_date="1900-01-01",
+                          to_date="2099-12-30", customer_id=0){
+  
+  # construct the query
+  query <- paste0(
     "select sale_log.prod_code, sale_log.unit, sale_log.qty, 
-      pxk_info.sale_datetime, product_info.ref_smn
+      pxk_info.sale_datetime, pxk_info.customer_id,product_info.ref_smn,
+      product_info.vendor_id
       from sale_log inner join product_info 
       on sale_log.prod_code=product_info.prod_code
       inner join pxk_info
       on sale_log.pxk_num = pxk_info.pxk_num
-      where vendor_id=",vendor_id," and
-      pxk_info.sale_datetime between '",from_date,
-      "' and '",to_date,"'"))
-  )
+      where product_info.vendor_id=",vendor_id)
+  
+  # append customer_id filter
+  if(customer_id!=0){
+    query <- paste0(query," and pxk_info.customer_id=",customer_id)
+  }
+  
+  # append from_data & to_date filter
+  query <- paste0(
+    query," and pxk_info.sale_datetime between '",from_date,
+                  "' and '",to_date,"'")
+  
+  return(db_read_query(query))
 }
 
 gbl_update_inventory <- function(pos_item=TRUE, summarised = FALSE,

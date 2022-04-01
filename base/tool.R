@@ -139,3 +139,24 @@ check_required_col <- function(col_list, input_df,set_gbl_var=T){
     gbl_write_var("error_free",error_free)
   }
 }
+
+get_vendor_id <- function(vendor_name){
+  vendor_id <- vendor_info$vendor_id[grepl(vendor_name,vendor_info$vendor)]
+  if(length(vendor_id)!=1){
+    stop("No/Multiple vendor id found")
+  }
+  return(vendor_id)
+}
+
+get_customer_id <- function(customer_name){
+  customer_id <- customer_info$customer_id[
+    grepl(customer_name,customer_info$customer_name)]
+  if(length(customer_id)==0){
+    stop("No customer id found")
+  }
+  if(length(customer_id)>1){
+    stop("Multiple customer id found")
+  }
+  
+  return(customer_id)
+}
