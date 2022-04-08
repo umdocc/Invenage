@@ -42,15 +42,28 @@ write_excel <- function(
 }
 
 db_integrity_check <- function(){
-  conn <- db_open()
   # check if all items in packaging has an ordering unit
-  db_load_simple_tbl("packaging")
-  ordering_unit <- get_ordering_unit(packaging)
-  tmp <- packaging[!duplicated(packaging$prod_code),]
-  test <- merge(tmp,ordering_unit %>% select(prod_code,ordering_unit),
-                all.x = T)
-  test[is.na(test$ordering_unit),]
-  dbDisconnect(conn)
+  # gbl_load_tbl("packaging")
+  # ordering_unit <- get_ordering_unit(packaging)
+  # tmp <- packaging[!duplicated(packaging$prod_code),]
+  # test <- merge(tmp,ordering_unit %>% select(prod_code,ordering_unit),
+  #               all.x = T)
+  # test[is.na(test$ordering_unit),]
+  
+  # check product_info for duplications
+  tmp <- product_info[duplicated(product_info %>% select(ref_smn, vendor_id, active)),]
+  if(nrow(tmp)>0){
+    stop("duplications found in product_info table!!!!!!!!!!!!!!!!!!!!")
+    print(tmp)
+  }
+  # check import_price for duplications
+  tmp <- import_price[
+    duplicated(import_price %>% 
+                 select(prod_code, min_order, source_name, vendor_id)),]
+  if(nrow(tmp)>0){
+    stop("duplications found in import_price table!!!!!!!!!!!!!!!!!!!!")
+    print(tmp)
+  }
 }
 
 # generate per customer pack prices by aggregating sale_log

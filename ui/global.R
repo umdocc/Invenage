@@ -95,3 +95,6 @@ gbl_write_var("error_free",T)
 
 # create global data
 create_global_data()
+
+# checking database integrity
+db_integrity_check()
