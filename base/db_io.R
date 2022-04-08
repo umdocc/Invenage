@@ -55,7 +55,7 @@ gbl_load_tbl <- function(table_list=c("uielem")){
   
   for (tbl_name in table_list){
     # if complex table process separately, otherwise load entire tbl
-    if(tbl_name %in% c("sale_log", "payment_type")){
+    if(tbl_name %in% c("sale_log", "payment_type", "product_type")){
       
       if(tbl_name=="sale_log"){
         data_tbl <- dbGetQuery(conn,"select * from sale_log inner join pxk_info
@@ -63,10 +63,11 @@ gbl_load_tbl <- function(table_list=c("uielem")){
         assign("sale_log",data_tbl,envir=globalenv())
       }
       
-      if(tbl_name=="payment_type"){
-        data_tbl <- dbGetQuery(conn,"select * from payment_type inner join uielem
-                           on payment_type.payment_label = uielem.label")
-        assign("payment_type",data_tbl,envir=globalenv())
+      if(tbl_name %in% c("payment_type", "product_type")){
+        data_tbl <- dbGetQuery(conn,
+        paste0("select * from ",tbl_name," inner join uielem
+                           on ",tbl_name,".payment_label = uielem.label"))
+        assign(tbl_name,data_tbl,envir=globalenv())
       }
       
     }else{
