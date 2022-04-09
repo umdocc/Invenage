@@ -86,7 +86,7 @@ db_exec_query(
 # -------------------------- load global tables --------------------------------
 gbl_load_tbl(c("sale_log", "payment_type", "packaging", "product_info",
                "import_log", "customer_info", "tender_info", "warehouse_info",
-               "vendor_info","import_price"))
+               "vendor_info","import_price","product_type"))
 
 prod_choices <- db_get_prodlist(config$prod_search_str)
 gbl_update_inventory()
@@ -95,3 +95,6 @@ gbl_write_var("error_free",T)
 
 # create global data
 create_global_data()
+
+# checking database integrity
+db_integrity_check()

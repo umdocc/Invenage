@@ -10,19 +10,26 @@ get_sale_data <- function(vendor_id,from_date="1900-01-01",
       on sale_log.prod_code=product_info.prod_code
       inner join pxk_info
       on sale_log.pxk_num = pxk_info.pxk_num
-      where product_info.vendor_id=",vendor_id)
+      where")
+  
+  # append vendor_id
+  if(vendor_id!=0){
+    query <- paste0(query," product_info.vendor_id=",vendor_id, " and")
+  }
   
   # append customer_id filter
   if(customer_id!=0){
-    query <- paste0(query," and pxk_info.customer_id=",customer_id)
+    query <- paste0(query," pxk_info.customer_id=",customer_id, " and")
   }
   
   # append from_data & to_date filter
-  query <- paste0(
-    query," and pxk_info.sale_datetime between '",from_date,
+  query <- paste0(query," pxk_info.sale_datetime between '",from_date,
                   "' and '",to_date,"'")
   
-  return(db_read_query(query))
+  #  add year
+  sale_data <- db_read_query(query)
+  sale_data$year <- year(sale_data$sale_datetime)
+  return(sale_data)
 }
 
 gbl_update_inventory <- function(pos_item=TRUE, summarised = FALSE,
