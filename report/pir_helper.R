@@ -17,20 +17,7 @@ render_pir_data <- function(input){DT::renderDataTable({
       vendor_info$vendor==input$pir_vendor])
     output_tbl <- get_value_report_sum(inventory_report)
   }
-  
-  # # if po_report is selected
-  # if(report_type==uielem$po_report){
-  #   output_tbl <- get_po_report(current_vendor_id) #get data
-  # }
-  # 
-  # if(report_type==uielem$separate_lot){
-  #   output_tbl <- get_separate_lot_report(current_vendor_id)
-  # }
-  # 
-  # if(report_type==uielem$expiry_first){
-  #   output_tbl <- gen_empty_df()
-  # }
-  
+
   #translate and render
   output_tbl <- translate_tbl_column(output_tbl,uielem)
   DT::datatable(output_tbl, options = list(pageLength = 15),rownames=F)
@@ -126,9 +113,10 @@ get_separate_lot_report <- function(vendor_id){
   if(vendor_id!=0){
     inventory_report <- inventory_report[inventory_report$vendor_id==vendor_id,]
   }
-  col_names <- split_semi(config$pir_separate_lot_report_col)
-  inventory_report <- inventory_report %>% select(col_names)
-  
+  if(!is.null(config$pir_separate_lot_report_col)){
+    col_names <- split_semi(config$pir_separate_lot_report_col)
+    inventory_report <- inventory_report %>% select(col_names)
+  }
   return(inventory_report)
 }
 
