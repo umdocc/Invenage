@@ -66,7 +66,7 @@ gbl_load_tbl <- function(table_list=c("uielem")){
       if(tbl_name %in% c("payment_type", "product_type")){
         data_tbl <- dbGetQuery(conn,
         paste0("select * from ",tbl_name," inner join uielem
-                           on ",tbl_name,".payment_label = uielem.label"))
+                           on ",tbl_name,".label = uielem.label"))
         assign(tbl_name,data_tbl,envir=globalenv())
       }
       
