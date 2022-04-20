@@ -1,4 +1,4 @@
-convert_to_pack <- function(inputDF,packaging,stringSL,packString){
+convert_to_pack <- function(inputDF,packaging,stringSL,packString,write_error=F){
   inputDF <- merge(
     inputDF,packaging %>% select(prod_code,unit,units_per_pack),
     by = c('prod_code','unit'),
@@ -6,7 +6,12 @@ convert_to_pack <- function(inputDF,packaging,stringSL,packString){
   
   # check integrity
   if(nrow(inputDF[is.na(inputDF$units_per_pack),])>0){
-    print(inputDF[is.na(inputDF$units_per_pack),])
+    error_df <- inputDF[is.na(inputDF$units_per_pack),]
+    if(write_error){
+      write.xlsx(error_df, "~/Downloads/pkg_error.xlsx")
+    }else{
+      print(error_df)
+    }
     stop('inputDF contains unrecognised packaging')
   }
   
