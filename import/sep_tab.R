@@ -11,7 +11,7 @@ if ('sep' %in% hidden_tab){
       box(
         width=3,
         p(), #space
-        fileInput("sep_file", uielem$update_actual_unit_cost, 
+        fileInput("sep_po_file", uielem$update_actual_unit_cost, 
                   accept = ".xlsx"),
         actionButton("sep_add_po", 
                      label = uielem$add_po),

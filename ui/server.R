@@ -38,12 +38,12 @@ shinyServer(function(input, output,session) {
   # -------------------------- sync_excel_po - sep -----------------------------
   
   # UI & data load
-  sep_load_data()
-  output <- sep_load_ui(input,output, c('sep_po_name'))
+  # sep_load_data()
+  # output <- sep_load_ui(input,output, c('sep_po_name'))
   
   # buttons handler
-  observeEvent(input$sep_sync_po,{
-    output <- sep_sync_po2db(input,output)     # writing to database
+  observeEvent(input$sep_add_po,{
+    output <- sep_add_po2db(input,output)     # writing to database
   })
   observeEvent(input$write_unit_cost,{
     output <- sep_update_unit_cost(input,output)     # writing to database
