@@ -139,12 +139,17 @@ gbl_set_error_free <- function(ef_value){
   gbl_write_var("error_free",ef_value)
 }
 
-check_required_col <- function(col_list, input_df,set_gbl_var=T, stop_app=F){
+check_required_col <- function(
+    col_list, input_df,set_gbl_var=T, stop_app=F, warn_mode="shiny"){
   error_free <- T
   # check for required column
   for(col_name in col_list){
+    print(col_name)
     if (!(col_name %in% names(input_df))){
       error_msg <- paste("Required column",col_name,"not found")
+      if(warn_mode=="shiny"){
+        shinyalert(uielem$error, error_msg, type = "error")
+      }
       error_free <- F
       if(stop_app){
         stop(error_msg)
