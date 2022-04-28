@@ -55,12 +55,17 @@ gbl_load_tbl <- function(table_list=c("uielem")){
   
   for (tbl_name in table_list){
     # if complex table process separately, otherwise load entire tbl
-    if(tbl_name %in% c("sale_log", "payment_type", "product_type")){
+    if(tbl_name %in% c("sale_log", "payment_type", "product_type", "price_list")){
       
       if(tbl_name=="sale_log"){
         data_tbl <- dbGetQuery(conn,"select * from sale_log inner join pxk_info
                            on sale_log.pxk_num = pxk_info.pxk_num")
         assign("sale_log",data_tbl,envir=globalenv())
+      }
+      
+      if(tbl_name=="price_list"){
+        data_tbl <- dbGetQuery(conn,"select * from price_list where active=1")
+        assign("price_list",data_tbl,envir=globalenv())
       }
       
       if(tbl_name %in% c("payment_type", "product_type")){
