@@ -51,10 +51,11 @@ sep_add_po2db <- function(input,output){
 sep_read_po_data <- function(po_filepath){
 
   # read in data and check required columns
-  po_data <- read.xlsx(po_filepath,skipEmptyRows = F)
-  name_pos <- which(po_data[,1]=="Name")
-  po_name <- po_data[name_pos, 2]
-  start_pos <- which(po_data[,4]=="REF")
+  po_metadata <- sep_check_po(po_filepath)
+  # po_data <- read.xlsx(po_filepath,skipEmptyRows = F)
+  # name_pos <- which(po_data[,1]=="Name")
+  # po_name <- po_data[name_pos, 2]
+  # start_pos <- which(po_data[,4]=="REF")
   po_data <- read.xlsx(po_filepath, startRow = start_pos)
   required_cols <- unlist(strsplit(config$po_data_excel_colnames,";"))
   check_required_col(required_cols, po_data)
@@ -135,6 +136,15 @@ get_vid_from_po_name <- function(po_name){
   }
   return(vendor_id)
 
+}
+
+# check po file for including all required data
+sep_read_po_meta <- function(po_filepath){
+  po_data <- read.xlsx(po_filepath,skipEmptyRows = F, colNames = F)
+  po_name_coord <- as.numeric(split_semi(config$po_name_coord))
+  po_meta <- data.frame(po_name=po_data[po_name_coord[1], po_name_coord[2]])
+  # start_pos <- which(po_data[,4]=="REF")
+  
 }
 
 # 
