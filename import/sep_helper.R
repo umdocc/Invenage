@@ -13,6 +13,7 @@ sep_add_po2db <- function(input,output){
   po_filepath <- input$sep_po_file$datapath
   po_data <- sep_read_po_data(po_filepath)
   
+  print(po_data)
   
   if(error_free){
 
@@ -50,16 +51,15 @@ sep_add_po2db <- function(input,output){
 # read, check and clean po_data
 sep_read_po_data <- function(po_filepath){
 
-  # read in data and check required columns
-  po_metadata <- sep_check_po(po_filepath)
-  # po_data <- read.xlsx(po_filepath,skipEmptyRows = F)
-  # name_pos <- which(po_data[,1]=="Name")
-  # po_name <- po_data[name_pos, 2]
-  # start_pos <- which(po_data[,4]=="REF")
-  po_data <- read.xlsx(po_filepath, startRow = start_pos)
-  required_cols <- unlist(strsplit(config$po_data_excel_colnames,";"))
-  check_required_col(required_cols, po_data)
-
+  # read metadata of po
+  po_meta <- sep_read_po_meta(po_filepath)
+  
+  if(error_free){
+    po_data <- read.xlsx(po_filepath, startRow = po_meta$start_row)
+    required_cols <- unlist(strsplit(config$po_data_excel_colnames,";"))
+    check_required_col(required_cols, po_data)
+  }
+  
   # proceed if previous check not return error_free
   if(error_free){
 
@@ -72,11 +72,7 @@ sep_read_po_data <- function(po_filepath){
     po_data <- sep_add_po_prod_code(po_data)
     
     # add po_name
-    if(grepl(".PO.",po_name)){
-    po_data$po_name <- po_name
-    }else{
-      show_error(type = "po_name_notfound","")
-    }
+    po_data$po_name <- po_meta$po_name
   }
   return(po_data)
 }
@@ -140,11 +136,19 @@ get_vid_from_po_name <- function(po_name){
 
 # check po file for including all required data
 sep_read_po_meta <- function(po_filepath){
+  
   po_data <- read.xlsx(po_filepath,skipEmptyRows = F, colNames = F)
   po_name_coord <- as.numeric(split_semi(config$po_name_coord))
   po_meta <- data.frame(po_name=po_data[po_name_coord[1], po_name_coord[2]])
-  # start_pos <- which(po_data[,4]=="REF")
   
+  po_meta$start_row <- as.numeric(split_semi(config$po_data_start_coord))[1]
+  
+  # check if po name was read correctly
+  if(!grepl(".PO.",po_meta$po_name)){
+    show_error("po_name_notfound")
+  }
+  
+  return(po_meta)
 }
 
 # 
