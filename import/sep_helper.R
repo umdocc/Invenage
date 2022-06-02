@@ -43,7 +43,7 @@ sep_add_po2db <- function(input,output){
     if(error_free){
       db_append_tbl("import_log",append_log)
       
-      # reload other UIs
+      # reload data and other UIs
       gbl_load_tbl("import_log")
       gbl_update_inventory()
       show_success("add_success")
@@ -154,21 +154,46 @@ sep_read_po_meta <- function(po_filepath){
 }
 
 # 
-# sep_update_unit_cost <- function(input,output){
-#   po_name <- input$sep_po_name
-#   sep_file_upload <- input$sep_file
-#   
-#   unit_cost_data <- read.xlsx(sep_file_upload$datapath)
-#   print(sep_file_upload$datapath)
-#   print(unit_cost_data)
-#   # will need to check file format and columns etc later
-#   unit_cost_data <- unit_cost_data %>% select(ref_smn,actual_unit_cost)
-#   
-#   # write the unit cost to both the po and the database
-#   # write_po_unit_cost(po_name, unit_cost_data)
-#   
-#   return(output)
-# }
+sep_update_unit_cost <- function(input, keep_old_data=T){
+  
+  req(input$sep_po_file)
+  po_filepath <- input$sep_po_file$datapath
+  
+  po_meta <- sep_read_po_meta(po_filepath)
+  po_data <- sep_read_po_data(po_filepath, po_meta)
+
+  # get the unit cost to write
+  unit_cost_data <- po_data %>% filter(!is.na(actual_unit_cost))
+  unit_cost_data <- merge(
+    unit_cost_data, product_info %>% select(prod_code, ref_smn)) %>%
+    select(prod_code, actual_unit_cost, lot, qty)
+  
+  # retrieve entries from database that match po_name
+  # if overwrite_old is TRUE, then we dont need to filter na
+  db_data <- import_log[import_log$po_name==po_meta$po_name,]
+  if(keep_old_data){
+    db_data <- db_data %>% filter(is.na(actual_unit_cost))
+    }
+  db_data <- db_data %>% select(prod_code,lot,qty)
+  
+  
+  append_unit_cost <- merge(unit_cost_data, db_data)
+  
+  #construct queries
+  for (i in 1:nrow(append_unit_cost)){
+    query <- paste0("update import_log set actual_unit_cost=",
+                    append_unit_cost$actual_unit_cost[i]," where prod_code='",
+                    append_unit_cost$prod_code[i],"' and lot='",
+                    append_unit_cost$lot[i],"' and qty=",
+                    append_unit_cost$qty[i]," and po_name='",
+                    po_meta$po_name,"'")
+    db_exec_query(query)
+  }
+  # reload data and other UIs
+  gbl_load_tbl("import_log")
+  gbl_update_inventory()
+  show_success("add_success")
+}
 # 
 # write_po_unit_cost <- function(po_name, unit_cost_data=NULL, 
 #                                write_mode="full"

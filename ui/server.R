@@ -46,7 +46,7 @@ shinyServer(function(input, output,session) {
     output <- sep_add_po2db(input,output)     # writing to database
   })
   observeEvent(input$write_unit_cost,{
-    output <- sep_update_unit_cost(input,output)     # writing to database
+    output <- sep_update_unit_cost(input)     # writing to database
   })
   
   # ------------------------ po_inventory_report - pir -------------------------
