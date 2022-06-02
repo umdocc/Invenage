@@ -11,9 +11,10 @@ sep_load_ui <- function(input,output,ui_list){
 sep_add_po2db <- function(input,output){
   req(input$sep_po_file)
   po_filepath <- input$sep_po_file$datapath
-  po_data <- sep_read_po_data(po_filepath)
   
-  print(po_data)
+  # read metadata of po
+  po_meta <- sep_read_po_meta(po_filepath)
+  po_data <- sep_read_po_data(po_filepath, po_meta)
   
   if(error_free){
 
@@ -25,14 +26,17 @@ sep_add_po2db <- function(input,output){
                  po_data$prod_code[is.na(po_data$unit)])
     }
   }
-  po_name <-unique(po_data$po_name) # compatibility
-  append_log <- sep_check_db_exist(po_name, po_data)
-  # print(append_log)
+  
+  append_log <- sep_check_db_exist(po_meta$po_name, po_data)
+
   if(nrow(append_log)>0){
+    # add po_name to write to db
+    append_log$po_name <- po_meta$po_name
+    
     
     # add data and append to db
     append_log$delivery_date <- Sys.Date()
-    append_log$vendor_id <- get_vid_from_po_name(po_name)
+    append_log$vendor_id <- get_vid_from_po_name(po_meta$po_name)
     keep_col <- c("prod_code", "unit", "qty", "lot", "po_name", "exp_date",
                   "delivery_date", "vendor_id", "note")
     append_log <- append_log[,keep_col]
@@ -43,16 +47,15 @@ sep_add_po2db <- function(input,output){
       gbl_load_tbl("import_log")
       gbl_update_inventory()
       show_success("add_success")
+    }else{
+      show_error("data_exist")
     }
     
   }
 }
 
 # read, check and clean po_data
-sep_read_po_data <- function(po_filepath){
-
-  # read metadata of po
-  po_meta <- sep_read_po_meta(po_filepath)
+sep_read_po_data <- function(po_filepath, po_meta){
   
   if(error_free){
     po_data <- read.xlsx(po_filepath, startRow = po_meta$start_row)
@@ -71,8 +74,6 @@ sep_read_po_data <- function(po_filepath){
     # add prod_code and check for invalid product
     po_data <- sep_add_po_prod_code(po_data)
     
-    # add po_name
-    po_data$po_name <- po_meta$po_name
   }
   return(po_data)
 }
@@ -128,6 +129,7 @@ get_vid_from_po_name <- function(po_name){
   }
   # if we cannot find anything set error_free to F
   if (is.na(vendor_id)){
+    show_error("vendorid_notfound")
     gbl_write_var("error_free",F)
   }
   return(vendor_id)
