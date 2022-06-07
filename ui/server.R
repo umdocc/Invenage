@@ -45,7 +45,7 @@ shinyServer(function(input, output,session) {
   observeEvent(input$sep_add_po,{
     output <- sep_add_po2db(input,output)     # writing to database
   })
-  observeEvent(input$write_unit_cost,{
+  observeEvent(input$sep_add_unit_cost,{
     output <- sep_update_unit_cost(input)     # writing to database
   })
   
