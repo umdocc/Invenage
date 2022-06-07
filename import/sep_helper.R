@@ -16,6 +16,10 @@ sep_add_po2db <- function(input,output){
   po_meta <- sep_read_po_meta(po_filepath)
   po_data <- sep_read_po_data(po_filepath, po_meta)
   
+  gbl_write_var("po_data",po_data)
+  gbl_write_var("po_meta",po_meta)
+  
+  
   if(error_free){
 
     po_data <- merge(po_data,ordering_unit, all.x=T)
@@ -28,7 +32,8 @@ sep_add_po2db <- function(input,output){
   }
   
   append_log <- sep_check_db_exist(po_meta$po_name, po_data)
-
+ print("appending")
+ print(append_log)
   if(nrow(append_log)>0){
     # add po_name to write to db
     append_log$po_name <- po_meta$po_name
@@ -51,6 +56,8 @@ sep_add_po2db <- function(input,output){
       show_error("data_exist")
     }
     
+  }else{
+    show_error("data_exist")
   }
 }
 
