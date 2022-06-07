@@ -13,7 +13,6 @@ if ('update_product_info' %in% hidden_tab){
               htmlOutput('upi_vendor')),
           div(style="display: inline-block;vertical-align:top;width: 120px",
               htmlOutput('upi_ref_smn')),
-          htmlOutput('upi_prod_code'),
           htmlOutput('upi_comm_name'),
           div(style="display: inline-block;vertical-align:top;width: 90px",
               htmlOutput('upi_ordering_unit')),
