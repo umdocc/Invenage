@@ -427,6 +427,7 @@ cdn_add_entry <- function(input,output){
     
     # reload data and ui
     gbl_load_tbl("sale_log")
+    cdn_clean_duplicated()
     gbl_update_inventory()
     cdn_load_ui(input,output,c("cdn_pxk_data","cdn_prod_info", "cdn_pxk_info",
                                "cdn_customer"))
@@ -584,4 +585,30 @@ cdn_print_pxk <- function(open_file=T){
       open_location(dest_path)
     }
   }
+}
+
+cdn_clean_duplicated <- function(){
+  #sale log duplication
+  tmp <- sale_log[
+    duplicated(
+      sale_log %>% 
+        select(prod_code, unit, unit_price, qty, lot, pxk_num, 
+               warehouse_id, tender_id, customer_id, payment_code, note)),]
+  
+  if(nrow(tmp)>0){
+    # clean duplicated in db and reload global data
+    conn <- db_open()
+    for (i in 1:nrow(tmp)){
+      query <- paste0("delete from sale_log where id=",tmp$id[i])
+      # print(query)
+      dbExecute(conn,query)
+    }
+    dbDisconnect(conn)
+    
+    assign("current_pxk_data",get_pxk_data(current_pxk$pxk_num),
+           envir=globalenv())
+    gbl_load_tbl("sale_log")
+
+  }
+
 }

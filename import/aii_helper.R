@@ -230,6 +230,7 @@ aii_add_entry <- function(input,output){
   
   # reload global variables
   gbl_load_tbl("import_log")
+  aii_clean_duplicated()
   gbl_update_inventory()
   output <- aii_load_ui(input,output,"aii_import_data")
   return(output)
@@ -241,6 +242,16 @@ aii_clean_duplicated <- function(){
     duplicated(
       import_log %>% 
         select(prod_code,unit,qty,po_name,lot,in_invoice_num, 
-               delivery_date, note)),]
+               delivery_date, in_warehouse_id, in_vat_percent, note)),]
   
+  if(nrow(tmp)>0){
+    # clean duplicated
+    conn <- db_open()
+    for (i in 1:nrow(tmp)){
+      query <- paste0("delete from import_log where id=",tmp$id[i])
+      dbExecute(conn,query)
+    }
+    dbDisconnect(conn)
+  }
+  gbl_load_tbl("import_log")
 }
