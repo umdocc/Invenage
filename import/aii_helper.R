@@ -234,3 +234,13 @@ aii_add_entry <- function(input,output){
   output <- aii_load_ui(input,output,"aii_import_data")
   return(output)
 }
+
+aii_clean_duplicated <- function(){
+  #import log duplication
+  tmp <- import_log[
+    duplicated(
+      import_log %>% 
+        select(prod_code,unit,qty,po_name,lot,in_invoice_num, 
+               delivery_date, note)),]
+  
+}
