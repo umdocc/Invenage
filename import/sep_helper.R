@@ -32,10 +32,11 @@ sep_add_po2db <- function(input,output){
   }
   
   append_log <- sep_check_db_exist(po_meta$po_name, po_data)
- print("appending")
- print(append_log)
+  
   if(nrow(append_log)>0){
     # add po_name to write to db
+    print("adding items from PO to database")
+    print(append_log)
     append_log$po_name <- po_meta$po_name
     
     
