@@ -169,9 +169,13 @@ render_cdn_unit_price <- function(input){renderUI({
   current_customer_id <- customer_info$customer_id[
     customer_info$customer_name==input$cdn_customer]
   
-  price_hist <- sale_log[sale_log$prod_code==current_prod_code,]
-  price_hist <- price_hist[price_hist$customer_id==current_customer_id,]
-  price_hist <- price_hist[price_hist$promotion_price==0,]
+  price_hist <- sale_log[sale_log$prod_code==current_prod_code,] %>% 
+    filter((customer_id == current_customer_id) & (promotion_price == 0) & 
+             (unit == input$cdn_unit))
+  
+  # price_hist <- price_hist[price_hist$customer_id==current_customer_id,]
+  # price_hist <- price_hist[price_hist$promotion_price==0,]
+  # price_hist <- price_hist[price_hist$unit== input$cdn_unit,]
   
   price_choices <- unique(price_hist$unit_price)
   price_selected <- price_hist$unit_price[
@@ -207,6 +211,12 @@ render_cdn_prod_info <- function(input){renderUI({
     prod_choices$prod_search_str == input$cdn_prod_name]
   current_lot <- input$cdn_lot
   current_selected_unit <- input$cdn_unit
+  current_ref_smn <- product_info$ref_smn[
+    product_info$prod_code == current_prod_code]
+  current_vendor_id <- product_info$vendor_id[
+    product_info$prod_code == current_prod_code]
+  current_vendor <- vendor_info$vendor[
+    vendor_info$vendor_id == current_vendor_id]
   
   selected_info <-inventory[
     inventory$prod_code == current_prod_code &
@@ -250,10 +260,10 @@ render_cdn_prod_info <- function(input){renderUI({
   
   product_info_str <- paste(
     uielem$information, ':<br/>',
-    uielem$prod_code,':',current_prod_code, '<br/>',
-    uielem$vendor,':','<br/>',
-    uielem$ref_smn,":",'<br/>',
-    uielem$exp_date,':','<br/>',
+    # uielem$prod_code,':',current_prod_code, '<br/>',
+    uielem$vendor,':',current_vendor,'<br/>',
+    uielem$ref_smn,":",current_ref_smn,'<br/>',
+    uielem$exp_date,':',current_exp_date,'<br/>',
     uielem$remaining_qty,':',
     round(total_available*current_units_per_pack, digits=0),
     current_selected_unit,'(',
