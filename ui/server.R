@@ -21,7 +21,9 @@ shinyServer(function(input, output,session) {
   observeEvent(input$cdn_complete_pxk,{
     cdn_complete_pxk(input,output) # execute command to complete the pxk
   })
-
+  
+  output <- mdn_load_ui(input,output,c("mdn_pxk_num"))
+  
 # -------------------------- add_import_item - aii -----------------------------
 
   # UI load
