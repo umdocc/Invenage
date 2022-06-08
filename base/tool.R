@@ -181,3 +181,9 @@ get_customer_id <- function(customer_name){
   
   return(customer_id)
 }
+
+# this function will check the table in db specified in tbl_name and clean all 
+# duplicated entries found
+load_tbl_and_clean_duplicated <- function(tbl_name,column_list){
+  gbl_load_tbl(tbl_name)
+}
