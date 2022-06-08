@@ -180,3 +180,21 @@ render_upi_add_pkg_explanation <- function(input){renderUI({
              input$upi_add_pkg_comm_name))
 })
 }
+
+upi_append_pkg <- function(input, output){
+  upi_prod_code <- prod_choices$prod_code[
+    prod_choices$prod_search_str==input$upi_add_pkg_comm_name]
+  append_pkg <- data.frame(
+    unit = input$upi_add_pkg_unit,
+    units_per_pack = input$upi_add_unit_spp,
+    prod_code = upi_prod_code,
+    last_updated = Sys.Date(),
+    ordering_unit = 0
+  )
+  
+  db_append_tbl("packaging",append_pkg)
+  load_tbl_and_clean_duplicated(
+    "packaging", c("unit", "prod_code"))
+  
+  return(output)
+}

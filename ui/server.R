@@ -65,5 +65,8 @@ shinyServer(function(input, output,session) {
   observeEvent(input$upi_add_product,{
     output <- upi_add_product(input, output)   # writing to database
   })
+  observeEvent(input$upi_add_pkg,{
+    output <- upi_append_pkg(input, output)   # writing to database
+  })
   
 })
