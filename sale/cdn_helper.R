@@ -381,9 +381,11 @@ cdn_build_append_sale_log <- function(input){
 }
 
 cdn_check_append_sale_log <- function(append_sale_log){
+  append_sale_log <- convert_to_pack(
+    append_sale_log, packaging, "qty","pack_qty")
   tmp <- inventory[inventory$lot==append_sale_log$lot &
                      inventory$prod_code==append_sale_log$prod_code,]
-  test_remain <- tmp$remaining_qty - as.numeric(append_sale_log$qty)
+  test_remain <- tmp$remaining_qty - append_sale_log$pack_qty
   thres <- -0.001
   if(test_remain < thres){
     gbl_write_var("error_free",F)
