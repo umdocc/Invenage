@@ -173,10 +173,6 @@ render_cdn_unit_price <- function(input){renderUI({
     filter((customer_id == current_customer_id) & (promotion_price == 0) & 
              (unit == input$cdn_unit))
   
-  # price_hist <- price_hist[price_hist$customer_id==current_customer_id,]
-  # price_hist <- price_hist[price_hist$promotion_price==0,]
-  # price_hist <- price_hist[price_hist$unit== input$cdn_unit,]
-  
   price_choices <- unique(price_hist$unit_price)
   price_selected <- price_hist$unit_price[
     price_hist$sale_datetime==max(price_hist$sale_datetime)]

@@ -14,14 +14,11 @@ if ('mdn' %in% hidden_tab){
       actionButton("print_mdn_pxk", label = uielem$print_delivery_note),
       p()
     )
-    # ,
-    # box(
-    #   width = 9,
-    #   p(),
-    #   htmlOutput("mdn_pxk_data"),
-    #   DT::dataTableOutput("mdn_pxk_data"),
-    #   p()
-    # )# end inv_out box2
+    ,
+    box(
+      width = 9,
+      p()
+    )# end inv_out box2
   )# end inv_out fluidRow
 ) # end of ui object
 }
