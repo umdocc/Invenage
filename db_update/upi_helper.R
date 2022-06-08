@@ -4,7 +4,8 @@ upi_init <- function(input,output){
   output <- upi_load_ui(input,output,
               c('upi_vendor', "upi_ref_smn", "upi_comm_name",
                 "upi_ordering_unit", "upi_prod_type", "upi_default_warehouse",
-                "upi_add_pkg_comm_name"))
+                "upi_add_pkg_comm_name", "upi_add_pkg_unit",
+                "upi_add_unit_spp", "upi_add_pkg_explanation"))
   upi_data <- data.frame(vendor_id=0)
   gbl_write_var("upi_data",upi_data)
   return(output)
@@ -32,6 +33,15 @@ upi_load_ui <- function(input,output,ui_list){
   }
   if ("upi_add_pkg_comm_name" %in% ui_list){
     output$upi_add_pkg_comm_name <- render_upi_add_pkg_comm_name()
+  }
+  if ("upi_add_pkg_unit" %in% ui_list){
+    output$upi_add_pkg_unit <- render_upi_add_pkg_unit()
+  }
+  if ("upi_add_unit_spp" %in% ui_list){
+    output$upi_add_unit_spp <- render_upi_add_unit_spp()
+  }
+  if ("upi_add_pkg_explanation" %in% ui_list){
+    output$upi_add_pkg_explanation <- render_upi_add_pkg_explanation(input)
   }
   return(output)
 }
@@ -135,5 +145,38 @@ render_upi_add_pkg_comm_name <- function(){renderUI({
     choices = prod_choices$prod_search_str, 
     selected = prod_choices$prod_search_str[1], 
     options = list(create = F))
+})
+}
+
+render_upi_add_pkg_unit <- function(){renderUI({
+  
+  selectizeInput(
+    inputId = "upi_add_pkg_unit", label = uielem$unit, 
+    choices = unique(packaging$unit), 
+    selected = unique(packaging$unit)[1], 
+    options = list(create = T))
+})
+}
+
+render_upi_add_unit_spp <- function(){renderUI({
+  
+  selectizeInput(
+    inputId = "upi_add_unit_spp", label = uielem$qty, 
+    choices = 1:10000, 
+    selected = 1, 
+    options = list(create = T))
+})
+}
+
+render_upi_add_pkg_explanation <- function(input){renderUI({
+  upi_spp <- input$upi_add_unit_spp
+  upi_unit <- input$upi_add_pkg_unit
+  upi_prod_code <- prod_choices$prod_code[
+    prod_choices$prod_search_str==input$upi_add_pkg_comm_name]
+  upi_ordering_unit <- ordering_unit$unit[
+    ordering_unit$prod_code==upi_prod_code]
+  HTML(paste(uielem$add_pkg,
+             upi_spp, upi_unit, "/", upi_ordering_unit,
+             input$upi_add_pkg_comm_name))
 })
 }
