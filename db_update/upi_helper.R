@@ -3,7 +3,8 @@
 upi_init <- function(input,output){
   output <- upi_load_ui(input,output,
               c('upi_vendor', "upi_ref_smn", "upi_comm_name",
-                "upi_ordering_unit", "upi_prod_type", "upi_default_warehouse"))
+                "upi_ordering_unit", "upi_prod_type", "upi_default_warehouse",
+                "upi_add_pkg_comm_name"))
   upi_data <- data.frame(vendor_id=0)
   gbl_write_var("upi_data",upi_data)
   return(output)
@@ -28,6 +29,9 @@ upi_load_ui <- function(input,output,ui_list){
   }
   if ("upi_default_warehouse" %in% ui_list){
     output$upi_default_warehouse <- render_upi_default_warehouse()
+  }
+  if ("upi_add_pkg_comm_name" %in% ui_list){
+    output$upi_add_pkg_comm_name <- render_upi_add_pkg_comm_name()
   }
   return(output)
 }
@@ -122,4 +126,14 @@ upi_add_product <- function(input,output){
     show_success("add_success")
   }
 
+}
+
+render_upi_add_pkg_comm_name <- function(){renderUI({
+  
+  selectizeInput(
+    inputId = "upi_add_pkg_comm_name", label = uielem$comm_name, 
+    choices = prod_choices$prod_search_str, 
+    selected = prod_choices$prod_search_str[1], 
+    options = list(create = F))
+})
 }

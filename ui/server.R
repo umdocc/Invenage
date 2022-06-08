@@ -22,12 +22,6 @@ shinyServer(function(input, output,session) {
     cdn_complete_pxk(input,output) # execute command to complete the pxk
   })
 
-#  ----------------------- manage delivery note - mdn --------------------------
-  
-  output <- mdn_load_ui(input,output,
-    c("mdn_pxk_num", "mdn_pxk_info","mdn_pxk_data"))
-
-  
 # -------------------------- add_import_item - aii -----------------------------
 
   # UI load

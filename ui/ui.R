@@ -8,7 +8,6 @@ navbarPage(
   # sale menu
   navbarMenu(title = uielem$inventory_out,
              cdn_tab
-             ,mdn_tab
   ),
   
   # import
