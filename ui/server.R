@@ -58,6 +58,16 @@ shinyServer(function(input, output,session) {
   observeEvent(input$pir_create_report,{
     pir_create_report(input)    # writing to database
   })
+
+  # ------------------------ import_log_report - ilr -------------------------
+  
+  # UI & data load
+  output <- ilr_load_ui(input,output, c('ilr_data'))
+  
+  # ------------------------ sale_log_report - slr -------------------------
+  
+  # UI & data load
+  output <- slr_load_ui(input,output, c('slr_data'))
   
   # ------------------------------ update_db menu ------------------------------
   # update_product_info --------------------------------------------------------

@@ -18,7 +18,9 @@ navbarPage(
   
   # reports menu
   navbarMenu(title = uielem$report,
-             pir_tab
+             pir_tab,
+             ilr_tab,
+             slr_tab
              ),
   
   #update_db menu
