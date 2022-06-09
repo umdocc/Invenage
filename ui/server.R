@@ -65,9 +65,8 @@ shinyServer(function(input, output,session) {
   output <- ilr_load_ui(input,output, c('ilr_data'))
   
   # ------------------------ sale_log_report - slr -------------------------
-  
   # UI & data load
-  output <- slr_load_ui(input,output, c('slr_data'))
+  output <- slr_init(input,output)
   
   # ------------------------------ update_db menu ------------------------------
   # update_product_info --------------------------------------------------------
