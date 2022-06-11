@@ -4,13 +4,13 @@ if('slr' %in% hidden_tab){
 }else{
   slr_tab <- tabPanel(uielem$sale_log_report,
     fluidRow(
-      box(width=3,
-          p(),
+      box(width=2,
           htmlOutput("slr_pxk_num"),
+          htmlOutput("slr_pxk_stt"),
           p()
       )
       ,
-      box(width=9,
+      box(width=10,
         DT::dataTableOutput("slr_data")
       )
     )
