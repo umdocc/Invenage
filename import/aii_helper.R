@@ -35,6 +35,16 @@ aii_load_ui <- function(input,output,ui_list){
   return(output)
 }
 
+aii_init <- function(input, output){
+  output <- aii_load_ui(
+    input,output,
+    c('aii_prod_name', "aii_vendor", 'aii_invoice_num', 
+      "aii_invoice_warehouse", "aii_qty", "aii_unit", "aii_lot",
+      "aii_exp_date", "aii_unit_cost", "aii_vat_percent", "aii_import_data"))
+  return(output)
+}
+
+
 render_aii_prod_name <- function(input){renderUI({
 
   selectizeInput(

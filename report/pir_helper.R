@@ -9,15 +9,20 @@ pir_load_ui <- function(input,output,ui_list){
 
 # render display data
 render_pir_data <- function(input){DT::renderDataTable({
-
-  # we will need to access input here as these values 
-  # has not been written to global data
+  
+  # get current vendor_id
+  current_vid <- vendor_info$vendor_id[
+    vendor_info$vendor==input$pir_vendor]
+  
+  # generate tables based on report type
   if(input$pir_report_type==uielem$value_report){
-    inventory_report <- get_value_report(vendor_info$vendor_id[
-      vendor_info$vendor==input$pir_vendor])
-    output_tbl <- get_value_report_sum(inventory_report)
+    inventory_report <- pir_get_value_report(current_vid)
+    output_tbl <- pir_get_value_report_sum(inventory_report)
   }
-
+  if(input$pir_report_type==uielem$po_report){
+    output_tbl <- pir_get_po_report(current_vid)
+  }
+  
   #translate and render
   output_tbl <- translate_tbl_column(output_tbl,uielem)
   DT::datatable(output_tbl, options = list(pageLength = 15),rownames=F)
@@ -34,11 +39,12 @@ pir_create_report <- function(input){
   
   # if value report is selected
   if(pir_data$report_type==uielem$value_report){
-    inventory_report <- get_value_report(pir_data$vendor_id)
+    inventory_report <- pir_get_value_report(pir_data$vendor_id)
   }
-
-  if(pir_data$report_type==uielem$expiry_first){
-    inventory_report <- pir_get_exp_first_report(vendor_id = 0)
+  
+  # if report used for po placement is selected
+  if(pir_data$report_type==uielem$po_report){
+    inventory_report <- pir_get_po_report(vendor_id = pir_data$vendor_id)
   }
   
   pir_print_report(pir_data, inventory_report)
@@ -48,48 +54,50 @@ pir_create_report <- function(input){
 pir_print_report <- function(pir_data, inventory_report){
   
   
-  
+  # get custom data based on report types
   if(pir_data$report_type==uielem$value_report){
-    
-    inventory_report_sum <- get_value_report_sum(inventory_report)
+    required_cols <- c('vendor', 'comm_name', 'ref_smn', 'total_remain_qty',
+                       'mean_unit_cost', 'total_value')
+    inventory_report_sum <- pir_get_value_report_sum(inventory_report)
     inventory_report_sum <- translate_tbl_column(inventory_report_sum, uielem)
   }
+  if(pir_data$report_type==uielem$po_report){
+    required_cols <- c('comm_name', 'ref_smn', 'total_remain_qty',
+                       'monthly_sale')
+  }
+  # filter the required columns
+  inventory_report <- inventory_report[,required_cols]
   
-  # translate and write
-  inventory_report <- inventory_report %>%
-    select(vendor_id,comm_name,ref_smn,total_remain_qty,mean_unit_cost,
-           total_value)
+  # translate the table
   inventory_report <- translate_tbl_column(inventory_report,uielem)
   
+  # preparing sheet data
   if(pir_data$report_type==uielem$value_report){
     list_of_sheets <- list()
     list_of_sheets[[uielem$summary]] <- inventory_report_sum
     list_of_sheets[[uielem$detail]] <- inventory_report
   }else{
     list_of_sheets <- list()
-    list_of_sheets[[uielem$summary]] <- inventory_report_sum
+    list_of_sheets[[uielem$detail]] <- inventory_report
   }
   
   # write excel using list of sheet
   write.xlsx(list_of_sheets, file=pir_data$output_path,
              overwrite = T)
   open_location(pir_data$output_path)
-  
-  
 }
 
 # separate lot is just inventory without sum
-get_separate_lot_report <- function(vendor_id){
-
+pir_get_separate_lot_report <- function(vendor_id){
+  
   # collect other information
-  inventory_report <- merge(inventory,
-                            product_info %>% 
-                              select(prod_code, comm_name,ref_smn, vendor_id),
-                            by='prod_code',all.x=T)
-  inventory_report <- merge(inventory_report,
-                            vendor_info %>% 
-                              select(vendor_id, vendor),
-                            by='vendor_id',all.x=T)
+  inventory_report <- merge(
+    inventory, product_info %>% 
+      select(prod_code, comm_name,ref_smn, vendor_id),
+    by='prod_code',all.x=T)
+  inventory_report <- merge(
+    inventory_report, vendor_info %>% select(vendor_id, vendor),
+    by='vendor_id',all.x=T)
   
   if(vendor_id!=0){
     inventory_report <- inventory_report[inventory_report$vendor_id==vendor_id,]
@@ -102,7 +110,7 @@ get_separate_lot_report <- function(vendor_id){
 }
 
 # generate the inventory report as data_frame
-get_value_report <- function(vendor_id=0){
+pir_get_value_report <- function(vendor_id=0){
   inventory_report <- inventory %>%
     group_by(prod_code) %>%
     summarise(total_remain_qty = sum(remaining_qty))
@@ -116,6 +124,10 @@ get_value_report <- function(vendor_id=0){
                             vendor_info %>% 
                               select(vendor_id, vendor),
                             by='vendor_id',all.x=T)
+  if(vendor_id!=0){
+    inventory_report <- inventory_report[
+      inventory_report$vendor_id == vendor_id,]
+  }
   
   actual_unit_price <- get_actual_unit_price(
     po_filter_str=config$po_file_include)
@@ -125,10 +137,10 @@ get_value_report <- function(vendor_id=0){
     inventory_report$total_remain_qty*inventory_report$mean_unit_cost
   
   return(inventory_report)
-
+  
 }
 
-get_value_report_sum <- function(inventory_report){
+pir_get_value_report_sum <- function(inventory_report){
   inventory_report_sum <- inventory_report %>% 
     group_by(vendor,vendor_id) %>%
     summarise(total_value_sum = sum(total_value,na.rm=T))
@@ -190,7 +202,7 @@ get_actual_unit_price <- function(po_filter_str, method='latest_import',
   # local import data
   local_data <- import_log[!grepl(config$po_id_string,import_log$po_name),]
   local_data <- get_unit_price_from_import_data(local_data, remove_null,
-                                                 method,multi_resolve)
+                                                method,multi_resolve)
   # remove prod_code found in import_data
   local_data <- local_data[!(local_data$prod_code %in% import_data$prod_code),]
   
@@ -222,27 +234,17 @@ get_unit_price_from_import_data <- function(import_data, remove_null,
   return(import_data)
 }
 
-# take a table and add import_price based on min order
-pir_add_import_price <- function(input_df, qty_col="qty"){
-  
-  check_required_col(c(qty_col,"prod_code"), input_df)
-  
-  if(error_free){
-    col_names <- names(input_df) # save list of columns
-    names(input_df)[names(input_df)==qty_col] <- "qty"
-    
-    tmp <- merge(import_price,input_df,all.x=T)
-    tmp <- tmp[tmp$qty>=tmp$min_order & !is.na(tmp$qty),]
-    tmp$qty_ratio <- tmp$qty/tmp$min_order
-    tmp <- tmp %>% group_by(prod_code) %>% mutate(min_ratio=min(qty_ratio))
-    tmp <- tmp[tmp$qty_ratio==tmp$min_ratio,]
-    
-    names(tmp)[names(tmp)=="qty"] <- qty_col
-    
-    # select only original columns
-    col_names <- c(col_names,"import_price","currency_code")
-    tmp <- tmp[,col_names]
+pir_get_po_report <- function(vendor_id){
+  if(vendor_id==0){
+    show_error("invalid_vendor",set_error = T)
+    inventory_report <- inventory
   }else{
-    stop("function encountered error!")
+    inventory_report <- pir_get_value_report(vendor_id)
+    sale_report <- ssr_get_sale_average()
+    inventory_report <- merge(inventory_report, sale_report,all.x = T)
+    inventory_report <- inventory_report %>%
+      select(comm_name, ref_smn, total_remain_qty, monthly_sale)
   }
+  
+  return(inventory_report)
 }

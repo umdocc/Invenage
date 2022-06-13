@@ -1,5 +1,15 @@
 # the sale_stats_report deals with all type of sale statistics
 
+ssr_get_sale_average <- function(){
+  sale_report <- convert_to_pack(sale_log, packaging,"qty","pack_qty")
+  cutoff_date <- Sys.Date()-as.numeric(config$ssr_lookback)
+  sale_report <- sale_report[sale_report$sale_datetime>cutoff_date,]
+  sale_report <- sale_report %>% group_by(prod_code) %>%
+    summarise(
+      monthly_sale = sum(pack_qty)/(as.numeric(config$ssr_lookback)/30.4))
+  return(sale_report)
+}
+
 ssr_get_sale_report <- function(){
 sale_report <- convert_to_pack(sale_log, packaging,"qty","pack_qty")
 
