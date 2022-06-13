@@ -186,4 +186,15 @@ get_customer_id <- function(customer_name){
 # duplicated entries found
 load_tbl_and_clean_duplicated <- function(tbl_name,column_list){
   gbl_load_tbl(tbl_name)
+  tmp <- get(tbl_name)
+  tmp <- tmp[duplicated(tmp[,column_list]),]
+  if(nrow(tmp)>0 & ("id" %in% names(tmp))){
+    conn <- db_open()
+    for (i in 1:nrow(tmp)){
+      query <- paste0("delete from ", tbl_name," where id=",tmp$id[i])
+      dbExecute(conn,query)
+    }
+    dbDisconnect(conn)
+    gbl_load_tbl(tbl_name)
+  }
 }
