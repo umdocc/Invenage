@@ -183,10 +183,8 @@ render_upi_add_pkg_explanation <- function(input){renderUI({
   HTML(
     paste(
       uielem$add_pkg, upi_spp, upi_unit, "/", upi_ordering_unit, 
-      uielem$for_product, input$upi_add_pkg_comm_name, "<br/>",
-      
-      "<font size='+1'>",uielem$information, "</font><br/>",
-      uielem$pkg_indb, ":<br/>",
+      uielem$for_product, input$upi_add_pkg_comm_name, "<br/><br/>",
+      "<font size='+1'>",uielem$pkg_indb, ":</font><br/>",
       paste(upi_pkg_indb$full_str, collapse = "<br/>")
     )
   )
