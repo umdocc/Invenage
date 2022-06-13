@@ -30,7 +30,7 @@ get_slr_data <- function(input,for_display=T){
     output_tbl <- merge(output_tbl, product_info %>%
                           select(prod_code, comm_name), all.x=T)
     output_tbl <- output_tbl %>% 
-      select(id, comm_name, unit, unit_price, qty, lot, pxk_num)
+      select(stt, comm_name, unit, unit_price, qty, lot, pxk_num)
     output_tbl <- translate_tbl_column(output_tbl)
   }
   
@@ -62,11 +62,23 @@ render_slr_pxk_num <- function(input){renderUI({
 render_slr_pxk_stt <- function(input){renderUI({
   stt_list <- sale_log$stt[sale_log$pxk_num==input$slr_pxk_num]
   selectizeInput(
-    inputId = "slr_pxk_stt", label = uielem$stt,
+    inputId = "slr_pxk_stt", label = NULL,
     choices = stt_list,
     selected = NULL,
     options = list(create = F))
   
 })
+}
+
+slr_del_stt <- function(input){
+  query <- paste0("delete from sale_log where pxk_num = ",slr_pxk_num,
+                  " and stt = ",slr_pxk_stt)
+  print(query)
+  # db_exec_query(query)
+  gbl_load_tbl("sale_log")
+  gbl_update_inventory()
+  slr_load_ui(
+    input,output,
+    c("slr_pxk_data", "slr_pxk_num"))
 }
   
