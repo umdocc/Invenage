@@ -62,7 +62,7 @@ shinyServer(function(input, output,session) {
   # ------------------------ import_log_report - ilr -------------------------
   
   # UI & data load
-  output <- ilr_load_ui(input,output, c('ilr_data'))
+  output <- ilr_init(input,output)
   
   # ------------------------ sale_log_report - slr -------------------------
   
