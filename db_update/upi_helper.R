@@ -43,6 +43,7 @@ upi_load_ui <- function(input,output,ui_list){
   if ("upi_add_pkg_explanation" %in% ui_list){
     output$upi_add_pkg_explanation <- render_upi_add_pkg_explanation(input)
   }
+  
   return(output)
 }
 
@@ -175,9 +176,20 @@ render_upi_add_pkg_explanation <- function(input){renderUI({
     prod_choices$prod_search_str==input$upi_add_pkg_comm_name]
   upi_ordering_unit <- ordering_unit$unit[
     ordering_unit$prod_code==upi_prod_code]
-  HTML(paste(uielem$add_pkg,
-             upi_spp, upi_unit, "/", upi_ordering_unit,
-             input$upi_add_pkg_comm_name))
+  upi_pkg_indb <- packaging[
+    packaging$prod_code == upi_prod_code,]
+  upi_pkg_indb$full_str <- paste(
+    upi_pkg_indb$units_per_pack, upi_pkg_indb$unit,"/",upi_ordering_unit)
+  HTML(
+    paste(
+      uielem$add_pkg, upi_spp, upi_unit, "/", upi_ordering_unit, 
+      uielem$for_product, input$upi_add_pkg_comm_name, "<br/>",
+      
+      "<font size='+1'>",uielem$information, "</font><br/>",
+      uielem$pkg_indb, ":<br/>",
+      paste(upi_pkg_indb$full_str, collapse = "<br/>")
+    )
+  )
 })
 }
 
@@ -195,6 +207,7 @@ upi_append_pkg <- function(input, output){
   db_append_tbl("packaging",append_pkg)
   load_tbl_and_clean_duplicated(
     "packaging", c("unit", "prod_code"))
-  
+  show_success(
+    type = "add_success")
   return(output)
 }

@@ -27,13 +27,14 @@ if ('update_product_info' %in% hidden_tab){
           h4(uielem$add_pkg),
           htmlOutput('upi_add_pkg_comm_name'),
           div(style="display: inline-block;vertical-align:top;width: 80px",
-              htmlOutput('upi_add_pkg_unit')),
-          div(style="display: inline-block;vertical-align:top;width: 80px",
               htmlOutput('upi_add_unit_spp')),
-          h4(uielem$explanation),
+          div(style="display: inline-block;vertical-align:top;width: 80px",
+              htmlOutput('upi_add_pkg_unit')),
+          htmlOutput("upi_pkg_indb"),
           htmlOutput("upi_add_pkg_explanation"),
           actionButton(
-            "upi_add_pkg", uielem$add_pkg)
+            "upi_add_pkg", uielem$add_pkg),
+          p()
       ) # end add packaging box
     )
   )
