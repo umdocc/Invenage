@@ -61,8 +61,12 @@ shinyServer(function(input, output,session) {
 
   # ------------------------ import_log_report - ilr -------------------------
   
-  # UI & data load
-  output <- ilr_init(input,output)
+  output <- ilr_init(input,output) #init
+  
+  #button handlers
+  observeEvent(input$ilr_print_report,{
+    output <- ilr_print_report(input, output)   #print report
+  })
   
   # ------------------------ sale_log_report - slr -------------------------
   
@@ -71,6 +75,8 @@ shinyServer(function(input, output,session) {
   # ------------------------------ update_db menu ------------------------------
   # update_product_info --------------------------------------------------------
   output <- upi_init(input,output) #init
+  
+  # button handlers
   observeEvent(input$upi_add_product,{
     output <- upi_add_product(input, output)   # writing to database
   })
