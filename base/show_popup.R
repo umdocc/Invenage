@@ -9,7 +9,7 @@ show_error <- function(type="unit_notfound",var_list="",set_error=T){
   }
 }
 
-show_success <- function(type="add_success",var_list=""){
+show_success <- function(type="add_success",var_list="", timeout=0){
   success_msg <- paste(uielem[,type],var_list)
-  shinyalert(uielem$success, success_msg, type = "success")
+  shinyalert(uielem$success, success_msg, type = "success", timer=timeout)
 }
