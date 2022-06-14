@@ -19,12 +19,15 @@ slr_init <- function(input,output){
 }
 
 get_slr_data <- function(input,for_display=T){
-  if(input$slr_pxk_num!=0){
-  output_tbl <- sale_log[
-    sale_log$pxk_num==input$slr_pxk_num,]
+  slr_current_pxk <- input$slr_pxk_num
+  
+  if(slr_current_pxk!=0){
+    output_tbl <- sale_log[
+      sale_log$pxk_num==input$slr_pxk_num,]
   }else{
     output_tbl <- sale_log
   }
+  
   if(for_display){
     
     output_tbl <- merge(output_tbl, product_info %>%
@@ -71,14 +74,14 @@ render_slr_pxk_stt <- function(input){renderUI({
 }
 
 slr_del_stt <- function(input){
-  query <- paste0("delete from sale_log where pxk_num = ",slr_pxk_num,
-                  " and stt = ",slr_pxk_stt)
+  query <- paste0("delete from sale_log where pxk_num = ",input$slr_pxk_num,
+                  " and stt = ",input$slr_pxk_stt)
   print(query)
   # db_exec_query(query)
   gbl_load_tbl("sale_log")
   gbl_update_inventory()
   slr_load_ui(
     input,output,
-    c("slr_pxk_data", "slr_pxk_num"))
+    c("slr_pxk_data"))
 }
   
