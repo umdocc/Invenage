@@ -26,7 +26,7 @@ slr_init <- function(input,output){
 }
 
 # filter the sale log
-get_slr_data <- function(input,for_display=T){
+get_slr_data <- function(input,for_display=T, trans_col=T){
   
   # get filtering input
   slr_current_pxk <- input$slr_pxk_num
@@ -54,11 +54,18 @@ get_slr_data <- function(input,for_display=T){
   }
   
   if(for_display){
-    
     output_tbl <- merge(output_tbl, product_info %>%
                           select(prod_code, comm_name), all.x=T)
+    output_tbl <- merge(output_tbl, customer_info %>%
+                          select(customer_id, customer_name), all.x=T)
+    output_tbl$sale_date <- as.Date(output_tbl$sale_datetime)
     output_tbl <- output_tbl %>% 
-      select(stt, comm_name, unit, unit_price, qty, lot, pxk_num)
+      select(stt, comm_name, unit, unit_price, qty, lot, pxk_num, customer_name,
+             sale_date)
+    
+  }
+  
+  if(trans_col){
     output_tbl <- translate_tbl_column(output_tbl)
   }
   
@@ -127,7 +134,7 @@ render_slr_prod_name <- function(input){renderUI({
 })
 }
 
-slr_del_stt <- function(input){
+slr_del_line <- function(input){
   query <- paste0("delete from sale_log where pxk_num = ",input$slr_pxk_num,
                   " and stt = ",input$slr_pxk_stt)
   print(query)
@@ -137,5 +144,21 @@ slr_del_stt <- function(input){
   slr_load_ui(
     input,output,
     c("slr_pxk_data"))
+}
+
+slr_print_report <- function(input, output){
+  output_tbl <- get_slr_data(input)
+  slr_current_pxk <- input$slr_pxk_num
+  
+  # if it is a pxk do something otherwise print the output
+  if(slr_current_pxk!=0){
+    pxk_data <- sale_log[sale_log$pxk_num == slr_current_pxk, ]
+  }else{
+    output_file <- file.path(
+      config$report_out_path,
+      paste0(config$report_name_default,".xlsx"))
+    write.xlsx(output_tbl, output_file)
+    open_location(output_file)
+  }
 }
   

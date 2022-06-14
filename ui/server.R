@@ -64,6 +64,11 @@ shinyServer(function(input, output,session) {
   
   output <- slr_init(input,output) #init
   
+  #button handlers
+  observeEvent(input$slr_print_report,{
+    output <- slr_print_report(input, output)   #print report
+  })
+  
   # ------------------------------ update_db menu ------------------------------
   
   # update_product_info --------------------------------------------------------

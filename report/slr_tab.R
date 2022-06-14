@@ -4,9 +4,12 @@ if('slr' %in% hidden_tab){
 }else{
   slr_tab <- tabPanel(
     uielem$sale_log_report,
-    htmlOutput("slr_pxk_num"),
-    htmlOutput("slr_customer"),
-    htmlOutput("slr_prod_name"),
+    div(style="display: inline-block;vertical-align:top;width: 300px",
+        htmlOutput("slr_prod_name")),
+    div(style="display: inline-block;vertical-align:top;width: 240px",
+        htmlOutput("slr_customer")),
+    div(style="display: inline-block;vertical-align:top;width: 210px",
+      htmlOutput("slr_pxk_num")),
     DT::dataTableOutput("slr_data"),
     p(),
     div(style="display: inline-block;vertical-align:top",
@@ -14,7 +17,11 @@ if('slr' %in% hidden_tab){
     div(style="display: inline-block;vertical-align:top;width: 90px",
         htmlOutput("slr_pxk_stt")),
     div(style="display: inline-block;vertical-align:top;width: 150px",
-        actionButton("slr_del_stt",uielem$delete))
+        actionButton("slr_del_line",uielem$delete)),
+    div(style="display: inline-block;vertical-align:top; \
+                        position:absolute;right:15px",
+        actionButton("slr_print_report", uielem$print_report)
+    ),
   )
   
 }
