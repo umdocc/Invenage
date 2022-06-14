@@ -5,6 +5,8 @@ if('slr' %in% hidden_tab){
   slr_tab <- tabPanel(
     uielem$sale_log_report,
     htmlOutput("slr_pxk_num"),
+    htmlOutput("slr_customer"),
+    htmlOutput("slr_prod_name"),
     DT::dataTableOutput("slr_data"),
     p(),
     div(style="display: inline-block;vertical-align:top",
