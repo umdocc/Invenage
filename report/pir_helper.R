@@ -239,9 +239,18 @@ pir_get_po_report <- function(vendor_id){
     show_error("invalid_vendor",set_error = T)
     inventory_report <- inventory
   }else{
-    inventory_report <- pir_get_value_report(vendor_id)
+    inventory_report <- pir_get_value_report(vendor_id) %>% 
+      select(prod_code, vendor_id, total_remain_qty)
     sale_report <- ssr_get_sale_average()
-    inventory_report <- merge(inventory_report, sale_report,all.x = T)
+    sale_report <- merge(
+      sale_report, 
+      product_info %>% select(prod_code, vendor_id), all.x=T)
+    sale_report <- sale_report[sale_report$vendor_id == vendor_id,]
+    inventory_report <- merge(inventory_report, sale_report,all = T)
+
+    inventory_report <- merge(
+      inventory_report, product_info %>% select(prod_code, comm_name, ref_smn)
+    )
     inventory_report <- inventory_report %>%
       select(comm_name, ref_smn, total_remain_qty, monthly_sale)
   }
