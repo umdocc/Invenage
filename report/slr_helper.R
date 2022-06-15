@@ -5,8 +5,8 @@ slr_load_ui <- function(input,output,ui_list){
   if ('slr_pxk_num' %in% ui_list){
     output$slr_pxk_num <- render_slr_pxk_num(input)
   }
-  if ('slr_pxk_stt' %in% ui_list){
-    output$slr_pxk_stt <- render_slr_pxk_stt(input)
+  if ('slr_pxk_lineid' %in% ui_list){
+    output$slr_pxk_lineid <- render_slr_pxk_lineid(input)
   }
   if ('slr_customer' %in% ui_list){
     output$slr_customer <- render_slr_customer(input)
@@ -20,7 +20,7 @@ slr_load_ui <- function(input,output,ui_list){
 slr_init <- function(input,output){
   output <- slr_load_ui(
     input,output, 
-    c('slr_data', "slr_pxk_num", "slr_pxk_stt", "slr_customer",
+    c('slr_data', "slr_pxk_num", "slr_pxk_lineid", "slr_customer",
       "slr_prod_name"))
   return(output)
 }
@@ -60,7 +60,7 @@ get_slr_data <- function(input,for_display=T, trans_col=T){
                           select(customer_id, customer_name), all.x=T)
     output_tbl$sale_date <- as.Date(output_tbl$sale_datetime)
     output_tbl <- output_tbl %>% 
-      select(stt, comm_name, unit, unit_price, qty, lot, pxk_num, customer_name,
+      select(id, comm_name, unit, unit_price, qty, lot, pxk_num, customer_name,
              sale_date)
     
   }
@@ -94,11 +94,11 @@ render_slr_pxk_num <- function(input){renderUI({
 })
 }
 
-render_slr_pxk_stt <- function(input){renderUI({
-  stt_list <- sale_log$stt[sale_log$pxk_num==input$slr_pxk_num]
+render_slr_pxk_lineid <- function(input){renderUI({
+  lineid_list <- get_slr_data(input)$id
   selectizeInput(
-    inputId = "slr_pxk_stt", label = NULL,
-    choices = stt_list,
+    inputId = "slr_pxk_lineid", label = NULL,
+    choices = lineid_list,
     selected = NULL,
     options = list(create = F))
   
@@ -134,9 +134,9 @@ render_slr_prod_name <- function(input){renderUI({
 })
 }
 
-slr_del_line <- function(input){
+slr_del_line <- function(input, output){
   query <- paste0("delete from sale_log where pxk_num = ",input$slr_pxk_num,
-                  " and stt = ",input$slr_pxk_stt)
+                  " and id = ",input$slr_pxk_lineid)
   print(query)
   # db_exec_query(query)
   gbl_load_tbl("sale_log")
@@ -144,6 +144,7 @@ slr_del_line <- function(input){
   slr_load_ui(
     input,output,
     c("slr_pxk_data"))
+  return(output)
 }
 
 slr_print_report <- function(input, output){
@@ -152,7 +153,7 @@ slr_print_report <- function(input, output){
   
   # if it is a pxk do something otherwise print the output
   if(slr_current_pxk!=0){
-    pxk_data <- sale_log[sale_log$pxk_num == slr_current_pxk, ]
+    print_pxk(slr_current_pxk)
   }else{
     output_file <- file.path(
       config$report_out_path,
@@ -161,4 +162,3 @@ slr_print_report <- function(input, output){
     open_location(output_file)
   }
 }
-  

@@ -68,6 +68,12 @@ shinyServer(function(input, output,session) {
   observeEvent(input$slr_print_report,{
     output <- slr_print_report(input, output)   #print report
   })
+  observeEvent(input$slr_reload,{
+    output <- slr_init(input,output)   
+  })
+  observeEvent(input$slr_del_line,{
+    output <- slr_del_line(input, output)   
+  })
   
   # ------------------------------ update_db menu ------------------------------
   
