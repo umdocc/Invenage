@@ -8,7 +8,7 @@ if ('update_vendor_info' %in% hidden_tab){
       box(width = 3, height = 800,
           htmlOutput('uvi_vendor'),
           htmlOutput('uvi_vendor_orig'),
-          # htmlOutput('uv_vendor_local'),
+          htmlOutput('uvi_vendor_local'),
           actionButton("uvi_add_vendor",uielem$add_vendor),
       ),
       box(
