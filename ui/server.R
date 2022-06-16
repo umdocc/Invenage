@@ -66,7 +66,7 @@ shinyServer(function(input, output,session) {
   
   #button handlers
   observeEvent(input$slr_print_report,{
-    output <- slr_print_report(input, output)   #print report
+    output <- slr_print_report(input, output)   #print sale report
   })
   observeEvent(input$slr_reload,{
     output <- slr_init(input,output)   
@@ -83,10 +83,19 @@ shinyServer(function(input, output,session) {
   
   # button handlers
   observeEvent(input$upi_add_product,{
-    output <- upi_add_product(input, output)   # writing to database
+    output <- upi_add_product(input, output)   # add product to db
   })
   observeEvent(input$upi_add_pkg,{
-    output <- upi_append_pkg(input, output)   # writing to database
+    output <- upi_append_pkg(input, output)   # add pkg to db
+  })
+  
+  # update_vendor_info --------------------------------------------------------
+  
+  output <- uvi_init(input,output) #init
+  
+  # button handlers
+  observeEvent(input$uvi_add_vendor,{
+    output <- uvi_add_vendor(input, output)   # add vendor to db
   })
   
 })
