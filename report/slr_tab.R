@@ -10,20 +10,27 @@ if('slr' %in% hidden_tab){
         htmlOutput("slr_customer")),
     div(style="display: inline-block;vertical-align:top;width: 210px",
       htmlOutput("slr_pxk_num")),
-    div(style="display: inline-block;vertical-align:top;width: 150px",
+    div(style="display: inline-block;vertical-align:middle;width: 150px",
         actionButton("slr_reload", uielem$reload)),
     DT::dataTableOutput("slr_data"),
+    div(style="display: inline-block;vertical-align:bottom; \
+                        position:absolute;right:15px",
+        actionButton("slr_print_report", uielem$print_report)),
     p(),
-    div(style="display: inline-block;vertical-align:top",
-        HTML(paste("<font size='+1'>",uielem$del_line,'</font>'))),
-    div(style="display: inline-block;vertical-align:top;width: 90px",
+    h4(uielem$edit_data),
+    div(style="display: inline-block;vertical-align:top;width: 150px",
         htmlOutput("slr_pxk_lineid")),
     div(style="display: inline-block;vertical-align:top;width: 150px",
-        actionButton("slr_del_line",uielem$delete)),
-    div(style="display: inline-block;vertical-align:top; \
-                        position:absolute;right:15px",
-        actionButton("slr_print_report", uielem$print_report)
-    ),
+        htmlOutput("slr_pxk_line_col")),
+    div(style="display: inline-block;vertical-align:top;width: 150px",
+        htmlOutput("slr_pxk_line_col_content")),
+    p(),
+    div(style="display: inline-block;vertical-align:top;width: 150px",
+        actionButton("slr_del_line",uielem$del_line)),
+    p(),
+    div(style="display: inline-block;vertical-align:top;width: 150px",
+        actionButton("slr_edit_line",uielem$edit_data)),
+    p()
   )
   
 }

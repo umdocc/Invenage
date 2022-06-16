@@ -14,6 +14,12 @@ slr_load_ui <- function(input,output,ui_list){
   if ('slr_prod_name' %in% ui_list){
     output$slr_prod_name <- render_slr_prod_name(input)
   }
+  if ('slr_pxk_line_col' %in% ui_list){
+    output$slr_pxk_line_col <- render_slr_pxk_line_col(input)
+  }
+  if ('slr_pxk_line_col_content' %in% ui_list){
+    output$slr_pxk_line_col_content <- render_slr_pxk_line_col_content(input)
+  }
   return(output)
 }
 
@@ -21,7 +27,7 @@ slr_init <- function(input,output){
   output <- slr_load_ui(
     input,output, 
     c('slr_data', "slr_pxk_num", "slr_pxk_lineid", "slr_customer",
-      "slr_prod_name"))
+      "slr_prod_name", "slr_pxk_line_col", "slr_pxk_line_col_content"))
   return(output)
 }
 
@@ -97,7 +103,7 @@ render_slr_pxk_num <- function(input){renderUI({
 render_slr_pxk_lineid <- function(input){renderUI({
   lineid_list <- get_slr_data(input)$id
   selectizeInput(
-    inputId = "slr_pxk_lineid", label = NULL,
+    inputId = "slr_pxk_lineid", label = uielem$line_id,
     choices = lineid_list,
     selected = NULL,
     options = list(create = F))
@@ -134,9 +140,50 @@ render_slr_prod_name <- function(input){renderUI({
 })
 }
 
+render_slr_pxk_line_col <- function(input){renderUI({
+  # may add sophisticated filters later on
+  tmp <- db_read_query("select label, actual from uielem")
+  editable_col <- data.frame(
+    label = unlist(split_semi(config$slr_editable_col)))
+  editable_col <- merge(editable_col, tmp)
+  editable_col <- editable_col$actual
+  selectizeInput(
+    inputId = "slr_pxk_line_col", label = uielem$column,
+    choices = editable_col,
+    selected = editable_col[1],
+    options = list(create = F))
+  
+})
+}
+
+render_slr_pxk_line_col_content <- function(input){renderUI({
+  selectizeInput(
+    inputId = "slr_pxk_line_col_content", label = uielem$content,
+    choices = NULL,
+    selected = NULL,
+    options = list(create = T))
+  
+})
+}
+
 slr_del_line <- function(input, output){
-  query <- paste0("delete from sale_log where pxk_num = ",input$slr_pxk_num,
-                  " and id = ",input$slr_pxk_lineid)
+  query <- paste0("delete from sale_log where id = ", input$slr_pxk_lineid)
+  print(query)
+  # db_exec_query(query)
+  gbl_load_tbl("sale_log")
+  gbl_update_inventory()
+  slr_load_ui(
+    input,output,
+    c("slr_pxk_data"))
+  return(output)
+}
+
+slr_edit_line <- function(input, output){
+  tmp <- db_read_query("select label, actual from uielem")
+  col_2edit <- tmp$label[tmp$actual==input$slr_pxk_line_col]
+  query <- paste0("update sale_log set ",col_2edit,"=",
+                  input$slr_pxk_line_col_content,
+                  " where id = ",input$slr_pxk_lineid)
   print(query)
   # db_exec_query(query)
   gbl_load_tbl("sale_log")

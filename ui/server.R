@@ -74,6 +74,9 @@ shinyServer(function(input, output,session) {
   observeEvent(input$slr_del_line,{
     output <- slr_del_line(input, output)   
   })
+  observeEvent(input$slr_edit_line,{
+    output <- slr_edit_line(input, output)   
+  })
   
   # ------------------------------ update_db menu ------------------------------
   
