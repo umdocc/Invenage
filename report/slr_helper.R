@@ -20,6 +20,9 @@ slr_load_ui <- function(input,output,ui_list){
   if ('slr_pxk_line_col_content' %in% ui_list){
     output$slr_pxk_line_col_content <- render_slr_pxk_line_col_content(input)
   }
+  if ('slr_confirm_code' %in% ui_list){
+    output$slr_confirm_code <- render_slr_confirm_code(input)
+  }
   return(output)
 }
 
@@ -166,15 +169,27 @@ render_slr_pxk_line_col_content <- function(input){renderUI({
 })
 }
 
+render_slr_confirm_code <- function(input){renderUI({
+  selectizeInput(
+    inputId = "slr_confirm_code", label = uielem$confirm_code,
+    choices = c(1987,1956),
+    selected = NULL,
+    options = list(create = F))
+  
+})
+}
+
 slr_del_line <- function(input, output){
   query <- paste0("delete from sale_log where id = ", input$slr_pxk_lineid)
-  print(query)
-  # db_exec_query(query)
+  # print(query)
+  db_exec_query(query)
   gbl_load_tbl("sale_log")
   gbl_update_inventory()
-  slr_load_ui(
-    input,output,
-    c("slr_pxk_data"))
+  
+  output <- slr_load_ui(
+    input,output, 
+    c('slr_data'))
+  
   return(output)
 }
 
