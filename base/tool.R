@@ -210,7 +210,7 @@ print_pxk <- function(pxk_num, open_file = T){
   if(file.exists(form_path) & file.exists(config$pxk_out_path)){
     dest_path <- file.path(
       config$pxk_out_path,
-      paste0(config$company_name,".",current_pxk$pxk_num,".xlsx"))
+      paste0(config$company_name,".",pxk_num,".xlsx"))
   }else{
     gbl_set_error_free(F)
     print("cannot find form path or dest path")
@@ -289,12 +289,22 @@ print_pxk <- function(pxk_num, open_file = T){
     }
     
     # arrange & select columns for writing
-    pxk_data <- pxk_data[order(as.numeric(pxk_data$stt)),]
     pxk_data <- merge(pxk_data,product_info %>% 
                         select(prod_code,comm_name,ref_smn))
+    
+    # fix nolot not displaying
+    pxk_nolot <- pxk_data %>% filter(lot == "nolot")
+    
     pxk_data <- merge(pxk_data, exp_date)
-    pxk_data <- pxk_data[,
-                         unlist(strsplit(config$pxk_display_col,split=";"))]
+    
+    if(nrow(pxk_nolot)>0){# fix nolot not displaying
+      pxk_nolot$exp_date <- NA
+      pxk_data <- rbind(pxk_data, pxk_nolot)
+    }
+    pxk_data <- pxk_data[order(as.numeric(pxk_data$stt)),]
+    pxk_data <- pxk_data[
+      ,unlist(strsplit(config$pxk_display_col,split=";"))]
+    
     
     # write data
     wb <- write_excel(wb,pxk_data,config$pxk_data_coor)
