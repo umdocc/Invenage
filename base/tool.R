@@ -293,7 +293,7 @@ print_pxk <- function(pxk_num, open_file = T){
                         select(prod_code,comm_name,ref_smn))
     
     # fix nolot not displaying
-    pxk_nolot <- pxk_data %>% filter(lot == "nolot")
+    pxk_nolot <- pxk_data %>% filter(lot == "nolot" | is.na(lot) | lot == "")
     
     pxk_data <- merge(pxk_data, exp_date)
     
