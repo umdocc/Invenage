@@ -112,19 +112,17 @@ render_cdn_warehouse <- function(input){renderUI({
   current_prod_code <- prod_choices$prod_code[
     prod_choices$prod_search_str == input$cdn_prod_name]
   
-  warehouse_choice <- db_read_query(
-    "select warehouse from warehouse_info")$warehouse
-  warehouse_select <- db_read_query(paste0(
-    "select warehouse_info.warehouse from warehouse_info 
-    inner join product_info
-    on warehouse_info.warehouse_id = product_info.warehouse_id
-    where product_info.prod_code='",
-    current_prod_code,"'"))$warehouse
+  tmp <- inventory[inventory$lot==input$cdn_lot &
+                     inventory$prod_code==current_prod_code,]
   
+  warehouse_choice <- merge(
+    warehouse_info, tmp %>% select(prod_code, warehouse_id))
+  warehouse_choice <- warehouse_choice$warehouse
+
   #render ui
   selectizeInput(
     inputId = "cdn_warehouse", label = uielem$warehouse, 
-    choices = warehouse_choice, selected = warehouse_select, 
+    choices = warehouse_choice, selected = warehouse_choice[1], 
     options = list(create = F))
 })
 }
@@ -390,7 +388,8 @@ cdn_check_append_sale_log <- function(append_sale_log){
   append_sale_log <- convert_to_pack(
     append_sale_log, packaging, "qty","pack_qty")
   tmp <- inventory[inventory$lot==append_sale_log$lot &
-                     inventory$prod_code==append_sale_log$prod_code,]
+                     inventory$prod_code==append_sale_log$prod_code &
+                     inventory$warehouse_id == append_sale_log$warehouse_id,]
   test_remain <- tmp$remaining_qty - append_sale_log$pack_qty
   thres <- -0.001
   if(test_remain < thres){
