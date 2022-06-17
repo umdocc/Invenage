@@ -449,12 +449,16 @@ cdn_complete_pxk <- function(input,output){
   cdn_check_pxk()
   
   if(error_free){
+    cdn_pxk_num <- current_pxk$pxk_num
     db_exec_query(paste0("update pxk_info set completed=1 where pxk_num=",
-                         current_pxk$pxk_num))
-    cdn_print_pxk()
+                         cdn_pxk_num))
+    print(paste("completed pxk number",cdn_pxk_num,",printing....."))
     load_cdn_data(input)
+    
     output <- cdn_load_ui(input,output,c("cdn_pxk_info","cdn_pxk_data",
                                          "cdn_customer"))
+    show_success("complete",var_list = cdn_pxk_num)
+    print_pxk(cdn_pxk_num)
   }
 }
 
@@ -500,10 +504,6 @@ cdn_check_pxk <- function(){
   }
     
   gbl_write_var("current_pxk",current_pxk)
-}
-
-cdn_print_pxk <- function(current_pxk){
-  print_pxk(current_pxk$pxk_num)
 }
 
 cdn_clean_duplicated <- function(){

@@ -118,7 +118,7 @@ write_pxk_meta <- function(wb, pxk_data){
   }
   
   # writing pxkNum
-  wb <- write_excel(wb, pxk_num, config$pxk_num_coor)
+  wb <- write_excel(wb, pxk_data$pxk_num[1], config$pxk_num_coor)
   
   # writing current date
   wb <- write_excel(wb, format(Sys.Date(),config$date_format), 
