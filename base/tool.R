@@ -26,7 +26,7 @@ translate_tbl_column <- function(input_df,ui_elem=uielem){
 }
 
 # write a single cell or a block to excel, using wb object, 
-# and a starting_coordinate 
+# a single value or a data frame, and a starting_coordinate 
 write_excel <- function(
   wb, written_data, start_cell_coor="1;1", sheet_num=1, split_char=";",
   include_colname=F){
@@ -34,7 +34,7 @@ write_excel <- function(
     start_cell_coor <- as.numeric(
       unlist(strsplit(start_cell_coor,split=split_char)))
   }
-  writeData(wb,sheet=sheet_num,written_data, 
+  writeData(wb, sheet=sheet_num, written_data, 
             startRow=start_cell_coor[1], 
             startCol=start_cell_coor[2], 
             colNames = include_colname)
@@ -188,7 +188,13 @@ load_tbl_and_clean_duplicated <- function(tbl_name,column_list){
   gbl_load_tbl(tbl_name)
   tmp <- get(tbl_name)
   tmp <- tmp[duplicated(tmp[,column_list]),]
+  if(!("id" %in% names(tmp))){
+    print(paste("id column not found in table", tbl_name,
+                ", therefore check will be ignored"))
+  }
   if(nrow(tmp)>0 & ("id" %in% names(tmp))){
+    print(paste("duplications found in table", tbl_name))
+    print(tmp)
     conn <- db_open()
     for (i in 1:nrow(tmp)){
       query <- paste0("delete from ", tbl_name," where id=",tmp$id[i])
