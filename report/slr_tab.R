@@ -10,7 +10,8 @@ if('slr' %in% hidden_tab){
         htmlOutput("slr_customer")),
     div(style="display: inline-block;vertical-align:top;width: 210px",
       htmlOutput("slr_pxk_num")),
-    div(style="display: inline-block;vertical-align:middle;width: 150px",
+    div(style="display: inline-block;vertical-align:bottom; \
+        position:absolute;right:15px",
         actionButton("slr_reload", uielem$reload)),
     DT::dataTableOutput("slr_data"),
     div(style="display: inline-block;vertical-align:bottom; \
