@@ -210,7 +210,7 @@ slr_del_line <- function(input, output){
     
     output <- slr_load_ui(
       input,output, 
-      c('slr_data'))
+      c('slr_data', "slr_confirm_code", "slr_pxk_lineid"))
     return(output)
   }else{
     show_error("invalid_confirm_code")
@@ -219,19 +219,24 @@ slr_del_line <- function(input, output){
 }
 
 slr_edit_line <- function(input, output){
-  tmp <- db_read_query("select label, actual from uielem")
-  col_2edit <- tmp$label[tmp$actual==input$slr_pxk_line_col]
-  query <- paste0("update sale_log set ",col_2edit,"='",
-                  input$slr_pxk_line_col_content,
-                  "' where id = ",input$slr_pxk_lineid)
-  print(query)
-  db_exec_query(query)
-  gbl_load_tbl("sale_log")
-  gbl_update_inventory()
-  output <- slr_load_ui(
-    input,output, 
-    c('slr_data'))
-  return(output)
+  if(as.numeric(input$slr_confirm_code)==as.numeric(config$slr_confirm_code)){
+    tmp <- db_read_query("select label, actual from uielem")
+    col_2edit <- tmp$label[tmp$actual==input$slr_pxk_line_col]
+    query <- paste0("update sale_log set ",col_2edit,"='",
+                    input$slr_pxk_line_col_content,
+                    "' where id = ",input$slr_pxk_lineid)
+    print(query)
+    db_exec_query(query)
+    gbl_load_tbl("sale_log")
+    gbl_update_inventory()
+    output <- slr_load_ui(
+      input,output, 
+      c("slr_data", "slr_confirm_code", "slr_pxk_lineid"))
+    return(output)
+  }else{
+    show_error("invalid_confirm_code")
+    return(output)    
+  }
 }
 
 slr_print_report <- function(input, output){
