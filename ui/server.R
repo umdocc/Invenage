@@ -100,5 +100,15 @@ shinyServer(function(input, output,session) {
   observeEvent(input$uvi_add_vendor,{
     output <- uvi_add_vendor(input, output)   # add vendor to db
   })
+
+  # update_customer_info -------------------------------------------------------
   
+  output <- uci_init(input,output) #init
+  
+  # button handlers
+  observeEvent(input$uci_add_customer,{
+    output <- uci_add_customer(input, output)   # add customer to db
+  })
+  
+    
 })
