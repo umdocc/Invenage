@@ -25,17 +25,25 @@ uci_add_customer <- function(input, output){
       customer_email = input$uci_customer_email,
       customer_tfn = input$uci_customer_tfn
     )
+    db_append_tbl("customer_info",append_data)
+    
+    # build the customer code
+    new_cid <- db_read_query(paste0(
+      "select * from customer_info where customer_name='",
+      append_data$customer_name,"'"))$customer_id
+    update_query <- paste0("update customer_info set customer_code=concat('",
+                           config$uci_code_prefix,"',lpad(",new_cid,",",
+                           config$uci_code_num_width,",0)) where customer_id=",
+                           new_cid)
+    db_exec_query(update_query)
+    
+    show_success()
+    gbl_load_tbl("customer_info")
+    output <- uci_load_ui(
+      input, output, 
+      c("uci_data", "uci_customer_name"))
   }
-  db_append_tbl("customer_info",append_data)
   
-  # build the customer code
-  new_cid <- db_read_query(paste0(
-    "select * from customer_info where customer_name='",
-    append_data$customer_name,"'"))$customer_name
-  update_query <- paste0("update customer_info set customer_code=concat('",
-                         uci_customer_code_prefix,"',lpad(",new_vid,",",
-                         config$uci_vendor_code_num_width,",0))")
-  db_exec_query(update_query)
   
   return(output)
 }
@@ -45,7 +53,7 @@ render_uci_data <- function(input){DT::renderDataTable({
   display_cols <- split_semi(config$uci_display_col)
   output_tbl <- customer_info %>% arrange(desc(customer_id))
   output_tbl <- output_tbl[,display_cols]
-  
+  output_tbl <- translate_tbl_column(output_tbl)
   DT::datatable(output_tbl, options = list(pageLength = 10), 
                 rownames=F)
 })
