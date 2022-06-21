@@ -20,6 +20,16 @@ slr_load_ui <- function(input,output,ui_list){
   if ('slr_pxk_line_col_content' %in% ui_list){
     output$slr_pxk_line_col_content <- render_slr_pxk_line_col_content(input)
   }
+  if ('slr_confirm_code' %in% ui_list){
+    output$slr_confirm_code <- render_slr_confirm_code(input)
+  }
+  if ('slr_del_line_explan' %in% ui_list){
+    output$slr_del_line_explan <- render_slr_del_line_explan(input)
+  }
+  if ('slr_edit_line_explan' %in% ui_list){
+    output$slr_edit_line_explan <- render_slr_edit_line_explan(input)
+  }
+  
   return(output)
 }
 
@@ -27,7 +37,8 @@ slr_init <- function(input,output){
   output <- slr_load_ui(
     input,output, 
     c('slr_data', "slr_pxk_num", "slr_pxk_lineid", "slr_customer",
-      "slr_prod_name", "slr_pxk_line_col", "slr_pxk_line_col_content"))
+      "slr_prod_name", "slr_pxk_line_col", "slr_pxk_line_col_content",
+      "slr_del_line_explan", "slr_edit_line_explan","slr_confirm_code"))
   return(output)
 }
 
@@ -100,6 +111,15 @@ render_slr_pxk_num <- function(input){renderUI({
 })
 }
 
+render_slr_confirm_code <- function(input){renderUI({
+  selectizeInput(
+    inputId = "slr_confirm_code", label = uielem$confirm_code,
+    choices = 9999,
+    selected = 9999,
+    options = list(create = T))
+})
+}
+
 render_slr_pxk_lineid <- function(input){renderUI({
   lineid_list <- get_slr_data(input)$id
   selectizeInput(
@@ -144,7 +164,7 @@ render_slr_pxk_line_col <- function(input){renderUI({
   # may add sophisticated filters later on
   tmp <- db_read_query("select label, actual from uielem")
   editable_col <- data.frame(
-    label = unlist(split_semi(config$slr_editable_col)))
+    label = split_semi(config$slr_editable_col))
   editable_col <- merge(editable_col, tmp)
   editable_col <- editable_col$actual
   selectizeInput(
@@ -153,8 +173,7 @@ render_slr_pxk_line_col <- function(input){renderUI({
     selected = editable_col[1],
     options = list(create = F))
   
-})
-}
+})}
 
 render_slr_pxk_line_col_content <- function(input){renderUI({
   selectizeInput(
@@ -162,22 +181,41 @@ render_slr_pxk_line_col_content <- function(input){renderUI({
     choices = NULL,
     selected = NULL,
     options = list(create = T))
+})}
+
+render_slr_del_line_explan <- function(input){renderUI({
   
-})
-}
+  html_code <- paste(
+    uielem$del_line_with_id,em(input$slr_pxk_lineid))
+  HTML(html_code)
+  
+})}
+
+render_slr_edit_line_explan <- function(input){renderUI({
+  
+  html_code <- paste(
+    uielem$edit_line_with_id,em(input$slr_pxk_lineid), uielem$column,
+    em(input$slr_pxk_line_col),uielem$into,input$slr_pxk_line_col_content)
+  HTML(html_code)
+  
+})}
 
 slr_del_line <- function(input, output){
-  
-  query <- paste0("delete from sale_log where id = ", input$slr_pxk_lineid)
-  # print(query)
-  db_exec_query(query)
-  gbl_load_tbl("sale_log")
-  gbl_update_inventory()
-  
-  output <- slr_load_ui(
-    input,output, 
-    c('slr_data'))
-  return(output)
+  if(as.numeric(input$slr_confirm_code)==as.numeric(config$slr_confirm_code)){
+    query <- paste0("delete from sale_log where id = ", input$slr_pxk_lineid)
+    # print(query)
+    db_exec_query(query)
+    gbl_load_tbl("sale_log")
+    gbl_update_inventory()
+    
+    output <- slr_load_ui(
+      input,output, 
+      c('slr_data'))
+    return(output)
+  }else{
+    show_error("invalid_confirm_code")
+    return(output)
+  }
 }
 
 slr_edit_line <- function(input, output){

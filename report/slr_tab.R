@@ -25,12 +25,18 @@ if('slr' %in% hidden_tab){
         htmlOutput("slr_pxk_line_col")),
     div(style="display: inline-block;vertical-align:top;width: 150px",
         htmlOutput("slr_pxk_line_col_content")),
-    p(),
     div(style="display: inline-block;vertical-align:top;width: 150px",
+        htmlOutput("slr_confirm_code")),
+    p(),
+    div(style="display: inline-block;vertical-align:bottom",
         actionButton("slr_del_line",uielem$del_line)),
+    div(style="display: inline-block;vertical-align:bottom",
+        htmlOutput("slr_del_line_explan")),
     p(),
-    div(style="display: inline-block;vertical-align:top;width: 150px",
+    div(style="display: inline-block;vertical-align:bottom",
         actionButton("slr_edit_line",uielem$edit_data)),
+    div(style="display: inline-block;vertical-align:bottom",
+        htmlOutput("slr_edit_line_explan")),
     p()
   )
   
