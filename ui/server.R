@@ -9,8 +9,9 @@ shinyServer(function(input, output,session) {
   for (tab_label in hidden_tab){
     hideTab(inputId = "main", target = uielem[[tab_label]])
   }
-  
-  #  ---------------------- create delivery note - cdn -------------------------
+
+  # -------------------------------- sale menu ---------------------------------  
+  # create delivery note -------------------------------------------------------
   
   output <- init_cdn(input,output) #init
   
@@ -21,8 +22,9 @@ shinyServer(function(input, output,session) {
   observeEvent(input$cdn_complete_pxk,{
     cdn_complete_pxk(input,output) # execute command to complete the pxk
   })
-  
-  # ------------------------- add_import_item - aii ----------------------------
+
+  # ------------------------------- import menu --------------------------------  
+  # add import item ------------------------------------------------------------
   
   output <- aii_init(input,output)
   
@@ -31,7 +33,7 @@ shinyServer(function(input, output,session) {
     output <- aii_add_entry(input,output)     # writing to database
   })
   
-  # -------------------------- sync_excel_po - sep -----------------------------
+  # sync excel po --------------------------------------------------------------
   
   # buttons handler
   observeEvent(input$sep_add_po,{
@@ -41,8 +43,9 @@ shinyServer(function(input, output,session) {
     output <- sep_update_unit_cost(input)     # writing to database
   })
   
-  # ------------------------ po_inventory_report - pir -------------------------
   
+  # ----------------------------- report menu ----------------------------------
+  # po_inventory_report --------------------------------------------------------
   # UI & data load
   output <- pir_load_ui(input,output, c('pir_data'))
   
@@ -51,7 +54,7 @@ shinyServer(function(input, output,session) {
     pir_create_report(input)    # writing to database
   })
   
-  # ------------------------ import_log_report - ilr ---------------------------
+  # import log report ----------------------------------------------------------
   
   output <- ilr_init(input,output) #init
   
@@ -60,7 +63,7 @@ shinyServer(function(input, output,session) {
     output <- ilr_print_report(input, output)   #print report
   })
   
-  # ------------------------ sale_log_report - slr -----------------------------
+  # sale_log_report ------------------------------------------------------------
   
   output <- slr_init(input,output) #init
   
@@ -78,8 +81,7 @@ shinyServer(function(input, output,session) {
     output <- slr_edit_line(input, output)   
   })
   
-  # ------------------------------ update_db menu ------------------------------
-  
+# -------------------------------- update_db menu ------------------------------
   # update_product_info --------------------------------------------------------
   
   output <- upi_init(input,output) #init

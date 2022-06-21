@@ -26,7 +26,8 @@ navbarPage(
   #update_db menu
   navbarMenu(title = uielem$update_db,
              upi_tab,
-             uvi_tab
+             uvi_tab,
+             uci_tab
   ),
 
   # sys info

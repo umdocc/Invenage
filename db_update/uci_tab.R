@@ -10,18 +10,22 @@ if ('update_customer_info' %in% hidden_tab){
     uielem$update_customer_info,
     fluidRow(
       box(width = 3, height = 800,
-          div(style="display: inline-block;padding-top:2px;;width: 200px",
-          htmlOutput('uci_customer_name')),
+          htmlOutput('uci_customer_name'),
           textInput('uci_customer_address',
                     label=uielem$customer_address),
           textInput('uci_customer_email',
-                    label=ui_elem$customer_email),
+                    label=uielem$customer_email),
           textInput('uci_customer_phone',
-                    label=ui_elem$customer_phone),
+                    label=uielem$customer_phone),
           textInput('uci_customer_tfn',
-                    label=ui_elem$customer_tfn),
+                    label=uielem$customer_tfn),
           actionButton("uci_add_customer",
-                       ui_elem$add_customer)
+                       uielem$add_customer)
+      ),
+      box(
+        width=9, height = 800,
+        DT::dataTableOutput("uci_data"),
+        p()
       )
     )
   )
