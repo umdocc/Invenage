@@ -56,8 +56,9 @@ get_ilr_data <- function(input, trans_col=T){
   }
   
   # cleaning
-  output_tbl <- output_tbl %>% 
-    select(comm_name, unit, qty, po_name, in_invoice_num, delivery_date)
+  ilr_display_col <- split_semi(config$ilr_display_col)
+  output_tbl <- output_tbl[, ilr_display_col]
+  output_tbl <- output_tbl %>% arrange(desc(id))
   if(trans_col){
     output_tbl <- translate_tbl_column(output_tbl)
   }
