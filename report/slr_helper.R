@@ -94,7 +94,7 @@ render_slr_data <- function(input){DT::renderDataTable({
   
   # get the table then display it using DTdatatable
   output_tbl <- get_slr_data(input)
-  DT::datatable(output_tbl, options = list(pageLength = 10, dom = 't'), 
+  DT::datatable(output_tbl, options = list(pageLength = 10), 
                 rownames=F)
   
 })
