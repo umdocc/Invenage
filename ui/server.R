@@ -62,6 +62,13 @@ shinyServer(function(input, output,session) {
   observeEvent(input$ilr_print_report,{
     output <- ilr_print_report(input, output)   #print report
   })
+  observeEvent(input$ilr_del_line,{
+    output <- ilr_del_line(input, output)   
+  })
+  observeEvent(input$ilr_edit_line,{
+    output <- ilr_edit_line(input, output)   
+  })
+  
   
   # sale_log_report ------------------------------------------------------------
   

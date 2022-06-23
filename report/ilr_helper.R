@@ -1,3 +1,11 @@
+ilr_init <- function(input, output){
+  ilr_load_ui(
+    input,output,
+    c("ilr_data", "ilr_prod_filter", "ilr_lineid", "ilr_line_col",
+      "ilr_line_col_content", "ilr_confirm_code",
+      "ilr_del_line_explan", "ilr_edit_line_explan"))
+}
+
 ilr_load_ui <- function(input,output,ui_list){
   if ('ilr_data' %in% ui_list){
     output$ilr_data <- render_ilr_data(input)
@@ -8,14 +16,24 @@ ilr_load_ui <- function(input,output,ui_list){
   if ('ilr_lineid' %in% ui_list){
     output$ilr_lineid <- render_ilr_lineid(input)
   }
+  if ('ilr_line_col' %in% ui_list){
+    output$ilr_line_col <- render_ilr_line_col(input)
+  }
+  if ('ilr_line_col_content' %in% ui_list){
+    output$ilr_line_col_content <- render_ilr_line_col_content(input)
+  }
+
+  if ('ilr_confirm_code' %in% ui_list){
+    output$ilr_confirm_code <- render_ilr_confirm_code(input)
+  }
+  if ('ilr_del_line_explan' %in% ui_list){
+    output$ilr_del_line_explan <- render_ilr_del_line_explan(input)
+  }
+  if ('ilr_edit_line_explan' %in% ui_list){
+    output$ilr_edit_line_explan <- render_ilr_edit_line_explan(input)
+  }
   
   return(output)
-}
-
-ilr_init <- function(input, output){
-  ilr_load_ui(
-    input,output,
-    c("ilr_data", "ilr_prod_filter", "ilr_lineid"))
 }
 
 # render table for the pxk_man tab
@@ -77,7 +95,7 @@ render_ilr_lineid <- function(input){renderUI({
 })
 }
 
-render_ilr_pxk_line_col <- function(input){renderUI({
+render_ilr_line_col <- function(input){renderUI({
   # may add sophisticated filters later on
   tmp <- db_read_query("select label, actual from uielem")
   editable_col <- data.frame(
@@ -85,7 +103,7 @@ render_ilr_pxk_line_col <- function(input){renderUI({
   editable_col <- merge(editable_col, tmp)
   editable_col <- editable_col$actual
   selectizeInput(
-    inputId = "ilr_pxk_line_col", label = uielem$column,
+    inputId = "ilr_line_col", label = uielem$column,
     choices = editable_col,
     selected = editable_col[1],
     options = list(create = F))
@@ -93,9 +111,9 @@ render_ilr_pxk_line_col <- function(input){renderUI({
 })
 }
 
-render_ilr_pxk_line_col_content <- function(input){renderUI({
+render_ilr_line_col_content <- function(input){renderUI({
   selectizeInput(
-    inputId = "ilr_pxk_line_col_content", label = uielem$content,
+    inputId = "ilr_line_col_content", label = uielem$content,
     choices = NULL,
     selected = NULL,
     options = list(create = T))
@@ -105,34 +123,69 @@ render_ilr_pxk_line_col_content <- function(input){renderUI({
 
 ilr_del_line <- function(input, output){
   
+  # if confirm code match, proceed, else display error
+  if(as.numeric(input$ilr_confirm_code)==as.numeric(config$ilr_confirm_code)){
   query <- paste0("delete from sale_log where id = ", input$ilr_pxk_lineid)
-  # print(query)
-  db_exec_query(query)
+  # db_exec_query(query)
   gbl_load_tbl("sale_log")
   gbl_update_inventory()
   
   output <- ilr_load_ui(
     input,output, 
     c('ilr_data'))
+  }else{
+    show_error("invalid_confirm_code")
+  }
+  
   return(output)
 }
 
 ilr_edit_line <- function(input, output){
-  tmp <- db_read_query("select label, actual from uielem")
-  col_2edit <- tmp$label[tmp$actual==input$ilr_pxk_line_col]
-  query <- paste0("update sale_log set ",col_2edit,"='",
-                  input$ilr_pxk_line_col_content,
-                  "' where id = ",input$ilr_pxk_lineid)
-  print(query)
-  db_exec_query(query)
-  gbl_load_tbl("sale_log")
-  gbl_update_inventory()
-  output <- ilr_load_ui(
-    input,output, 
-    c('ilr_data'))
-  return(output)
+  if(as.numeric(input$ilr_confirm_code)==as.numeric(config$ilr_confirm_code)){
+    tmp <- db_read_query("select label, actual from uielem")
+    col_2edit <- tmp$label[tmp$actual==input$ilr_pxk_line_col]
+    query <- paste0("update sale_log set ",col_2edit,"='",
+                    input$ilr_pxk_line_col_content,
+                    "' where id = ",input$ilr_pxk_lineid)
+    print(query)
+    # db_exec_query(query)
+    gbl_load_tbl("sale_log")
+    gbl_update_inventory()
+    output <- ilr_load_ui(
+      input,output, 
+      c('ilr_data'))
+    return(output)
+  }else{
+    show_error("invalid_confirm_code")
+    return(output)
+  }
 }
 
+render_ilr_confirm_code <- function(input){renderUI({
+  selectizeInput(
+    inputId = "ilr_confirm_code", label = uielem$confirm_code,
+    choices = 999,
+    selected = 999,
+    options = list(create = T))
+})
+}
+
+render_ilr_del_line_explan <- function(input){renderUI({
+  
+  html_code <- paste(
+    uielem$del_line_with_id,em(input$ilr_lineid))
+  HTML(html_code)
+  
+})}
+
+render_ilr_edit_line_explan <- function(input){renderUI({
+  
+  html_code <- paste(
+    uielem$edit_line_with_id,em(input$ilr_lineid), uielem$column,
+    em(input$ilr_line_col),uielem$into,input$ilr_line_col_content)
+  HTML(html_code)
+  
+})}
 
 ilr_print_report <- function(input, output){
   
