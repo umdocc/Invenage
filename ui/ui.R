@@ -7,7 +7,8 @@ navbarPage(
   
   # sale menu
   navbarMenu(title = uielem$inventory_out,
-             cdn_tab
+             cdn_tab,
+             msl_tab
   ),
   
   # import
@@ -19,8 +20,7 @@ navbarPage(
   # reports menu
   navbarMenu(title = uielem$report,
              pir_tab,
-             ilr_tab,
-             slr_tab
+             ilr_tab
              ),
   
   #update_db menu

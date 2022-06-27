@@ -72,20 +72,20 @@ shinyServer(function(input, output,session) {
   
   # sale_log_report ------------------------------------------------------------
   
-  output <- slr_init(input,output) #init
+  output <- msl_init(input,output) #init
   
   #button handlers
-  observeEvent(input$slr_print_report,{
-    output <- slr_print_report(input, output)   #print sale report
+  observeEvent(input$msl_print_report,{
+    output <- msl_print_report(input, output)   #print sale report
   })
-  observeEvent(input$slr_reload,{
-    output <- slr_init(input,output)   
+  observeEvent(input$msl_reload,{
+    output <- msl_init(input,output)   
   })
-  observeEvent(input$slr_del_line,{
-    output <- slr_del_line(input, output)   
+  observeEvent(input$msl_del_line,{
+    output <- msl_del_line(input, output)   
   })
-  observeEvent(input$slr_edit_line,{
-    output <- slr_edit_line(input, output)   
+  observeEvent(input$msl_edit_line,{
+    output <- msl_edit_line(input, output)   
   })
   
 # -------------------------------- update_db menu ------------------------------
