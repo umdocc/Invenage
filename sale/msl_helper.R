@@ -175,11 +175,27 @@ render_msl_pxk_line_col <- function(input){renderUI({
   
 })}
 
-render_msl_pxk_line_col_content <- function(input, allow_create=T){renderUI({
+render_msl_pxk_line_col_content <- function(input, allow_create=F){renderUI({
   if(input$msl_pxk_line_col==uielem$customer_name){
     choice_list <- customer_info$customer_name
-    allow_create <- F
   }
+  if(input$msl_pxk_line_col==uielem$unit){
+    msl_line_prod_code <- sale_log$prod_code[
+      sale_log$id==as.numeric(input$msl_pxk_lineid)]
+    choice_list <- packaging$unit[packaging$prod_code==msl_line_prod_code]
+  }
+  if(input$msl_pxk_line_col==uielem$lot){
+    msl_line_prod_code <- sale_log$prod_code[
+      sale_log$id==as.numeric(input$msl_pxk_lineid)]
+    choice_list <- unique(
+      import_log$lot[import_log$prod_code==msl_line_prod_code])
+  }
+  
+  if(input$msl_pxk_line_col==uielem$qty){
+    choice_list <- 1:100
+    allow_create <- T
+  }
+  
   selectizeInput(
     inputId = "msl_pxk_line_col_content", label = uielem$content,
     choices = choice_list,
