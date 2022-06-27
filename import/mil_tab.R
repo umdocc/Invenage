@@ -1,9 +1,9 @@
 # functions to create the ui for po_report tab (por)
-if('ilr' %in% hidden_tab){
-  ilr_tab <- tabPanel(uielem$import_log_report)
+if('mil' %in% hidden_tab){
+  mil_tab <- tabPanel(uielem$manage_import_log)
 }else{
-  ilr_tab <- tabPanel(
-    uielem$import_log_report,
+  mil_tab <- tabPanel(
+    uielem$manage_import_log,
     fluidRow(
       htmlOutput("ilr_prod_filter"),
       DT::dataTableOutput("ilr_data"),

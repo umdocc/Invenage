@@ -14,13 +14,13 @@ navbarPage(
   # import
   navbarMenu(title = uielem$add_import_item,
              aii_tab,
-             sep_tab
+             sep_tab,
+             mil_tab
   ),
   
   # reports menu
   navbarMenu(title = uielem$report,
-             pir_tab,
-             ilr_tab
+             pir_tab
              ),
   
   #update_db menu
