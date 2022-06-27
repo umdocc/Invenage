@@ -11,6 +11,7 @@ shinyServer(function(input, output,session) {
   }
 
   # -------------------------------- sale menu ---------------------------------  
+  
   # create delivery note -------------------------------------------------------
   
   output <- init_cdn(input,output) #init
@@ -22,8 +23,27 @@ shinyServer(function(input, output,session) {
   observeEvent(input$cdn_complete_pxk,{
     cdn_complete_pxk(input,output) # execute command to complete the pxk
   })
+  
+  # sale_log_report ------------------------------------------------------------
+  
+  output <- msl_init(input,output) #init
+  
+  #button handlers
+  observeEvent(input$msl_print_report,{
+    output <- msl_print_report(input, output)   #print sale report
+  })
+  observeEvent(input$msl_reload,{
+    output <- msl_init(input,output)   
+  })
+  observeEvent(input$msl_del_line,{
+    output <- msl_del_line(input, output)   
+  })
+  observeEvent(input$msl_edit_line,{
+    output <- msl_edit_line(input, output)   
+  })
 
-  # ------------------------------- import menu --------------------------------  
+  # ------------------------------- import menu --------------------------------
+  
   # add import item ------------------------------------------------------------
   
   output <- aii_init(input,output)
@@ -43,8 +63,23 @@ shinyServer(function(input, output,session) {
     output <- sep_update_unit_cost(input)     # writing to database
   })
   
+  # manage import log ----------------------------------------------------------
+  
+  output <- mil_init(input,output) #init
+  
+  #button handlers
+  observeEvent(input$mil_print_report,{
+    output <- mil_print_report(input, output)   #print report
+  })
+  observeEvent(input$mil_del_line,{
+    output <- mil_del_line(input, output)   
+  })
+  observeEvent(input$mil_edit_line,{
+    output <- mil_edit_line(input, output)   
+  })
   
   # ----------------------------- report menu ----------------------------------
+  
   # po_inventory_report --------------------------------------------------------
   # UI & data load
   output <- pir_load_ui(input,output, c('pir_data'))
@@ -52,40 +87,6 @@ shinyServer(function(input, output,session) {
   # buttons handler
   observeEvent(input$pir_create_report,{
     pir_create_report(input)    # writing to database
-  })
-  
-  # import log report ----------------------------------------------------------
-  
-  output <- ilr_init(input,output) #init
-  
-  #button handlers
-  observeEvent(input$ilr_print_report,{
-    output <- ilr_print_report(input, output)   #print report
-  })
-  observeEvent(input$ilr_del_line,{
-    output <- ilr_del_line(input, output)   
-  })
-  observeEvent(input$ilr_edit_line,{
-    output <- ilr_edit_line(input, output)   
-  })
-  
-  
-  # sale_log_report ------------------------------------------------------------
-  
-  output <- msl_init(input,output) #init
-  
-  #button handlers
-  observeEvent(input$msl_print_report,{
-    output <- msl_print_report(input, output)   #print sale report
-  })
-  observeEvent(input$msl_reload,{
-    output <- msl_init(input,output)   
-  })
-  observeEvent(input$msl_del_line,{
-    output <- msl_del_line(input, output)   
-  })
-  observeEvent(input$msl_edit_line,{
-    output <- msl_edit_line(input, output)   
   })
   
 # -------------------------------- update_db menu ------------------------------
