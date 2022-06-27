@@ -1,5 +1,5 @@
 # functions to create the ui for po_report tab (por)
-if('slr' %in% hidden_tab){
+if('msl' %in% hidden_tab){
   msl_tab <- tabPanel(uielem$manage_sale_log)
 }else{
   msl_tab <- tabPanel(
