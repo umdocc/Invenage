@@ -226,7 +226,7 @@ render_msl_edit_line_explan <- function(input){renderUI({
 })}
 
 msl_del_line <- function(input, output){
-  if(as.numeric(input$msl_confirm_code)==as.numeric(config$msl_confirm_code)){
+  if(as.numeric(input$msl_confirm_code)==as.numeric(config$db_confirm_code)){
     query <- paste0("delete from sale_log where id = ", input$msl_pxk_lineid)
     # print(query)
     db_exec_query(query)
@@ -244,29 +244,32 @@ msl_del_line <- function(input, output){
 }
 
 msl_edit_line <- function(input, output){
-  if(as.numeric(input$msl_confirm_code)==as.numeric(config$msl_confirm_code)){
+  if(as.numeric(input$msl_confirm_code)==as.numeric(config$db_confirm_code)){
     tmp <- db_read_query("select label, actual from uielem")
     col_2edit <- tmp$label[tmp$actual==input$msl_pxk_line_col]
+    
     if(col_2edit=="customer_name"){
       new_cid <- customer_info$customer_id[
         customer_info$customer_name==input$msl_pxk_line_col_content]
       query <- paste0(
-        "update pxk_info set customer_id='", new_cid,
-        "' where pxk_num = ",input$msl_pxk_num)
-      print(query)
+        "update pxk_info set customer_id=", new_cid,
+        " where pxk_num = ",input$msl_pxk_num)
+      ui_2reload <- c(
+        "msl_data", "msl_confirm_code", "msl_pxk_lineid", "msl_customer")
     }else{
       query <- paste0("update sale_log set ",col_2edit,"='",
                       input$msl_pxk_line_col_content,
                       "' where id = ",input$msl_pxk_lineid)
-      print(query)
-      # db_exec_query(query)
+      ui_2reload <- c("msl_data", "msl_confirm_code", "msl_pxk_lineid")
     }
+    
+    print(query)
+    db_exec_query(query)
     gbl_load_tbl("sale_log")
     gbl_update_inventory()
-    output <- msl_load_ui(
-      input,output, 
-      c("msl_data", "msl_confirm_code", "msl_pxk_lineid"))
+    output <- msl_load_ui(input,output, ui_2reload)
     return(output)
+    
   }else{
     show_error("invalid_confirm_code")
     return(output)    
