@@ -111,33 +111,49 @@ render_mil_line_col <- function(input){renderUI({
 })
 }
 
-render_mil_line_col_content <- function(input){renderUI({
+render_mil_line_col_content <- function(input, allow_create=F){renderUI({
+  col_2edit <- input$mil_line_col
+  mil_line_prod_code <- import_log$prod_code[
+    import_log$id == as.numeric(input$mil_lineid)]
+  list_choice <- NULL
+  if(col_2edit==uielem$unit){
+    list_choice <- packaging$unit[packaging$prod_code==mil_line_prod_code]
+  }
+  if(col_2edit==uielem$lot){
+    allow_create <- T
+  }
+  if(col_2edit==uielem$qty){
+    list_choice <- 1:1000
+    allow_create <- T
+  }
   selectizeInput(
     inputId = "mil_line_col_content", label = uielem$content,
-    choices = NULL,
-    selected = NULL,
-    options = list(create = T))
+    choices = list_choice,
+    selected = list_choice[1],
+    options = list(create = allow_create))
   
 })
 }
 
 mil_del_line <- function(input, output){
-# 
-#   # if confirm code match, proceed, else display error
-#   if(as.numeric(input$mil_confirm_code)==as.numeric(config$db_confirm_code)){
-#   query <- paste0("delete from sale_log where id = ", input$ilr_pxk_lineid)
-#   # db_exec_query(query)
-#   gbl_load_tbl("sale_log")
-#   gbl_update_inventory()
-# 
-#   output <- ilr_load_ui(
-#     input,output,
-#     c('mil_data'))
-#   }else{
-#     show_error("invalid_confirm_code")
-#   }
-# 
-#   return(output)
+
+  # if confirm code match, proceed, else display error
+  if(as.numeric(input$mil_confirm_code)==as.numeric(config$db_confirm_code)){
+  query <- paste0("delete from import_log where id = ", input$mil_lineid)
+  db_exec_query(query)
+  
+  #reload data and ui
+  gbl_load_tbl("import_log")
+  gbl_update_inventory()
+  output <- ilr_load_ui(
+    input,output,
+    c('mil_data'))
+
+  }else{ #else show error
+    show_error("invalid_confirm_code")
+  }
+
+  return(output)
 }
 
 mil_edit_line <- function(input, output){
