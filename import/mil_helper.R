@@ -122,43 +122,43 @@ render_mil_line_col_content <- function(input){renderUI({
 }
 
 mil_del_line <- function(input, output){
-  
-  # if confirm code match, proceed, else display error
-  if(as.numeric(input$mil_confirm_code)==as.numeric(config$db_confirm_code)){
-  query <- paste0("delete from sale_log where id = ", input$ilr_pxk_lineid)
-  # db_exec_query(query)
-  gbl_load_tbl("sale_log")
-  gbl_update_inventory()
-  
-  output <- ilr_load_ui(
-    input,output, 
-    c('mil_data'))
-  }else{
-    show_error("invalid_confirm_code")
-  }
-  
-  return(output)
+# 
+#   # if confirm code match, proceed, else display error
+#   if(as.numeric(input$mil_confirm_code)==as.numeric(config$db_confirm_code)){
+#   query <- paste0("delete from sale_log where id = ", input$ilr_pxk_lineid)
+#   # db_exec_query(query)
+#   gbl_load_tbl("sale_log")
+#   gbl_update_inventory()
+# 
+#   output <- ilr_load_ui(
+#     input,output,
+#     c('mil_data'))
+#   }else{
+#     show_error("invalid_confirm_code")
+#   }
+# 
+#   return(output)
 }
 
 mil_edit_line <- function(input, output){
   if(as.numeric(input$mil_confirm_code)==as.numeric(config$db_confirm_code)){
     tmp <- db_read_query("select label, actual from uielem")
-    col_2edit <- tmp$label[tmp$actual==input$ilr_pxk_line_col]
-    query <- paste0("update sale_log set ",col_2edit,"='",
-                    input$ilr_pxk_line_col_content,
-                    "' where id = ",input$ilr_pxk_lineid)
-    print(query)
-    # db_exec_query(query)
-    gbl_load_tbl("sale_log")
+    col_2edit <- tmp$label[tmp$actual==input$mil_line_col]
+    query <- paste0("update import_log set ",col_2edit,"='",
+                    input$mil_line_col_content,
+                    "' where id = ",input$mil_lineid)
+    db_exec_query(query)
+    
+    #reload data and ui
+    gbl_load_tbl("import_log")
     gbl_update_inventory()
     output <- ilr_load_ui(
       input,output, 
       c('mil_data'))
-    return(output)
   }else{
     show_error("invalid_confirm_code")
-    return(output)
   }
+  return(output)
 }
 
 render_mil_confirm_code <- function(input){renderUI({
