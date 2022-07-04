@@ -1,6 +1,6 @@
 # simply call this when error_free = F
-show_error <- function(type="unit_notfound",var_list="",set_error=T){
-  error_msg <- paste(uielem[,type],var_list)
+show_error <- function(err_type=uielem$unit_notfound,var_list="",set_error=T){
+  error_msg <- paste(err_type,var_list)
   shinyalert(uielem$error, error_msg, type = "error")
   
   # set error_free variable if specified
