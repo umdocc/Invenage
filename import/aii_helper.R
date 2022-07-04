@@ -232,11 +232,14 @@ aii_add_entry <- function(input,output){
       warehouse_info$warehouse==input$aii_invoice_warehouse],
     note = input$aii_note
     )
-
+  
   # write to database
-  conn <- db_open()
-  dbWriteTable(conn,"import_log",append_import_log,append=T)
-  dbDisconnect(conn)
+  aii_check_append_log(append_import_log)
+  if(error_free){
+    conn <- db_open()
+    dbWriteTable(conn,"import_log",append_import_log,append=T)
+    dbDisconnect(conn)
+  }
   
   # reload global variables
   gbl_load_tbl("import_log")
@@ -264,4 +267,10 @@ aii_clean_duplicated <- function(){
     dbDisconnect(conn)
   }
   gbl_load_tbl("import_log")
+}
+
+aii_check_append_log <- function(append_import_log){
+  if(is.na(as.numeric(append_import_log$actual_unit_cost))){
+    show_error(uielem$unit_cost_notfound)
+  }
 }
