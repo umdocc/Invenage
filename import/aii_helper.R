@@ -191,16 +191,20 @@ render_aii_import_data <- function(input){DT::renderDataTable({
 })
 }
 
-get_aii_import_data <- function(trans_col=T){
+get_aii_import_data <- function(
+    from_date = "1990-01-01", to_date = "2099-12-30", for_display=T){
   
   output_tbl <- merge(import_log,product_info,by="prod_code",all.x=T) 
-  output_tbl$dqty <- paste(output_tbl$qty,output_tbl$unit)
   output_tbl <- output_tbl %>% 
-    select(id, comm_name, dqty, lot, exp_date, actual_unit_cost, 
-           in_invoice_num, in_vat_percent, note) %>% arrange(desc(id))
+    filter(delivery_date > as.Date(from_date) & 
+             delivery_date < as.Date(to_date))
 
-  # translate to local language by default  
-  if(trans_col){
+  # if this is for display, format the output table
+  if(for_display){
+    output_tbl$dqty <- paste(output_tbl$qty,output_tbl$unit)
+    output_tbl <- output_tbl %>% 
+      select(id, comm_name, dqty, lot, exp_date, actual_unit_cost, 
+             in_invoice_num, in_vat_percent, note) %>% arrange(desc(id))
     output_tbl <- translate_tbl_column(output_tbl)
   }
   
