@@ -1,4 +1,4 @@
-get_sale_data <- function(vendor_id,from_date="1900-01-01",
+get_sale_data <- function(vendor_id=0,from_date="1900-01-01",
                           to_date="2099-12-30", customer_id=0){
   
   # construct the query
