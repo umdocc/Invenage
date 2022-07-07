@@ -59,8 +59,9 @@ print_pxk <- function(pxk_num, open_file = T){
     
     # fix nolot not displaying
     pxk_nolot <- pxk_data %>% filter(lot == "nolot" | is.na(lot) | lot == "")
-    
-    pxk_data <- merge(pxk_data, exp_date)
+    pxk_data <- pxk_data %>% 
+      filter((lot != "nolot") & (!is.na(lot)) & (lot != ""))
+    pxk_data <- merge(pxk_data, exp_date, all.x=T)
     
     if(nrow(pxk_nolot)>0){# fix nolot not displaying
       pxk_nolot$exp_date <- NA
