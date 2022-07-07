@@ -234,7 +234,7 @@ get_unit_price_from_import_data <- function(import_data, remove_null,
   return(import_data)
 }
 
-pir_get_po_report <- function(vendor_id){
+pir_get_po_report <- function(vendor_id, keep_prod_code=F){
   if(vendor_id==0){
     show_error("invalid_vendor",set_error = T)
     inventory_report <- inventory
@@ -252,7 +252,11 @@ pir_get_po_report <- function(vendor_id){
       inventory_report, product_info %>% select(prod_code, comm_name, ref_smn)
     )
     inventory_report <- inventory_report %>%
-      select(comm_name, ref_smn, total_remain_qty, monthly_sale)
+      select(prod_code, comm_name, ref_smn, total_remain_qty, monthly_sale)
+  }
+  
+  if(!keep_prod_code){
+    inventory_report$prod_code <- NULL
   }
   
   return(inventory_report)
