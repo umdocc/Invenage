@@ -46,12 +46,12 @@ ssr_get_yoy_report <- function(sale_report){
   return(sale_report)
 }
 
-# eventually a function to answer all forecast question
-ssr_get_sale_forecast <- function(vendor_id){
-  report_data <- get_sale_data(vendor_id)
-  report_data <- convert_to_pack(report_data, packaging, "qty", "pack_qty")
-  report_data <- report_data %>% group_by(prod_code, year) %>% 
-    summarise(total_pack = sum(pack_qty))
-  report_data <- dcast(report_data, prod_code ~ year, value.var = "total_pack")
-  return(report_data)
-}
+# # eventually a function to answer all forecast question
+# ssr_get_sale_forecast <- function(vendor_id){
+#   report_data <- get_sale_data(vendor_id)
+#   report_data <- convert_to_pack(report_data, packaging, "qty", "pack_qty")
+#   report_data <- report_data %>% group_by(prod_code, year) %>% 
+#     summarise(total_pack = sum(pack_qty))
+#   report_data <- dcast(report_data, prod_code ~ year, value.var = "total_pack")
+#   return(report_data)
+# }
