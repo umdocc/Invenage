@@ -205,4 +205,12 @@ load_tbl_and_clean_duplicated <- function(tbl_name,column_list){
   }
 }
 
-
+# general purpose data cleaning function
+clean_datadf <- function(
+    datadf, str_2remove=c("®"), col_2remove, rm_dbl_space=T, str_2lower=T){
+  for (col_name in col_2remove){
+    for (str_desc in str_2remove){
+      
+    }
+  }
+}

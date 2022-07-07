@@ -195,6 +195,10 @@ render_msl_pxk_line_col_content <- function(input, allow_create=F){renderUI({
     choice_list <- 1:100
     allow_create <- T
   }
+  if(input$msl_pxk_line_col==uielem$unit_price){
+    choice_list <- 1:100
+    allow_create <- T
+  }
   
   selectizeInput(
     inputId = "msl_pxk_line_col_content", label = uielem$content,

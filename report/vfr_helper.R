@@ -10,11 +10,11 @@ vfr_get_data <- function(vendor_id = 0, rollback_period = 360){
     from_date = start_date, for_display = F)
   import_data <- convert_to_pack(import_data, packaging, "qty","pack_qty")
   import_data <- import_data %>% group_by(prod_code) %>%
-    summarise(total_import = sum(pack_qty))
+    summarise(total_pack_import = sum(pack_qty))
   sale_data <- get_sale_data(from_date = start_date)
   sale_data <- convert_to_pack(sale_data, packaging, "qty","pack_qty")
   sale_data <- sale_data %>% group_by(prod_code) %>%
-    summarise(total_sale = sum(pack_qty))
+    summarise(total_pack_sale = sum(pack_qty))
   report_data <- merge(sale_data, import_data, all=T)
   
   # create product filtering based on vendor_id, then filter by merge
