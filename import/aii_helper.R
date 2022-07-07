@@ -68,7 +68,6 @@ render_aii_unit <- function(input){renderUI({
 
   current_prod_code <- prod_choices$prod_code[
     prod_choices$prod_search_str == input$aii_prod_name]
-
   unit_choices <- packaging$unit[packaging$prod_code==current_prod_code]
 
   selectizeInput(
@@ -214,6 +213,8 @@ get_aii_import_data <- function(
  
 aii_add_entry <- function(input,output){
   
+  # preparing
+  gbl_set_error_free(T) # reset error free
   current_prod_code <- prod_choices$prod_code[
     prod_choices$prod_search_str==input$aii_prod_name]
 
@@ -238,7 +239,9 @@ aii_add_entry <- function(input,output){
     )
   
   # write to database
-  aii_check_append_log(append_import_log)
+  
+  gbl_write_var("aii_append_data",append_import_log)
+  aii_check_append_log(aii_append_data)
   if(error_free){
     conn <- db_open()
     dbWriteTable(conn,"import_log",append_import_log,append=T)
@@ -273,8 +276,8 @@ aii_clean_duplicated <- function(){
   gbl_load_tbl("import_log")
 }
 
-aii_check_append_log <- function(append_import_log){
-  if(is.na(as.numeric(append_import_log$actual_unit_cost))){
+aii_check_append_log <- function(aii_append_data){
+  if(is.na(as.numeric(aii_append_data$actual_unit_cost))){
     show_error(uielem$unit_cost_notfound)
   }
 }
