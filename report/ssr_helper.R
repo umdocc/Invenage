@@ -1,7 +1,14 @@
 # the sale_stats_report deals with all type of sale statistics
 
-ssr_get_sale_average <- function(){
-  sale_report <- convert_to_pack(sale_log, packaging,"qty","pack_qty")
+ssr_get_sale_average <- function(exclude_customer_id = NULL){
+  
+  if(!is.null(exclude_customer_id)){
+    sale_report <- sale_log[!(sale_log$customer_id %in% exclude_customer_id),]
+  }else{
+    sale_report <- sale_log
+  }
+  
+  sale_report <- convert_to_pack(sale_report, packaging,"qty","pack_qty")
   cutoff_date <- Sys.Date()-as.numeric(config$ssr_lookback)
   sale_report <- sale_report[sale_report$sale_datetime>cutoff_date,]
   sale_report <- sale_report %>% group_by(prod_code) %>%
@@ -45,13 +52,3 @@ ssr_get_yoy_report <- function(sale_report){
   
   return(sale_report)
 }
-
-# # eventually a function to answer all forecast question
-# ssr_get_sale_forecast <- function(vendor_id){
-#   report_data <- get_sale_data(vendor_id)
-#   report_data <- convert_to_pack(report_data, packaging, "qty", "pack_qty")
-#   report_data <- report_data %>% group_by(prod_code, year) %>% 
-#     summarise(total_pack = sum(pack_qty))
-#   report_data <- dcast(report_data, prod_code ~ year, value.var = "total_pack")
-#   return(report_data)
-# }

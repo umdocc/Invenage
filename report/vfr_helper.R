@@ -1,10 +1,10 @@
 # vfr data is similar to po data but with added tender data
-vfr_get_data <- function(vendor_id = 0){
+vfr_get_data <- function(vendor_id){
   
   # create data based on pir
   report_data <- pir_get_po_report(vendor_id, keep_prod_code=T)
   tender_data <- vfr_get_tender_data()
-  report_data <- merge(report_data, tender_data)
+  report_data <- merge(report_data, tender_data, all.x= T)
   
   return(report_data)
   
