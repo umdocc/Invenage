@@ -22,6 +22,11 @@ render_pir_data <- function(input){DT::renderDataTable({
   if(input$pir_report_type==uielem$po_report){
     output_tbl <- pir_get_po_report(current_vid)
   }
+  if(input$pir_report_type==uielem$separate_lot){
+    
+    output_tbl <- pir_get_separate_lot_report(
+      vendor_id = current_vid)
+  }
   
   #translate and render
   output_tbl <- translate_tbl_column(output_tbl,uielem)
@@ -47,6 +52,13 @@ pir_create_report <- function(input){
     inventory_report <- pir_get_po_report(vendor_id = pir_data$vendor_id)
   }
   
+  # if report used for po placement is selected
+  if(pir_data$report_type==uielem$separate_lot){
+    inventory_report <- pir_get_separate_lot_report(
+      vendor_id = pir_data$vendor_id)
+  }
+  
+    
   pir_print_report(pir_data, inventory_report)
 }
 
@@ -65,6 +77,10 @@ pir_print_report <- function(pir_data, inventory_report){
     required_cols <- c('comm_name', 'ref_smn', 'total_remain_qty',
                        'monthly_sale')
   }
+  if(pir_data$report_type==uielem$separate_lot){
+    required_cols <- split_semi(config$pir_separate_lot_report_col)
+  }
+  
   # filter the required columns
   inventory_report <- inventory_report[,required_cols]
   
