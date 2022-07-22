@@ -127,7 +127,16 @@ gen_customer_pricelist <- function(
 }
 
 open_location <- function(location_path, timeout=2){
-  system2('open',location_path)
+  
+  # issue command based on system
+  sys_info <- Sys.info()
+  if(sys_info[1]=="Linux"){
+    open_command <- "xdg-open"
+  }else{
+    open_command <- "open"
+  }
+  
+  system2(open_command,location_path)
 }
 
 gbl_write_var <- function(var_name, var_data){
