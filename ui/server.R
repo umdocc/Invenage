@@ -92,7 +92,9 @@ shinyServer(function(input, output,session) {
   # customer_pricing_report ----------------------------------------------------
   # UI & data load
   output <- cpr_init(input,output)
-  
+  observeEvent(input$cpr_create_report,{
+    cpr_create_report(input)    # writing to database
+  })
   
 # -------------------------------- update_db menu ------------------------------
   # update_product_info --------------------------------------------------------
