@@ -89,6 +89,11 @@ shinyServer(function(input, output,session) {
     pir_create_report(input)    # writing to database
   })
   
+  # customer_pricing_report ----------------------------------------------------
+  # UI & data load
+  output <- cpr_init(input,output)
+  
+  
 # -------------------------------- update_db menu ------------------------------
   # update_product_info --------------------------------------------------------
   
