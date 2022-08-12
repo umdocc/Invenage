@@ -15,7 +15,8 @@ navbarPage(
   navbarMenu(title = uielem$add_import_item,
              aii_tab,
              sep_tab,
-             mil_tab
+             mil_tab,
+             vii_tab
   ),
   
   # reports menu

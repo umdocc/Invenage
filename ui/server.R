@@ -78,6 +78,15 @@ shinyServer(function(input, output,session) {
     output <- mil_edit_line(input, output)   
   })
   
+  # vendor import invoice ------------------------------------------------------
+  
+  output <- vii_init(input,output)
+  
+  # button handlers
+  observeEvent(input$vii_add_data,{
+    output <- vii_add_data(input,output)     # writing to database
+  })
+  
   # ----------------------------- report menu ----------------------------------
   
   # po_inventory_report --------------------------------------------------------
