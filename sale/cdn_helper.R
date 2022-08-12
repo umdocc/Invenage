@@ -291,20 +291,29 @@ get_current_pxk <- function(input){
     "select * from pxk_info where admin_id =",config$admin_id,
     " and sale_datetime = (select max(sale_datetime) from pxk_info 
     where admin_id=",config$admin_id,")"))
-  if (current_pxk$completed==0){
-    current_pxk$status <- 'in_progress'
-    current_pxk$customer_name <- customer_info$customer_name[
-      customer_info$customer_id==current_pxk$customer_id]
-  }else{
-    admin_id_length <- nchar(as.character(config$admin_id))
-    if(as.integer(Sys.Date()-as.Date(current_pxk$sale_datetime))>0){
-      current_count <- 1
+  
+  if(nrow(current_pxk)>0){
+    
+    if (current_pxk$completed==0){
+      current_pxk$status <- 'in_progress'
+      current_pxk$customer_name <- customer_info$customer_name[
+        customer_info$customer_id==current_pxk$customer_id]
     }else{
-      current_count <- as.integer(
-        substring(as.character(current_pxk$pxk_num), admin_id_length+6+1))+1
+      admin_id_length <- nchar(as.character(config$admin_id))
+      if(as.integer(Sys.Date()-as.Date(current_pxk$sale_datetime))>0){
+        current_count <- 1
+      }else{
+        current_count <- as.integer(
+          substring(as.character(current_pxk$pxk_num), admin_id_length+6+1))+1
+      }
+      current_pxk_num <- paste0(config$admin_id,strftime(Sys.Date(),"%d%m%y"),
+                                sprintf("%02d", (current_count)))
+      current_pxk <- data.frame(pxk_num=current_pxk_num,
+                                status='new', customer_name = "")
     }
+  }else{
     current_pxk_num <- paste0(config$admin_id,strftime(Sys.Date(),"%d%m%y"),
-                              sprintf("%02d", (current_count)))
+                              sprintf("%02d", 1))
     current_pxk <- data.frame(pxk_num=current_pxk_num,
                               status='new', customer_name = "")
   }
