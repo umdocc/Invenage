@@ -9,6 +9,8 @@ sep_load_ui <- function(input,output,ui_list){
 }
 
 sep_add_po2db <- function(input,output){
+  # reset error free before proceeding
+  gbl_write_var("error_free",T)
   req(input$sep_po_file)
   po_filepath <- input$sep_po_file$datapath
   
@@ -130,6 +132,11 @@ sep_check_db_exist <- function(po_name, po_data){
 get_vid_from_po_name <- function(po_name){
   vendor_id <- NA
   exw_vendor_list <- vendor_info[!is.na(vendor_info$name_on_po),]
+  
+  # make the search case insensitive
+  exw_vendor_list$name_on_po <- tolower(exw_vendor_list$name_on_po)
+  po_name <- tolower(po_name)
+  
   for (i in 1:nrow(exw_vendor_list)){
     if(grepl(exw_vendor_list$name_on_po[i],po_name)){
       vendor_id <- exw_vendor_list$vendor_id[i]
