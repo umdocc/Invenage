@@ -48,20 +48,26 @@ render_uvi_vendor_local <- function(){renderUI({
 })}
 
 uvi_add_vendor <- function(input,output){
-  append_vendor <- data.frame(
-    vendor = input$uvi_vendor, orig_vendor = T, local = T)
-  
-  if(input$uvi_vendor_orig!=uielem$vendor){
-    append_vendor$orig_vendor <- F
+  # check if the vendor name exists
+  test_df <- vendor_info[vendor_info$vendor==input$uvi_vendor,]
+  if(nrow(test_df)>0){
+    show_error("data_exist")
+  }else{
+    append_vendor <- data.frame(
+      vendor = input$uvi_vendor, orig_vendor = T, local = T)
+    
+    if(input$uvi_vendor_orig!=uielem$vendor){
+      append_vendor$orig_vendor <- F
+    }
+    if(input$uvi_vendor_local!=uielem$local){
+      append_vendor$local <- F
+    }
+    db_append_tbl("vendor_info",append_vendor)
+    # build the vendor code
+    new_vid <- db_read_query(paste0(
+      "select * from vendor_info where vendor='",
+      append_vendor$vendor,"'"))$vendor_id
+    update_query <- paste0("update vendor_info set vendor_code=concat('",
+                  uvi_vendor_code_prefix,"',lpad(",new_vid)
   }
-  if(input$uvi_vendor_local!=uielem$local){
-    append_vendor$local <- F
-  }
-  db_append_tbl("vendor_info",append_vendor)
-  # build the vendor code
-  new_vid <- db_read_query(paste0(
-    "select * from vendor_info where vendor='",
-    append_vendor$vendor,"'"))$vendor_id
-  update_query <- paste0("update vendor_info set vendor_code=concat('",
-                uvi_vendor_code_prefix,"',lpad(",new_vid)
 }
