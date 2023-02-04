@@ -21,7 +21,8 @@ if('pir' %in% hidden_tab){
                    choices = list(uielem$value_report,
                                   uielem$po_report,
                                   uielem$separate_lot,
-                                  uielem$expiry_first)
+                                  uielem$expiry_first,
+                                  uielem$full_product)
                   ),
       actionButton(inputId = "pir_create_report", 
                    label = uielem$print_report),

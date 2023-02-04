@@ -27,6 +27,10 @@ render_pir_data <- function(input){DT::renderDataTable({
     output_tbl <- pir_get_separate_lot_report(
       vendor_id = current_vid)
   }
+  if(input$pir_report_type==uielem$full_product){
+    
+    output_tbl <- pir_get_full_product_report()
+  }
   
   #translate and render
   output_tbl <- translate_tbl_column(output_tbl,uielem)
@@ -41,6 +45,11 @@ pir_create_report <- function(input){
   pir_data$vendor_id <- vendor_info$vendor_id[
     vendor_info$vendor==input$pir_vendor]
   gbl_write_var("pir_data",pir_data)
+  
+  # if full product report is selected
+  if(pir_data$report_type==uielem$full_product){
+    inventory_report <- pir_get_full_product_report()
+  }
   
   # if value report is selected
   if(pir_data$report_type==uielem$value_report){
@@ -79,6 +88,9 @@ pir_print_report <- function(pir_data, inventory_report){
   }
   if(pir_data$report_type==uielem$separate_lot){
     required_cols <- split_semi(config$pir_separate_lot_report_col)
+  }
+  if(pir_data$report_type==uielem$full_product){
+    required_cols <- split_semi(config$pir_full_product_report_col)
   }
   
   # filter the required columns
@@ -203,6 +215,21 @@ pir_get_exp_first_report <- function(
   }
   
   return(report_data)
+}
+
+#simple function to write out all inventory
+pir_get_full_product_report <- function(pos_item = F){
+  
+  if(!pos_item){
+    inventory_report <- pir_get_value_report(vendor_id=0) %>% 
+      select(prod_code, vendor_id, total_remain_qty)
+    inventory_report <- merge(product_info, inventory_report, all.x = T)
+    inventory_report <- merge(inventory_report, 
+                              vendor_info %>% select(vendor_id, vendor), 
+                              all.x = T)
+  }
+  
+  return(inventory_report)
 }
 
 # if method='latest_import' the program will calculate actual_unit_price from
