@@ -52,7 +52,7 @@ pir_create_report <- function(input){
     inventory_report <- pir_get_po_report(vendor_id = pir_data$vendor_id)
   }
   
-  # if report used for po placement is selected
+  # if report used for inventory control is used
   if(pir_data$report_type==uielem$separate_lot){
     inventory_report <- pir_get_separate_lot_report(
       vendor_id = pir_data$vendor_id)
