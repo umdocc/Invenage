@@ -22,15 +22,7 @@ if(!file.exists(file.path(app_path,"ui","global.R"))){
   if(Sys.info()[["sysname"]]=="Windows"){
     app_path <- file.path(home_path,"GitHub","Invenage")
   }else{
-    app_path <- file.path(home_path,"Docum
-                          
-                          
-                          
-                          
-                          
-                          
-                          
-                          ents","GitHub","Invenage")
+    app_path <- file.path(home_path,"Documents","GitHub","Invenage")
   }
 }
 
