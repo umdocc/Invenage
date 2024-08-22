@@ -63,7 +63,7 @@ hidden_tab <- split_semi(config$hidden_tab)
 # load the remaining function
 func_list <- list.files(file.path(app_path),full.names = T, recursive = T,
                         pattern = ".R")
-func_list <- func_list[!grepl('boot|ui',func_list)] # exclude
+func_list <- func_list[!grepl('boot|ui|tools',func_list)] # exclude
 sapply(func_list, source)
 
 
