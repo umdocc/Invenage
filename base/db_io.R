@@ -59,7 +59,7 @@ gbl_load_tbl <- function(table_list=c("uielem")){
       
       if(tbl_name=="sale_log"){
         data_tbl <- dbGetQuery(conn,"select * from sale_log inner join pxk_info
-                           on sale_log.pxk_num = pxk_info.pxk_num")
+                           using (pxk_num)")
         assign("sale_log",data_tbl,envir=globalenv())
       }
       
