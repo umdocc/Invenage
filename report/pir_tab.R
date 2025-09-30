@@ -12,6 +12,10 @@ if('pir' %in% hidden_tab){
                   label = uielem$vendor,
                   choices = db_read_query(
                     "select vendor from vendor_info")$vendor),
+      dateInput(inputId = "pir_from_date",
+                label = uielem$from_date,
+                value = "1900-01-01",
+                format = config$display_date_format),
       dateInput(inputId = "pir_to_date",
                 label = uielem$to_date,
                 value = Sys.Date(),
