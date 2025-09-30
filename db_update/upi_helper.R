@@ -125,6 +125,7 @@ upi_add_product <- function(input,output){
     append_prod$warehouse_id <- upi_data$warehouse_id
     append_prod$active <- 1
     print(append_prod)
+    
     # compose line to be added to packaging
     append_pkg <- upi_data %>% select(prod_code, unit=ordering_unit)
     append_pkg$units_per_pack <- 1
