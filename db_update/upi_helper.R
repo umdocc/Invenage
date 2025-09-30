@@ -129,6 +129,7 @@ upi_add_product <- function(input,output){
     append_pkg <- upi_data %>% select(prod_code, unit=ordering_unit)
     append_pkg$units_per_pack <- 1
     append_pkg$last_updated <- format(Sys.Date())
+    append_pkg$ordering_unit <- 1
     
     # writing to db
     db_append_tbl('product_info',append_prod)
