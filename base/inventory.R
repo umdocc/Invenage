@@ -32,16 +32,25 @@ get_sale_data <- function(vendor_id=0,from_date="1900-01-01",
   return(sale_data)
 }
 
-gbl_update_inventory <- function(pos_item=TRUE, summarised = FALSE,
-                             to_date = Sys.Date(), from_date="1900-01-01"){
-  # read import and sale log
-
-  tmp <- import_log[import_log$delivery_date<(as.Date(to_date)+1),]
-  tmp2 <- sale_log[sale_log$sale_datetime<(as.Date(to_date)+1),]
-
+# extract the total inventory from and to date
+get_total_inventory <- function(
+    from_date="1900-01-01", to_date=Sys.Date(), summarised = FALSE){
+  
+  # comment out on variables
+  # to_date<-Sys.Date(); from_date<-"2025-01-01"
+  
+  # process import_log into packs
+  tmp <- import_log[
+    import_log$delivery_date<(as.Date(to_date)+1) & 
+      import_log$delivery_date>=(as.Date(from_date)),]
   tmp <- convert_to_pack(tmp,packaging,'qty','importQty')
   tmp <- tmp %>% group_by(prod_code,unit,lot,warehouse_id) %>% 
     summarise(totalImportQty = sum(importQty), .groups = 'drop')
+  
+  # process sale_log into packs
+  tmp2 <- sale_log[
+    sale_log$sale_datetime<(as.Date(to_date)+1) &
+      sale_log$sale_datetime>=(as.Date(from_date)),]
   
   # for sale_log we need to merge with warehouse_id
   tmp2 <- convert_to_pack(tmp2,packaging,'qty','saleQty')
@@ -49,10 +58,19 @@ gbl_update_inventory <- function(pos_item=TRUE, summarised = FALSE,
     summarise(totalSaleQty = sum(saleQty), .groups = 'drop')
   totalInventory <- merge(tmp,tmp2,all=T,
                           by=c('prod_code','unit','lot','warehouse_id'))
+  
   totalInventory$totalSaleQty[is.na(totalInventory$totalSaleQty)] <- 0
   totalInventory$totalImportQty[is.na(totalInventory$totalImportQty)] <- 0
   totalInventory$remaining_qty <- totalInventory$totalImportQty - 
     totalInventory$totalSaleQty
+  return(totalInventory)  
+  
+}
+
+gbl_update_inventory <- function(pos_item=TRUE, summarised = FALSE,
+                             to_date = Sys.Date(), from_date="1900-01-01"){
+  # read import and sale log
+  totalInventory <- get_total_inventory(from_date, to_date, summarised)
   
   # keep only the available items
   if (pos_item){
