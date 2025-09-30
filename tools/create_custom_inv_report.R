@@ -34,11 +34,3 @@ get_total_inventory <- function(
   
 }
 
-format_inventory_report <- function(
-    from_date="1900-01-01", to_date=Sys.Date(), vendor_id=0, pos_item=TRUE, 
-    summarised = FALSE){
-  
-  
-
-}
-
