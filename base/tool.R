@@ -43,12 +43,13 @@ write_excel <- function(
 
 db_integrity_check <- function(){
   # check if all items in packaging has an ordering unit
-  # gbl_load_tbl("packaging")
-  # ordering_unit <- get_ordering_unit(packaging)
-  # tmp <- packaging[!duplicated(packaging$prod_code),]
-  # test <- merge(tmp,ordering_unit %>% select(prod_code,ordering_unit),
-  #               all.x = T)
-  # test[is.na(test$ordering_unit),]
+  gbl_load_tbl("packaging")
+  od_unit <- get_ordering_unit(packaging)
+  tmp <- packaging[!duplicated(packaging$prod_code),] %>% select(prod_code)
+  test <- merge(tmp, od_unit, all.x = T)
+  prod_w_no_od <- test[is.na(test$unit),]
+  rp_num <- nrow(prod_w_no_od)
+  print(c("packaging integrity check failed: ",rp_num," products without ordering unit"))
   
   # check product_info for duplications
   tmp <- product_info[duplicated(product_info %>% select(ref_smn, vendor_id, active)),]
